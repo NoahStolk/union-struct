@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct", "UnionStruct\UnionStruct.csproj", "{6F801090-A444-4EB2-9996-2ACE7894A5B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct.Sample", "UnionStruct.Sample\UnionStruct.Sample.csproj", "{687E31C1-CF20-4D51-A93F-34A85E0EF4F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct.Tests", "UnionStruct.Tests\UnionStruct.Tests.csproj", "{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F801090-A444-4EB2-9996-2ACE7894A5B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F801090-A444-4EB2-9996-2ACE7894A5B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F801090-A444-4EB2-9996-2ACE7894A5B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F801090-A444-4EB2-9996-2ACE7894A5B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{687E31C1-CF20-4D51-A93F-34A85E0EF4F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{687E31C1-CF20-4D51-A93F-34A85E0EF4F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{687E31C1-CF20-4D51-A93F-34A85E0EF4F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{687E31C1-CF20-4D51-A93F-34A85E0EF4F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
