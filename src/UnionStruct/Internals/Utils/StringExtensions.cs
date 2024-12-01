@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace UnionStruct.Internals;
+namespace UnionStruct.Internals.Utils;
 
 internal static class StringExtensions
 {

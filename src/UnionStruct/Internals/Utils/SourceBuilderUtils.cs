@@ -1,4 +1,4 @@
-﻿namespace UnionStruct.Internals;
+﻿namespace UnionStruct.Internals.Utils;
 
 internal static class SourceBuilderUtils
 {

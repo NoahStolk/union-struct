@@ -1,4 +1,4 @@
-﻿using UnionStruct.Internals;
+﻿using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Model;
 
@@ -12,20 +12,53 @@ public sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseData
 
 	public string CaseFieldName => $"{CaseName}Data";
 
-	public string ActionType => $"global::System.Action<{GetCaseTypeName()}>";
-
-	public string FuncType => $"global::System.Func<{GetCaseTypeName()}, T>";
-
 	public string ParameterName => SourceBuilderUtils.ToEscapedLocal(CaseName);
 
 	/// <summary>
 	/// Returns the name of the generated struct type for this case.
 	/// </summary>
-	public string GetCaseTypeName()
-	{
-		if (DataTypes.Count != 1)
-			return $"{CaseName}Case";
+	public string CaseTypeName => DataTypes.Count == 1 ? DataTypes[0].GetFullyQualifiedTypeName() : $"{CaseName}Case";
 
-		return DataTypes[0].GetFullyQualifiedTypeName();
+	public string GetActionType()
+	{
+		return DataTypes.Count switch
+		{
+			0 => "global::System.Action",
+			_ => $"global::System.Action<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}>",
+		};
+	}
+
+	public string GetFuncType()
+	{
+		return DataTypes.Count switch
+		{
+			0 => "global::System.Func<T>",
+			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}, T>",
+		};
+	}
+
+	public string GetInvocationParameters()
+	{
+		return DataTypes.Count switch
+		{
+			0 => string.Empty,
+			1 => CaseFieldName,
+			_ => string.Join(", ", DataTypes.Select(dt => $"{CaseFieldName}.{dt.FieldName}")),
+		};
+	}
+
+	public string GetToStringReturnValue()
+	{
+		if (DataTypes.Count == 0)
+			return $"\"{CaseName}\"";
+
+		if (DataTypes.Count == 1)
+			return $"{CaseFieldName}.ToString()";
+
+		string fields = string.Join(", ", DataTypes.Select(dt => $"{dt.FieldName} = {{{CaseFieldName}.{dt.FieldName}}}"));
+		return
+			$$$"""
+			   $"{{{CaseName}}} {{ {{{fields}}} }}"
+			   """;
 	}
 }

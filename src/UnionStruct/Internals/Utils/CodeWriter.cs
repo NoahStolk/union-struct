@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace UnionStruct.Internals;
+namespace UnionStruct.Internals.Utils;
 
 internal sealed class CodeWriter
 {

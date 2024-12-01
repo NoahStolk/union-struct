@@ -12,6 +12,7 @@ unsafe
 WriteUnion(TestUnion.Empty());
 WriteUnion(TestUnion.Pos(new Pos(new Vector3(1, 2, 3))));
 WriteUnion(TestUnion.PosRange(new PosRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6))));
+WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
 
 void WriteUnion(TestUnion testUnion)
 {
@@ -20,9 +21,10 @@ void WriteUnion(TestUnion testUnion)
         Console.Write(b.ToString("X2", CultureInfo.InvariantCulture));
 
     string result = testUnion.Match(
-        static _ => "Empty",
+        static () => "Empty",
         static pos => $"Position: {pos.Position}",
-        static posRange => $"PositionRange: {posRange.PositionMin} {posRange.PositionMax}");
+        static posRange => $"PositionRange: {posRange.PositionMin} {posRange.PositionMax}",
+        static (position, velocity) => $"MultiCase: {position} {velocity}");
     Console.WriteLine($" -> {result}");
 
     if (testUnion.IsPos)
@@ -32,6 +34,12 @@ void WriteUnion(TestUnion testUnion)
         testUnion.PosData.Position = new Vector3(4, 5, 6);
         Console.WriteLine($"This is a position: {testUnion.PosData.Position}");
     }
+
+    testUnion.Switch(
+	    static () => { },
+	    static _ => { },
+	    static _ => { },
+	    static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"));
 
     Console.WriteLine("---");
 }

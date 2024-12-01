@@ -1,4 +1,5 @@
-﻿using UnionStruct.Sample.Cases;
+﻿using System.Numerics;
+using UnionStruct.Sample.Cases;
 
 namespace UnionStruct.Sample;
 
@@ -13,4 +14,7 @@ internal partial record struct TestUnion
 
 	[UnionCase]
 	public static partial TestUnion PosRange(PosRange posRange);
+
+	[UnionCase]
+	public static partial TestUnion MultiCase(Vector3 position, Vector3 velocity);
 }

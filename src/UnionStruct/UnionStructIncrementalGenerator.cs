@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Text;
-using UnionStruct.Internals;
+using UnionStruct.Internals.Utils;
 using UnionStruct.Model;
 
 namespace UnionStruct;
@@ -95,7 +95,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 								continue;
 
 							if (ModelExtensions.GetTypeInfo(context.SemanticModel, parameterSyntax.Type).Type is INamedTypeSymbol namedTypeSymbol)
-								dataTypes.Add(new UnionCaseDataTypeModel(namedTypeSymbol));
+								dataTypes.Add(new UnionCaseDataTypeModel(parameterSyntax.Identifier.Text, namedTypeSymbol));
 						}
 
 						cases.Add(new UnionCaseModel(methodDeclarationSyntax.Identifier.Text, dataTypes));
@@ -158,7 +158,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
 			writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.GetCaseTypeName()} {unionCaseModel.CaseFieldName};");
+			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
 			writer.WriteLine();
 		}
 	}
@@ -183,7 +183,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 	{
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
-			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.GetFullyQualifiedTypeName()} {SourceBuilderUtils.ToEscapedLocal(dt.NamedTypeSymbol.Name)}").ToList();
+			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.GetFullyQualifiedTypeName()} {dt.ParameterName}").ToList();
 
 			writer.WriteLine($"public static partial {unionModel.StructName} {unionCaseModel.CaseName}(");
 
@@ -194,20 +194,19 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 			writer.WriteLine(")");
 
 			writer.StartBlock();
-			writer.WriteLine($"return new {unionModel.StructName}({unionCaseModel.CaseIndexFieldName})");
+			writer.WriteLine($"{unionModel.StructName} value = new({unionCaseModel.CaseIndexFieldName});");
 
-			writer.StartBlock();
 			if (parameterDeclarations.Count == 1)
 			{
-				writer.WriteLine($"{unionCaseModel.CaseFieldName} = {unionCaseModel.ParameterName},");
+				writer.WriteLine($"value.{unionCaseModel.CaseFieldName} = {unionCaseModel.ParameterName};");
 			}
 			else
 			{
-				for (int i = 0; i < parameterDeclarations.Count; i++)
-					writer.WriteLine($"{unionCaseModel.CaseFieldName}.{unionCaseModel.DataTypes[i].FieldName} = {parameterDeclarations[i]};");
+				foreach (UnionCaseDataTypeModel dt in unionCaseModel.DataTypes)
+					writer.WriteLine($"value.{unionCaseModel.CaseFieldName}.{dt.FieldName} = {dt.ParameterName};");
 			}
 
-			writer.EndBlockWithSemicolon();
+			writer.WriteLine("return value;");
 
 			writer.EndBlock();
 			writer.WriteLine();
@@ -216,7 +215,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 
 	private static void GenerateSwitchMethod(CodeWriter writer, UnionModel unionModel)
 	{
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.ActionType} {ucm.ParameterName}").ToList();
+		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.GetActionType()} {ucm.ParameterName}").ToList();
 
 		writer.WriteLine("public void Switch(");
 
@@ -230,7 +229,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 		writer.WriteLine("switch (CaseIndex)");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"case {unionCaseModel.CaseIndexFieldName}: {unionCaseModel.ParameterName}.Invoke({unionCaseModel.CaseFieldName}); break;");
+			writer.WriteLine($"case {unionCaseModel.CaseIndexFieldName}: {unionCaseModel.ParameterName}.Invoke({unionCaseModel.GetInvocationParameters()}); break;");
 		writer.WriteLine("default: throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\");");
 		writer.EndBlock();
 		writer.EndBlock();
@@ -239,7 +238,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 
 	private static void GenerateMatchMethod(CodeWriter writer, UnionModel unionModel)
 	{
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.FuncType} {ucm.ParameterName}").ToList();
+		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.GetFuncType()} {ucm.ParameterName}").ToList();
 
 		writer.WriteLine("public T Match<T>(");
 
@@ -253,7 +252,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 		writer.WriteLine("return CaseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ParameterName}.Invoke({unionCaseModel.CaseFieldName}),");
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ParameterName}.Invoke({unionCaseModel.GetInvocationParameters()}),");
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\")");
 		writer.EndBlockWithSemicolon();
 		writer.EndBlock();
@@ -267,12 +266,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 		writer.WriteLine("return CaseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-		{
-			if (unionCaseModel.DataTypes.Count == 0)
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.CaseName}\",");
-			else
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.CaseFieldName}.ToString(),");
-		}
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.GetToStringReturnValue()},");
 
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\")");
 		writer.EndBlockWithSemicolon();
@@ -287,7 +281,7 @@ public class UnionStructIncrementalGenerator : IIncrementalGenerator
 			if (unionCaseModel.DataTypes.Count == 1)
 				continue;
 
-			writer.WriteLine($"public struct {unionCaseModel.GetCaseTypeName()}");
+			writer.WriteLine($"public struct {unionCaseModel.CaseTypeName}");
 			writer.StartBlock();
 			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
 			{
