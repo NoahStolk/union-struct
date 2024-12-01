@@ -1,8 +1,8 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace UnionStruct.Model;
+namespace UnionStruct.Internals.Model;
 
-public sealed record UnionModel(RecordDeclarationSyntax RecordDeclarationSyntax, IReadOnlyList<UnionCaseModel> Cases)
+internal sealed record UnionModel(RecordDeclarationSyntax RecordDeclarationSyntax, IReadOnlyList<UnionCaseModel> Cases)
 {
 	public RecordDeclarationSyntax RecordDeclarationSyntax { get; } = RecordDeclarationSyntax;
 

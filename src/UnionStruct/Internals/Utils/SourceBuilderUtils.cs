@@ -9,11 +9,6 @@ internal static class SourceBuilderUtils
 		 // </auto-generated>
 		 """;
 
-	public static string Build(CodeWriter codeWriter)
-	{
-		return Build(codeWriter.ToString());
-	}
-
 	public static string Build(string sourceCode)
 	{
 		string template =

@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using UnionStruct.Internals.Utils;
 
-namespace UnionStruct.Model;
+namespace UnionStruct.Internals.Model;
 
-public sealed record UnionCaseDataTypeModel(string Name, INamedTypeSymbol NamedTypeSymbol)
+internal sealed record UnionCaseDataTypeModel(string Name, INamedTypeSymbol NamedTypeSymbol)
 {
 	public string Name { get; } = Name;
 

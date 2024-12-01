@@ -1,8 +1,8 @@
 ﻿using UnionStruct.Internals.Utils;
 
-namespace UnionStruct.Model;
+namespace UnionStruct.Internals.Model;
 
-public sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDataTypeModel> DataTypes)
+internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDataTypeModel> DataTypes)
 {
 	public string CaseName { get; } = CaseName;
 
