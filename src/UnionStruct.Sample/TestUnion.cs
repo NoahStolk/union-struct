@@ -10,10 +10,10 @@ internal partial record struct TestUnion
 	public static partial TestUnion Empty();
 
 	[UnionCase]
-	public static partial TestUnion Pos(Pos pos);
+	public static partial TestUnion PositionCase(Position position);
 
 	[UnionCase]
-	public static partial TestUnion PosRange(PosRange posRange);
+	public static partial TestUnion PositionRangeCase(PositionRange positionRange);
 
 	[UnionCase]
 	public static partial TestUnion MultiCase(Vector3 position, Vector3 velocity);

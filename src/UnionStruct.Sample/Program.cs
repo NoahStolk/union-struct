@@ -10,8 +10,8 @@ unsafe
 }
 
 WriteUnion(TestUnion.Empty());
-WriteUnion(TestUnion.Pos(new Pos(new Vector3(1, 2, 3))));
-WriteUnion(TestUnion.PosRange(new PosRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6))));
+WriteUnion(TestUnion.PositionCase(new Position(new Vector3(1, 2, 3))));
+WriteUnion(TestUnion.PositionRangeCase(new PositionRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6))));
 WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
 
 void WriteUnion(TestUnion testUnion)
@@ -22,17 +22,17 @@ void WriteUnion(TestUnion testUnion)
 
     string result = testUnion.Match(
         static () => "Empty",
-        static pos => $"Position: {pos.Position}",
-        static posRange => $"PositionRange: {posRange.PositionMin} {posRange.PositionMax}",
+        static pos => $"Position: {pos.Value}",
+        static posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
         static (position, velocity) => $"MultiCase: {position} {velocity}");
     Console.WriteLine($" -> {result}");
 
-    if (testUnion.IsPos)
+    if (testUnion.IsPositionCase)
     {
-        Console.WriteLine($"This is a position: {testUnion.PosData.Position}");
+        Console.WriteLine($"This is a position: {testUnion.PositionCaseData.Value}");
 
-        testUnion.PosData.Position = new Vector3(4, 5, 6);
-        Console.WriteLine($"This is a position: {testUnion.PosData.Position}");
+        testUnion.PositionCaseData.Value *= 2;
+        Console.WriteLine($"Position now multiplied by two: {testUnion.PositionCaseData.Value}");
     }
 
     testUnion.Switch(

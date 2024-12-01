@@ -85,7 +85,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 			if (parameterDeclarations.Count == 1)
 			{
-				writer.WriteLine($"value.{unionCaseModel.CaseFieldName} = {unionCaseModel.ParameterName};");
+				writer.WriteLine($"value.{unionCaseModel.CaseFieldName} = {unionCaseModel.DataTypes[0].ParameterName};");
 			}
 			else
 			{
