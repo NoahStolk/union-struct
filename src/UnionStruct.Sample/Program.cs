@@ -20,7 +20,7 @@ void WriteUnion(TestUnion testUnion)
         Console.Write(b.ToString("X2", CultureInfo.InvariantCulture));
 
     string result = testUnion.Match(
-        static () => "Empty",
+        static _ => "Empty",
         static pos => $"Position: {pos.Position}",
         static posRange => $"PositionRange: {posRange.PositionMin} {posRange.PositionMax}");
     Console.WriteLine($" -> {result}");

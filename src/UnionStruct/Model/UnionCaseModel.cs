@@ -1,23 +1,31 @@
-﻿using Microsoft.CodeAnalysis;
-using System.Globalization;
-using UnionStruct.Internals;
+﻿using UnionStruct.Internals;
 
 namespace UnionStruct.Model;
 
-public sealed record UnionCaseModel(INamedTypeSymbol Type)
+public sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDataTypeModel> DataTypes)
 {
-	public INamedTypeSymbol Type { get; } = Type;
+	public string CaseName { get; } = CaseName;
 
-	public string GetFullyQualifiedTypeName()
+	public IReadOnlyList<UnionCaseDataTypeModel> DataTypes { get; } = DataTypes;
+
+	public string CaseIndexFieldName => $"{CaseName}Index";
+
+	public string CaseFieldName => $"{CaseName}Data";
+
+	public string ActionType => $"global::System.Action<{GetCaseTypeName()}>";
+
+	public string FuncType => $"global::System.Func<{GetCaseTypeName()}, T>";
+
+	public string ParameterName => SourceBuilderUtils.ToEscapedLocal(CaseName);
+
+	/// <summary>
+	/// Returns the name of the generated struct type for this case.
+	/// </summary>
+	public string GetCaseTypeName()
 	{
-		string namespaceName = Type.ContainingNamespace.ToDisplayString();
-		string typeName = Type.Name;
+		if (DataTypes.Count != 1)
+			return $"{CaseName}Case";
 
-		return $"{namespaceName}.{typeName}";
-	}
-
-	public string GetParameterName()
-	{
-		return SourceBuilderUtils.ToEscapedLocal(Type.Name);
+		return DataTypes[0].GetFullyQualifiedTypeName();
 	}
 }

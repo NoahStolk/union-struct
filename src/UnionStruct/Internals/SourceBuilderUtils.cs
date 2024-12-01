@@ -28,22 +28,10 @@ internal static class SourceBuilderUtils
 		return template.Replace("\r", string.Empty);
 	}
 
-	public static string ToPropertyOrMethod(string name)
-	{
-		name = name.RemovePrefix("@").RemovePrefix("_");
-		return name.FirstCharToUpperCase();
-	}
-
 	public static string ToEscapedLocal(string name)
 	{
 		name = name.RemovePrefix("@").RemovePrefix("_");
 		return $"@{name.FirstCharToLowerCase()}";
-	}
-
-	public static string ToField(string name)
-	{
-		name = name.RemovePrefix("@").RemovePrefix("_");
-		return $"_{name.FirstCharToLowerCase()}";
 	}
 
 	private static string RemovePrefix(this string name, string prefix)

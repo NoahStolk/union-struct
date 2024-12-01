@@ -2,7 +2,15 @@
 
 namespace UnionStruct.Sample;
 
-[Union(IncludeEmptyCase: true)]
-[UnionCase<Pos>]
-[UnionCase<PosRange>]
-internal partial record struct TestUnion;
+[Union]
+internal partial record struct TestUnion
+{
+	[UnionCase]
+	public static partial TestUnion Empty();
+
+	[UnionCase]
+	public static partial TestUnion Pos(Pos pos);
+
+	[UnionCase]
+	public static partial TestUnion PosRange(PosRange posRange);
+}
