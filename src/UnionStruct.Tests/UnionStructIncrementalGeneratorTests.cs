@@ -2,8 +2,8 @@ namespace UnionStruct.Tests;
 
 public sealed class UnionStructIncrementalGeneratorTests
 {
-    // TODO:
-    /*
+	// TODO:
+	/*
 - Empty union struct
 - Simple union struct
 - Simple union struct with empty case
@@ -11,12 +11,15 @@ public sealed class UnionStructIncrementalGeneratorTests
 - Nested union struct (cases as nested types)
 - Recursive union struct (where another union struct is a case of another)
 - All of the above
+
 - Equality
-- Some<T>
+- Match
+- Switch
+- ToString
 - Cases using
   - Nullable<T>
   - Enums
   - ValueTuples
   - Properties instead of fields
-     */
+	*/
 }

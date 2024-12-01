@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using System.Globalization;
+using UnionStruct.Internals;
 
 namespace UnionStruct.Model;
 
@@ -17,12 +18,6 @@ public sealed record UnionCaseModel(INamedTypeSymbol Type)
 
 	public string GetParameterName()
 	{
-		string typeName = Type.Name;
-		return typeName.Length switch
-		{
-			0 => throw new ArgumentException("Type name is empty.", nameof(Type)),
-			1 => typeName.ToLower(CultureInfo.InvariantCulture),
-			_ => $"{char.ToLower(typeName[0], CultureInfo.InvariantCulture)}{typeName.Substring(1)}",
-		};
+		return SourceBuilderUtils.ToEscapedLocal(Type.Name);
 	}
 }
