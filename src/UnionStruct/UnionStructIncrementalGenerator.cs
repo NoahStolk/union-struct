@@ -11,7 +11,7 @@ using UnionStruct.Internals.Utils;
 namespace UnionStruct;
 
 [Generator]
-public class UnionStructIncrementalGenerator : IIncrementalGenerator
+public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 {
 	private const string _unionAttributeName = "UnionAttribute";
 	private const string _unionCaseAttributeName = "UnionCaseAttribute";

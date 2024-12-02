@@ -25,11 +25,4 @@ internal static class StringExtensions
 
 		return str;
 	}
-
-	public static string RegularTextToPascalCase(this string str)
-	{
-		return string.Concat(str
-			.Split([' '], StringSplitOptions.RemoveEmptyEntries)
-			.Select(s => s.FirstCharToUpperCase()));
-	}
 }
