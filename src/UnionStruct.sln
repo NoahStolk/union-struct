@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct.Sample", "Union
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct.Tests", "UnionStruct.Tests\UnionStruct.Tests.csproj", "{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnionStruct.Tests.Integration", "UnionStruct.Tests.Integration\UnionStruct.Tests.Integration.csproj", "{3E5BC357-90C2-4D15-BB58-DDB1ED15631F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD42072A-5B46-4207-81D6-C5BF46D3CFC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E5BC357-90C2-4D15-BB58-DDB1ED15631F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E5BC357-90C2-4D15-BB58-DDB1ED15631F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E5BC357-90C2-4D15-BB58-DDB1ED15631F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E5BC357-90C2-4D15-BB58-DDB1ED15631F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
