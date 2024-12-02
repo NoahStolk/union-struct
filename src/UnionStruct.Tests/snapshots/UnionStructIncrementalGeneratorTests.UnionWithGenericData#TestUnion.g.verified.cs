@@ -17,10 +17,10 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public int IntData = default!;
+	public int? IntData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public long LongData = default!;
+	public long? LongData = default!;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -31,7 +31,7 @@ internal partial record struct TestUnion
 	public bool IsLong => CaseIndex == LongIndex;
 
 	public static partial TestUnion Int(
-		int @value
+		int? @value
 	)
 	{
 		TestUnion ___factoryReturnValue = new(IntIndex);
@@ -40,7 +40,7 @@ internal partial record struct TestUnion
 	}
 
 	public static partial TestUnion Long(
-		long @value
+		long? @value
 	)
 	{
 		TestUnion ___factoryReturnValue = new(LongIndex);
@@ -49,8 +49,8 @@ internal partial record struct TestUnion
 	}
 
 	public void Switch(
-		global::System.Action<int> @int,
-		global::System.Action<long> @long
+		global::System.Action<int?> @int,
+		global::System.Action<long?> @long
 	)
 	{
 		switch (CaseIndex)
@@ -62,8 +62,8 @@ internal partial record struct TestUnion
 	}
 
 	public TMatchOut Match<TMatchOut>(
-		global::System.Func<int, TMatchOut> @int,
-		global::System.Func<long, TMatchOut> @long
+		global::System.Func<int?, TMatchOut> @int,
+		global::System.Func<long?, TMatchOut> @long
 	)
 	{
 		return CaseIndex switch

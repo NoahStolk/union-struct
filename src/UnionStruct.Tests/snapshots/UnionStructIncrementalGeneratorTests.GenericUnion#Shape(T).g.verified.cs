@@ -14,7 +14,7 @@ internal partial record struct Shape<T>
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public T CircleData = default!;
+	public T? CircleData = default!;
 
 	public RectangleCase RectangleData = default!;
 
@@ -27,7 +27,7 @@ internal partial record struct Shape<T>
 	public bool IsRectangle => CaseIndex == RectangleIndex;
 
 	public static partial Shape<T> Circle(
-		T @radius
+		T? @radius
 	)
 	{
 		Shape<T> ___factoryReturnValue = new(CircleIndex);
@@ -36,8 +36,8 @@ internal partial record struct Shape<T>
 	}
 
 	public static partial Shape<T> Rectangle(
-		T @width,
-		T @height
+		T? @width,
+		T? @height
 	)
 	{
 		Shape<T> ___factoryReturnValue = new(RectangleIndex);
@@ -47,8 +47,8 @@ internal partial record struct Shape<T>
 	}
 
 	public void Switch(
-		global::System.Action<T> @circle,
-		global::System.Action<T, T> @rectangle
+		global::System.Action<T?> @circle,
+		global::System.Action<T?, T?> @rectangle
 	)
 	{
 		switch (CaseIndex)
@@ -60,8 +60,8 @@ internal partial record struct Shape<T>
 	}
 
 	public TMatchOut Match<TMatchOut>(
-		global::System.Func<T, TMatchOut> @circle,
-		global::System.Func<T, T, TMatchOut> @rectangle
+		global::System.Func<T?, TMatchOut> @circle,
+		global::System.Func<T?, T?, TMatchOut> @rectangle
 	)
 	{
 		return CaseIndex switch
@@ -84,9 +84,9 @@ internal partial record struct Shape<T>
 
 	public struct RectangleCase
 	{
-		public T Width;
+		public T? Width;
 
-		public T Height;
+		public T? Height;
 
 	}
 

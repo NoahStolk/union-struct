@@ -2,6 +2,8 @@
 
 **🚧 WORK IN PROGRESS 🚧**
 
+[![NuGet Version](https://img.shields.io/nuget/v/NoahStolk.UnionStruct.svg)](https://www.nuget.org/packages/NoahStolk.UnionStruct/)
+
 Source generator for creating memory-efficient union structs in C#
 
 ## Features

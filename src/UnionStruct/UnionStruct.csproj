@@ -11,7 +11,7 @@
 
   <PropertyGroup Label="Package configuration">
     <PackageId>NoahStolk.UnionStruct</PackageId>
-    <Version>0.0.0-alpha.0</Version>
+    <Version>0.0.0-alpha.1</Version>
     <Authors>Noah Stolk</Authors>
     <Copyright>Copyright © Noah Stolk</Copyright>
     <RepositoryType>git</RepositoryType>

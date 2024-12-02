@@ -20,12 +20,19 @@ WriteUnion(TestUnion.PositionCase(new Position(new Vector3(1, 2, 3))));
 WriteUnion(TestUnion.PositionRangeCase(new PositionRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6))));
 WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
 
+ComplexUnion<int, long> test = ComplexUnion<int, long>.UCaseNested(new ComplexUnion<int, long>.TestGenericNested<byte, short>(1, 2), 3, 4);
+Console.WriteLine(test);
+Console.WriteLine(test.UCaseNestedData.Value.HasValue ? test.UCaseNestedData.Value.Value.A : 0);
+
 void WriteShape<T>(Shape<T> shape)
 	where T : INumber<T>
 {
 	shape.Switch(
 		radius => Console.WriteLine($"Circle: {radius}"),
 		(width, height) => Console.WriteLine($"Rectangle: {width} {height}"));
+
+	if (shape.IsCircle)
+		Console.WriteLine($"This is a circle: {shape.CircleData}");
 }
 
 void WriteUnion(TestUnion testUnion)

@@ -18,10 +18,10 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Int32 CaseAData = default!;
+	public int CaseAData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Int64 CaseBData = default!;
+	public long CaseBData = default!;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -40,7 +40,7 @@ internal partial record struct TestUnion
 	}
 
 	public static partial TestUnion CaseA(
-		System.Int32 @a
+		int @a
 	)
 	{
 		TestUnion ___factoryReturnValue = new(CaseAIndex);
@@ -49,7 +49,7 @@ internal partial record struct TestUnion
 	}
 
 	public static partial TestUnion CaseB(
-		System.Int64 @b
+		long @b
 	)
 	{
 		TestUnion ___factoryReturnValue = new(CaseBIndex);
@@ -59,8 +59,8 @@ internal partial record struct TestUnion
 
 	public void Switch(
 		global::System.Action @empty,
-		global::System.Action<System.Int32> @caseA,
-		global::System.Action<System.Int64> @caseB
+		global::System.Action<int> @caseA,
+		global::System.Action<long> @caseB
 	)
 	{
 		switch (CaseIndex)
@@ -74,8 +74,8 @@ internal partial record struct TestUnion
 
 	public TMatchOut Match<TMatchOut>(
 		global::System.Func<TMatchOut> @empty,
-		global::System.Func<System.Int32, TMatchOut> @caseA,
-		global::System.Func<System.Int64, TMatchOut> @caseB
+		global::System.Func<int, TMatchOut> @caseA,
+		global::System.Func<long, TMatchOut> @caseB
 	)
 	{
 		return CaseIndex switch

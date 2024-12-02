@@ -15,10 +15,6 @@ internal sealed record UnionCaseDataTypeModel(string Name, ITypeSymbol TypeSymbo
 
 	public string GetFullyQualifiedTypeName()
 	{
-		if (TypeSymbol is ITypeParameterSymbol typeParameterSymbol)
-			return typeParameterSymbol.Name;
-
-		string namespaceName = TypeSymbol.ContainingNamespace.ToDisplayString();
-		return $"{namespaceName}.{TypeSymbol.Name}";
+		return TypeSymbol.ToDisplayString(NullableFlowState.MaybeNull);
 	}
 }

@@ -18,7 +18,7 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Single AngleCaseData = default!;
+	public float AngleCaseData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
 	public System.Numerics.Vector3 PositionCaseData = default!;
@@ -36,7 +36,7 @@ internal partial record struct TestUnion
 	public bool IsRotationCase => CaseIndex == RotationCaseIndex;
 
 	public static partial TestUnion AngleCase(
-		System.Single @angle
+		float @angle
 	)
 	{
 		TestUnion ___factoryReturnValue = new(AngleCaseIndex);
@@ -63,7 +63,7 @@ internal partial record struct TestUnion
 	}
 
 	public void Switch(
-		global::System.Action<System.Single> @angleCase,
+		global::System.Action<float> @angleCase,
 		global::System.Action<System.Numerics.Vector3> @positionCase,
 		global::System.Action<System.Numerics.Quaternion> @rotationCase
 	)
@@ -78,7 +78,7 @@ internal partial record struct TestUnion
 	}
 
 	public TMatchOut Match<TMatchOut>(
-		global::System.Func<System.Single, TMatchOut> @angleCase,
+		global::System.Func<float, TMatchOut> @angleCase,
 		global::System.Func<System.Numerics.Vector3, TMatchOut> @positionCase,
 		global::System.Func<System.Numerics.Quaternion, TMatchOut> @rotationCase
 	)
