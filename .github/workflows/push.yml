@@ -1,0 +1,30 @@
+on:
+  push:
+    branches:
+    - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '9.0.100'
+        include-prerelease: false
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build
+      run: dotnet build src/UnionStruct.sln -c Release
+    - name: Test
+      run: dotnet test src/UnionStruct.sln -c Release --no-build
+    - name: Pack
+      run: |
+        cd src/
+        dotnet pack -c Release -o .
+    - name: Push
+      run: |
+        cd src/
+        dotnet nuget push *.nupkg -s nuget.org -k ${NUGET_SECRET} -n --skip-duplicate
+      env:
+        NUGET_SECRET: ${{ secrets.NUGET_SECRET }}
