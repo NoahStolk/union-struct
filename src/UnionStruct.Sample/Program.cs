@@ -24,7 +24,8 @@ void WriteUnion(TestUnion testUnion)
         static () => "Empty",
         static pos => $"Position: {pos.Value}",
         static posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
-        static (position, velocity) => $"MultiCase: {position} {velocity}");
+        static (position, velocity) => $"MultiCase: {position} {velocity}",
+        static value => $"Value: {value}");
     Console.WriteLine($" -> {result}");
 
     if (testUnion.IsPositionCase)
@@ -39,7 +40,8 @@ void WriteUnion(TestUnion testUnion)
 	    static () => { },
 	    static _ => { },
 	    static _ => { },
-	    static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"));
+	    static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"),
+	    static _ => { });
 
     Console.WriteLine("---");
 }

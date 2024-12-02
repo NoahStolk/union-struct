@@ -35,26 +35,26 @@ public partial record struct TestUnion
 	public static partial TestUnion Empty(
 	)
 	{
-		TestUnion value = new(EmptyIndex);
-		return value;
+		TestUnion ___factoryReturnValue = new(EmptyIndex);
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion CaseA(
 		System.Int32 @a
 	)
 	{
-		TestUnion value = new(CaseAIndex);
-		value.CaseAData = @a;
-		return value;
+		TestUnion ___factoryReturnValue = new(CaseAIndex);
+		___factoryReturnValue.CaseAData = @a;
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion CaseB(
 		System.Int64 @b
 	)
 	{
-		TestUnion value = new(CaseBIndex);
-		value.CaseBData = @b;
-		return value;
+		TestUnion ___factoryReturnValue = new(CaseBIndex);
+		___factoryReturnValue.CaseBData = @b;
+		return ___factoryReturnValue;
 	}
 
 	public void Switch(

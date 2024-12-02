@@ -71,9 +71,11 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 	private void GenerateFactoryMethods(CodeWriter writer)
 	{
+		const string localName = "___factoryReturnValue"; // TODO: Find a better way to avoid naming conflicts with parameter names.
+
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
-			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.GetFullyQualifiedTypeName()} {dt.ParameterName}").ToList();
+			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.GetFullyQualifiedTypeName()} {dt.FactoryParameterName}").ToList();
 
 			writer.WriteLine($"public static partial {unionModel.StructName} {unionCaseModel.CaseName}(");
 
@@ -84,19 +86,19 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 			writer.WriteLine(")");
 
 			writer.StartBlock();
-			writer.WriteLine($"{unionModel.StructName} value = new({unionCaseModel.CaseIndexFieldName});");
+			writer.WriteLine($"{unionModel.StructName} {localName} = new({unionCaseModel.CaseIndexFieldName});");
 
 			if (parameterDeclarations.Count == 1)
 			{
-				writer.WriteLine($"value.{unionCaseModel.CaseFieldName} = {unionCaseModel.DataTypes[0].ParameterName};");
+				writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName} = {unionCaseModel.DataTypes[0].FactoryParameterName};");
 			}
 			else
 			{
 				foreach (UnionCaseDataTypeModel dt in unionCaseModel.DataTypes)
-					writer.WriteLine($"value.{unionCaseModel.CaseFieldName}.{dt.FieldName} = {dt.ParameterName};");
+					writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName}.{dt.FieldName} = {dt.FactoryParameterName};");
 			}
 
-			writer.WriteLine("return value;");
+			writer.WriteLine($"return {localName};");
 
 			writer.EndBlock();
 			writer.WriteLine();

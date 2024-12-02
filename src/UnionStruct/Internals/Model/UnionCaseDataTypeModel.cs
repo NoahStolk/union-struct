@@ -11,7 +11,7 @@ internal sealed record UnionCaseDataTypeModel(string Name, INamedTypeSymbol Name
 
 	public string FieldName => Name.FirstCharToUpperCase();
 
-	public string ParameterName => SourceBuilderUtils.ToEscapedLocal(Name);
+	public string FactoryParameterName => SourceBuilderUtils.ToEscapedLocal(Name);
 
 	public string GetFullyQualifiedTypeName()
 	{

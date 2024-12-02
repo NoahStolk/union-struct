@@ -39,27 +39,27 @@ internal partial record struct TestUnion
 		System.Single @angle
 	)
 	{
-		TestUnion value = new(AngleCaseIndex);
-		value.AngleCaseData = @angle;
-		return value;
+		TestUnion ___factoryReturnValue = new(AngleCaseIndex);
+		___factoryReturnValue.AngleCaseData = @angle;
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion PositionCase(
 		System.Numerics.Vector3 @position
 	)
 	{
-		TestUnion value = new(PositionCaseIndex);
-		value.PositionCaseData = @position;
-		return value;
+		TestUnion ___factoryReturnValue = new(PositionCaseIndex);
+		___factoryReturnValue.PositionCaseData = @position;
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion RotationCase(
 		System.Numerics.Quaternion @rotation
 	)
 	{
-		TestUnion value = new(RotationCaseIndex);
-		value.RotationCaseData = @rotation;
-		return value;
+		TestUnion ___factoryReturnValue = new(RotationCaseIndex);
+		___factoryReturnValue.RotationCaseData = @rotation;
+		return ___factoryReturnValue;
 	}
 
 	public void Switch(

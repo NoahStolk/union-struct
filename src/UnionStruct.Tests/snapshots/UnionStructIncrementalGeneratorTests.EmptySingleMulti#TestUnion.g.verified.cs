@@ -35,17 +35,17 @@ internal partial record struct TestUnion
 	public static partial TestUnion Empty(
 	)
 	{
-		TestUnion value = new(EmptyIndex);
-		return value;
+		TestUnion ___factoryReturnValue = new(EmptyIndex);
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion PositionCase(
 		System.Numerics.Vector3 @position
 	)
 	{
-		TestUnion value = new(PositionCaseIndex);
-		value.PositionCaseData = @position;
-		return value;
+		TestUnion ___factoryReturnValue = new(PositionCaseIndex);
+		___factoryReturnValue.PositionCaseData = @position;
+		return ___factoryReturnValue;
 	}
 
 	public static partial TestUnion MultiCase(
@@ -53,10 +53,10 @@ internal partial record struct TestUnion
 		System.Numerics.Vector3 @velocity
 	)
 	{
-		TestUnion value = new(MultiCaseIndex);
-		value.MultiCaseData.Position = @position;
-		value.MultiCaseData.Velocity = @velocity;
-		return value;
+		TestUnion ___factoryReturnValue = new(MultiCaseIndex);
+		___factoryReturnValue.MultiCaseData.Position = @position;
+		___factoryReturnValue.MultiCaseData.Velocity = @velocity;
+		return ___factoryReturnValue;
 	}
 
 	public void Switch(

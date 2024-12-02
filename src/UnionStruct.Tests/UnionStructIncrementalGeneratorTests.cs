@@ -33,7 +33,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			[Union]
 			internal partial record struct TestUnion
 			{
-				[UnionCase] public static partial TestUnion AngleCase(float Angle);
+				[UnionCase] public static partial TestUnion AngleCase(float angle);
 				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
 				[UnionCase] public static partial TestUnion RotationCase(System.Numerics.Quaternion rotation);
 			}
@@ -93,21 +93,21 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	// TODO:
-	/*
-- Generic union struct
-- Nested union struct (cases as nested types)
-- Recursive union struct (where another union struct is a case of another)
-- All of the above
+	[Fact]
+	public async Task CasesWithSameName()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial record struct TestUnion
+			{
+				[UnionCase] public static partial TestUnion Int(int value);
+				[UnionCase] public static partial TestUnion Long(long value);
+			}
+			""";
 
-- Equality
-- Match
-- Switch
-- ToString
-- Cases using
-  - Nullable<T>
-  - Enums
-  - ValueTuples
-  - Properties instead of fields
-	*/
+		await TestHelper.Verify(code);
+	}
 }
