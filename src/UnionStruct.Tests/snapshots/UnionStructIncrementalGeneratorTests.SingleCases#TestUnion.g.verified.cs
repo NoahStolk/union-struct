@@ -18,13 +18,13 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Single AngleCaseData;
+	public System.Single AngleCaseData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Vector3 PositionCaseData;
+	public System.Numerics.Vector3 PositionCaseData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Quaternion RotationCaseData;
+	public System.Numerics.Quaternion RotationCaseData = default!;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{

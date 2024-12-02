@@ -17,10 +17,10 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Int32 IntData;
+	public System.Int32 IntData = default!;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Int64 LongData;
+	public System.Int64 LongData = default!;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{

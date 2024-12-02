@@ -21,7 +21,7 @@ WriteUnion(TestUnion.PositionRangeCase(new PositionRange(new Vector3(1, 2, 3), n
 WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
 
 void WriteShape<T>(Shape<T> shape)
-	where T : struct, INumber<T>
+	where T : INumber<T>
 {
 	shape.Switch(
 		radius => Console.WriteLine($"Circle: {radius}"),

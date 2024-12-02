@@ -94,6 +94,25 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Fact]
+	public async Task UnionWithoutAccessibility()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			partial record struct TestUnion
+			{
+				[UnionCase] public static partial TestUnion Empty();
+				[UnionCase] public static partial TestUnion CaseA(int A);
+				[UnionCase] public static partial TestUnion CaseB(long B);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
 	public async Task CasesWithSameName()
 	{
 		const string code =
@@ -120,7 +139,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			namespace Tests;
 			[Union]
 			internal partial record struct Shape<T>
-				where T : struct, INumber<T>
+				where T : INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
 				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);

@@ -4,7 +4,7 @@ namespace UnionStruct.Sample;
 
 [Union]
 internal partial record struct Shape<T>
-	where T : struct, INumber<T>
+	where T : INumber<T>
 {
 	[UnionCase]
 	public static partial Shape<T> Circle(T radius);

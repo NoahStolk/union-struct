@@ -51,7 +51,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 			if (!unionModel.HasTypeParameters)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
+			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName} = default!;");
 			writer.WriteLine();
 		}
 	}

@@ -14,9 +14,9 @@ internal partial record struct Shape<T>
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public T CircleData;
+	public T CircleData = default!;
 
-	public RectangleCase RectangleData;
+	public RectangleCase RectangleData = default!;
 
 	private Shape(global::System.Int32 caseIndex)
 	{
