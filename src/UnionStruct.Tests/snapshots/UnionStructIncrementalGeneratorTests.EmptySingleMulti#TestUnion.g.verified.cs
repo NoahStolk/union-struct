@@ -74,10 +74,10 @@ internal partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
-		global::System.Func<T> @empty,
-		global::System.Func<System.Numerics.Vector3, T> @positionCase,
-		global::System.Func<System.Numerics.Vector3, System.Numerics.Vector3, T> @multiCase
+	public TMatchOut Match<TMatchOut>(
+		global::System.Func<TMatchOut> @empty,
+		global::System.Func<System.Numerics.Vector3, TMatchOut> @positionCase,
+		global::System.Func<System.Numerics.Vector3, System.Numerics.Vector3, TMatchOut> @multiCase
 	)
 	{
 		return CaseIndex switch
@@ -85,7 +85,7 @@ internal partial record struct TestUnion
 			EmptyIndex => @empty.Invoke(),
 			PositionCaseIndex => @positionCase.Invoke(PositionCaseData),
 			MultiCaseIndex => @multiCase.Invoke(MultiCaseData.Position, MultiCaseData.Velocity),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -94,9 +94,9 @@ internal partial record struct TestUnion
 		return CaseIndex switch
 		{
 			EmptyIndex => "Empty",
-			PositionCaseIndex => PositionCaseData.ToString(),
+			PositionCaseIndex => PositionCaseData.ToString() ?? string.Empty,
 			MultiCaseIndex => $"MultiCase {{ Position = {MultiCaseData.Position}, Velocity = {MultiCaseData.Velocity} }}",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

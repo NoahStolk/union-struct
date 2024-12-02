@@ -61,16 +61,16 @@ internal partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
-		global::System.Func<System.Int32, T> @int,
-		global::System.Func<System.Int64, T> @long
+	public TMatchOut Match<TMatchOut>(
+		global::System.Func<System.Int32, TMatchOut> @int,
+		global::System.Func<System.Int64, TMatchOut> @long
 	)
 	{
 		return CaseIndex switch
 		{
 			IntIndex => @int.Invoke(IntData),
 			LongIndex => @long.Invoke(LongData),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -78,9 +78,9 @@ internal partial record struct TestUnion
 	{
 		return CaseIndex switch
 		{
-			IntIndex => IntData.ToString(),
-			LongIndex => LongData.ToString(),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			IntIndex => IntData.ToString() ?? string.Empty,
+			LongIndex => LongData.ToString() ?? string.Empty,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

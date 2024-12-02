@@ -72,10 +72,10 @@ public partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
-		global::System.Func<T> @empty,
-		global::System.Func<System.Int32, T> @caseA,
-		global::System.Func<System.Int64, T> @caseB
+	public TMatchOut Match<TMatchOut>(
+		global::System.Func<TMatchOut> @empty,
+		global::System.Func<System.Int32, TMatchOut> @caseA,
+		global::System.Func<System.Int64, TMatchOut> @caseB
 	)
 	{
 		return CaseIndex switch
@@ -83,7 +83,7 @@ public partial record struct TestUnion
 			EmptyIndex => @empty.Invoke(),
 			CaseAIndex => @caseA.Invoke(CaseAData),
 			CaseBIndex => @caseB.Invoke(CaseBData),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -92,9 +92,9 @@ public partial record struct TestUnion
 		return CaseIndex switch
 		{
 			EmptyIndex => "Empty",
-			CaseAIndex => CaseAData.ToString(),
-			CaseBIndex => CaseBData.ToString(),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			CaseAIndex => CaseAData.ToString() ?? string.Empty,
+			CaseBIndex => CaseBData.ToString() ?? string.Empty,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

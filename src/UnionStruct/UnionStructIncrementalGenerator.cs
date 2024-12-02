@@ -62,13 +62,11 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 				if (ModelExtensions.GetSymbolInfo(context.SemanticModel, attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
 					continue;
 
-				string attributeName = attributeSymbol.ContainingType.ToDisplayString();
+				if (attributeSymbol.ContainingType.ToDisplayString() != $"{GeneratorConstants.RootNamespace}.{_unionAttributeName}")
+					continue;
 
-				if (attributeName == $"{GeneratorConstants.RootNamespace}.{_unionAttributeName}")
-				{
-					isUnion = true;
-					break;
-				}
+				isUnion = true;
+				break;
 			}
 		}
 
@@ -95,8 +93,9 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 							if (parameterSyntax.Type == null)
 								continue;
 
-							if (ModelExtensions.GetTypeInfo(context.SemanticModel, parameterSyntax.Type).Type is INamedTypeSymbol namedTypeSymbol)
-								dataTypes.Add(new UnionCaseDataTypeModel(parameterSyntax.Identifier.Text, namedTypeSymbol));
+							ITypeSymbol? parameterType = ModelExtensions.GetTypeInfo(context.SemanticModel, parameterSyntax.Type).Type;
+							if (parameterType != null)
+								dataTypes.Add(new UnionCaseDataTypeModel(parameterSyntax.Identifier.Text, parameterType));
 						}
 
 						cases.Add(new UnionCaseModel(methodDeclarationSyntax.Identifier.Text, dataTypes));
@@ -117,13 +116,12 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 				continue;
 
 			string namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
-			string structName = unionModel.StructName;
 			string accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
 
-			UnionGenerator generator = new(unionModel, namespaceName, structName, accessibility);
+			UnionGenerator generator = new(unionModel, namespaceName, accessibility);
 			string sourceCode = SourceBuilderUtils.Build(generator.Generate());
 
-			context.AddSource($"{structName}.g.cs", SourceText.From(sourceCode, Encoding.UTF8));
+			context.AddSource($"{unionModel.StructIdentifier.Replace('<', '(').Replace('>', ')')}.g.cs", SourceText.From(sourceCode, Encoding.UTF8));
 		}
 	}
 }

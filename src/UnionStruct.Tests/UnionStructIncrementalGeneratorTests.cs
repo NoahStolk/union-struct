@@ -110,4 +110,23 @@ public sealed class UnionStructIncrementalGeneratorTests
 
 		await TestHelper.Verify(code);
 	}
+
+	[Fact]
+	public async Task GenericUnion()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial record struct Shape<T>
+				where T : struct, INumber<T>
+			{
+				[UnionCase] public static partial Shape<T> Circle(T radius);
+				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
 }

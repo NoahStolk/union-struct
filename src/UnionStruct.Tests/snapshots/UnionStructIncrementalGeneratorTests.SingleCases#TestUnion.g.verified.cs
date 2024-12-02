@@ -77,10 +77,10 @@ internal partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
-		global::System.Func<System.Single, T> @angleCase,
-		global::System.Func<System.Numerics.Vector3, T> @positionCase,
-		global::System.Func<System.Numerics.Quaternion, T> @rotationCase
+	public TMatchOut Match<TMatchOut>(
+		global::System.Func<System.Single, TMatchOut> @angleCase,
+		global::System.Func<System.Numerics.Vector3, TMatchOut> @positionCase,
+		global::System.Func<System.Numerics.Quaternion, TMatchOut> @rotationCase
 	)
 	{
 		return CaseIndex switch
@@ -88,7 +88,7 @@ internal partial record struct TestUnion
 			AngleCaseIndex => @angleCase.Invoke(AngleCaseData),
 			PositionCaseIndex => @positionCase.Invoke(PositionCaseData),
 			RotationCaseIndex => @rotationCase.Invoke(RotationCaseData),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -96,10 +96,10 @@ internal partial record struct TestUnion
 	{
 		return CaseIndex switch
 		{
-			AngleCaseIndex => AngleCaseData.ToString(),
-			PositionCaseIndex => PositionCaseData.ToString(),
-			RotationCaseIndex => RotationCaseData.ToString(),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			AngleCaseIndex => AngleCaseData.ToString() ?? string.Empty,
+			PositionCaseIndex => PositionCaseData.ToString() ?? string.Empty,
+			RotationCaseIndex => RotationCaseData.ToString() ?? string.Empty,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

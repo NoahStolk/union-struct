@@ -28,12 +28,12 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		};
 	}
 
-	public string GetFuncType()
+	public string GetFuncType(string funcOutTypeParameterName)
 	{
 		return DataTypes.Count switch
 		{
-			0 => "global::System.Func<T>",
-			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}, T>",
+			0 => $"global::System.Func<{funcOutTypeParameterName}>",
+			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}, {funcOutTypeParameterName}>",
 		};
 	}
 
@@ -53,7 +53,7 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 			return $"\"{CaseName}\"";
 
 		if (DataTypes.Count == 1)
-			return $"{CaseFieldName}.ToString()";
+			return $"{CaseFieldName}.ToString() ?? string.Empty";
 
 		string fields = string.Join(", ", DataTypes.Select(dt => $"{dt.FieldName} = {{{CaseFieldName}.{dt.FieldName}}}"));
 		return

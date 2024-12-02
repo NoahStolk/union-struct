@@ -51,16 +51,16 @@ internal partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
-		global::System.Func<T> @empty1,
-		global::System.Func<T> @empty2
+	public TMatchOut Match<TMatchOut>(
+		global::System.Func<TMatchOut> @empty1,
+		global::System.Func<TMatchOut> @empty2
 	)
 	{
 		return CaseIndex switch
 		{
 			Empty1Index => @empty1.Invoke(),
 			Empty2Index => @empty2.Invoke(),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -70,7 +70,7 @@ internal partial record struct TestUnion
 		{
 			Empty1Index => "Empty1",
 			Empty2Index => "Empty2",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

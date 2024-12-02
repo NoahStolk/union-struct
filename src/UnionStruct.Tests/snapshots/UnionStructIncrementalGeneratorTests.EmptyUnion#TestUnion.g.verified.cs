@@ -29,12 +29,12 @@ internal partial record struct TestUnion
 		}
 	}
 
-	public T Match<T>(
+	public TMatchOut Match<TMatchOut>(
 	)
 	{
 		return CaseIndex switch
 		{
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 
@@ -42,7 +42,7 @@ internal partial record struct TestUnion
 	{
 		return CaseIndex switch
 		{
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}
 

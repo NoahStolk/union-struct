@@ -3,11 +3,11 @@ using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Internals.Model;
 
-internal sealed record UnionCaseDataTypeModel(string Name, INamedTypeSymbol NamedTypeSymbol)
+internal sealed record UnionCaseDataTypeModel(string Name, ITypeSymbol TypeSymbol)
 {
 	public string Name { get; } = Name;
 
-	public INamedTypeSymbol NamedTypeSymbol { get; } = NamedTypeSymbol;
+	public ITypeSymbol TypeSymbol { get; } = TypeSymbol;
 
 	public string FieldName => Name.FirstCharToUpperCase();
 
@@ -15,7 +15,10 @@ internal sealed record UnionCaseDataTypeModel(string Name, INamedTypeSymbol Name
 
 	public string GetFullyQualifiedTypeName()
 	{
-		string namespaceName = NamedTypeSymbol.ContainingNamespace.ToDisplayString();
-		return $"{namespaceName}.{NamedTypeSymbol.Name}";
+		if (TypeSymbol is ITypeParameterSymbol typeParameterSymbol)
+			return typeParameterSymbol.Name;
+
+		string namespaceName = TypeSymbol.ContainingNamespace.ToDisplayString();
+		return $"{namespaceName}.{TypeSymbol.Name}";
 	}
 }
