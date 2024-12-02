@@ -92,8 +92,8 @@ public partial record struct TestUnion
 		return CaseIndex switch
 		{
 			EmptyIndex => "Empty",
-			CaseAIndex => CaseAData.ToString() ?? string.Empty,
-			CaseBIndex => CaseBData.ToString() ?? string.Empty,
+			CaseAIndex => $"CaseA {{ A = {CaseAData} }}",
+			CaseBIndex => $"CaseB {{ B = {CaseBData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
 	}

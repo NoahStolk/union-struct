@@ -76,7 +76,7 @@ internal partial record struct Shape<T>
 	{
 		return CaseIndex switch
 		{
-			CircleIndex => CircleData.ToString() ?? string.Empty,
+			CircleIndex => $"Circle {{ Radius = {CircleData} }}",
 			RectangleIndex => $"Rectangle {{ Width = {RectangleData.Width}, Height = {RectangleData.Height} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};

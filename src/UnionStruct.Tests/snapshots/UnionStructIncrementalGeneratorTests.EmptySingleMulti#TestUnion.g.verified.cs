@@ -94,7 +94,7 @@ internal partial record struct TestUnion
 		return CaseIndex switch
 		{
 			EmptyIndex => "Empty",
-			PositionCaseIndex => PositionCaseData.ToString() ?? string.Empty,
+			PositionCaseIndex => $"PositionCase {{ Position = {PositionCaseData} }}",
 			MultiCaseIndex => $"MultiCase {{ Position = {MultiCaseData.Position}, Velocity = {MultiCaseData.Velocity} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};

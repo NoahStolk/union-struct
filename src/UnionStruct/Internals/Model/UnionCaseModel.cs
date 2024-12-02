@@ -52,13 +52,18 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		if (DataTypes.Count == 0)
 			return $"\"{CaseName}\"";
 
-		if (DataTypes.Count == 1)
-			return $"{CaseFieldName}.ToString() ?? string.Empty";
-
-		string fields = string.Join(", ", DataTypes.Select(dt => $"{dt.FieldName} = {{{CaseFieldName}.{dt.FieldName}}}"));
+		string fields = string.Join(", ", DataTypes.Select(GetToStringReturnValueForSingleField));
 		return
 			$$$"""
 			   $"{{{CaseName}}} {{ {{{fields}}} }}"
 			   """;
+
+		string GetToStringReturnValueForSingleField(UnionCaseDataTypeModel dataType)
+		{
+			if (DataTypes.Count == 1)
+				return $"{dataType.FieldName} = {{{CaseFieldName}}}";
+
+			return $"{dataType.FieldName} = {{{CaseFieldName}.{dataType.FieldName}}}";
+		}
 	}
 }
