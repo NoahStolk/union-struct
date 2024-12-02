@@ -44,6 +44,9 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
+			if (unionCaseModel.DataTypes.Count == 0)
+				continue;
+
 			writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
 			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
 			writer.WriteLine();
@@ -165,7 +168,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 	{
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
-			if (unionCaseModel.DataTypes.Count == 1)
+			if (unionCaseModel.DataTypes.Count <= 1)
 				continue;
 
 			writer.WriteLine($"public struct {unionCaseModel.CaseTypeName}");

@@ -10,9 +10,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		const string code =
 			"""
 			using UnionStruct;
-
 			namespace Tests;
-
 			[Union]
 			internal partial record struct TestUnion
 			{
@@ -31,9 +29,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		const string code =
 			"""
 			using UnionStruct;
-
 			namespace Tests;
-
 			[Union]
 			internal partial record struct TestUnion
 			{
@@ -52,9 +48,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		const string code =
 			"""
 			using UnionStruct;
-
 			namespace Tests;
-
 			[Union]
 			internal partial record struct TestUnion;
 			""";
@@ -68,9 +62,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		const string code =
 			"""
 			using UnionStruct;
-
 			namespace Tests;
-
 			[Union]
 			internal partial record struct TestUnion
 			{
@@ -88,9 +80,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		const string code =
 			"""
 			using UnionStruct;
-
 			namespace Tests;
-
 			[Union]
 			public partial record struct TestUnion
 			{

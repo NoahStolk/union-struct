@@ -18,9 +18,6 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public EmptyCase EmptyData;
-
-	[global::System.Runtime.InteropServices.FieldOffset(4)]
 	public System.Numerics.Vector3 PositionCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
@@ -101,10 +98,6 @@ internal partial record struct TestUnion
 			MultiCaseIndex => $"MultiCase {{ Position = {MultiCaseData.Position}, Velocity = {MultiCaseData.Velocity} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
 		};
-	}
-
-	public struct EmptyCase
-	{
 	}
 
 	public struct MultiCaseCase

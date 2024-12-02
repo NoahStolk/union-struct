@@ -16,12 +16,6 @@ internal partial record struct TestUnion
 	[global::System.Runtime.InteropServices.FieldOffset(0)]
 	public readonly global::System.Int32 CaseIndex;
 
-	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public Empty1Case Empty1Data;
-
-	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public Empty2Case Empty2Data;
-
 	private TestUnion(global::System.Int32 caseIndex)
 	{
 		CaseIndex = caseIndex;
@@ -78,14 +72,6 @@ internal partial record struct TestUnion
 			Empty2Index => "Empty2",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
 		};
-	}
-
-	public struct Empty1Case
-	{
-	}
-
-	public struct Empty2Case
-	{
 	}
 
 }

@@ -18,9 +18,6 @@ public partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public EmptyCase EmptyData;
-
-	[global::System.Runtime.InteropServices.FieldOffset(4)]
 	public System.Int32 CaseAData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
@@ -99,10 +96,6 @@ public partial record struct TestUnion
 			CaseBIndex => CaseBData.ToString(),
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.")
 		};
-	}
-
-	public struct EmptyCase
-	{
 	}
 
 }
