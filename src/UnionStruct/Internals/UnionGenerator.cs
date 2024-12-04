@@ -10,12 +10,12 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 		CodeWriter writer = new();
 		writer.WriteLine($"namespace {namespaceName};");
 		writer.WriteLine();
-		if (!unionModel.HasTypeParameters)
+		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
 		writer.WriteLine($"{accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
 		writer.StartBlock();
 		GenerateUnionCaseConstants(writer);
-		if (!unionModel.HasTypeParameters)
+		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.FieldOffset(0)]");
 		writer.WriteLine("public readonly global::System.Int32 CaseIndex;");
 		writer.WriteLine();
@@ -52,7 +52,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 			if (unionCaseModel.DataTypes.Count == 0)
 				continue;
 
-			if (!unionModel.HasTypeParameters)
+			if (unionModel.AllowMemoryOverlap)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
 			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName} = default!;");
 			writer.WriteLine();

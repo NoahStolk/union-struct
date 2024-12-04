@@ -32,12 +32,22 @@ public sealed class EqualityTests
 		Shape<int>.Circle(1).Equals(Shape<int>.Circle(1)).Should().BeTrue();
 		Shape<int>.Circle(1).Equals(Shape<int>.Circle(2)).Should().BeFalse();
 		Shape<int>.Circle(1).Equals(null).Should().BeFalse();
+
+		UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(1)).Should().BeTrue();
+		UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(2)).Should().BeFalse();
+		UnionWithReferenceType.Int(1).Equals(null).Should().BeFalse();
+		UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.String("1")).Should().BeFalse();
+		UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("1")).Should().BeTrue();
+		UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("2")).Should().BeFalse();
+		UnionWithReferenceType.String("1").Equals(null).Should().BeFalse();
+		UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.Int(1)).Should().BeFalse();
 	}
 
 	[Fact]
 	public void EqualsShouldNotUseDataFromInactiveCase()
 	{
 		// Create a circle and incorrectly set the rectangle data.
+		// The memory for the rectangle case is separated because generic types cannot have an explicit layout.
 		Shape<int> shape = Shape<int>.Circle(1);
 		shape.RectangleData = new Shape<int>.RectangleCase { Width = 1, Height = 1 };
 

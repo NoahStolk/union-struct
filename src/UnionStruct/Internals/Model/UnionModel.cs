@@ -9,12 +9,21 @@ internal sealed record UnionModel(StructDeclarationSyntax StructDeclarationSynta
 
 	public IReadOnlyList<UnionCaseModel> Cases { get; } = Cases;
 
-	public bool HasTypeParameters
+	public bool AllowMemoryOverlap
 	{
 		get
 		{
 			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = StructDeclarationSyntax.TypeParameterList?.Parameters;
-			return typeParameters is { Count: > 0 };
+			if (typeParameters is { Count: > 0 })
+				return false;
+
+			foreach (UnionCaseModel unionCase in Cases)
+			{
+				if (unionCase.DataTypes.Any(dt => dt.TypeSymbol.IsReferenceType))
+					return false;
+			}
+
+			return true;
 		}
 	}
 
