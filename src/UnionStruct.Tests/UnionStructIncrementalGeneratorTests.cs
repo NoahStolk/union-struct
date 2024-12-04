@@ -198,6 +198,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			{
 				[UnionCase] public static partial TestUnion<T> Int(System.Nullable<int> value);
 				[UnionCase] public static partial TestUnion<T> Long(System.Nullable<long> value);
+				[UnionCase] public static partial TestUnion<T> TCase(T value);
 				[UnionCase] public static partial TestUnion<T> UCase(System.Nullable<TestGeneric<byte, short>> value);
 
 				internal record struct TestGeneric<T1, T2>(T1 A, T2 B);
@@ -261,7 +262,14 @@ public sealed class UnionStructIncrementalGeneratorTests
 			internal partial struct RecursiveUnion
 			{
 				[UnionCase] public static partial RecursiveUnion Empty();
-				[UnionCase] public static partial RecursiveUnion Node(RecursiveUnion left, RecursiveUnion right);
+				[UnionCase] public static partial RecursiveUnion Nested(NestedUnion value);
+			}
+
+			[Union]
+			internal partial struct NestedUnion
+			{
+				[UnionCase] public static partial NestedUnion Empty();
+				[UnionCase] public static partial NestedUnion Node(int value);
 			}
 			""";
 

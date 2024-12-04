@@ -11,13 +11,16 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 {
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 LongIndex = 1;
-	public const global::System.Int32 UCaseIndex = 2;
+	public const global::System.Int32 TCaseIndex = 2;
+	public const global::System.Int32 UCaseIndex = 3;
 
 	public readonly global::System.Int32 CaseIndex;
 
 	public int? IntData;
 
 	public long? LongData;
+
+	public T? TCaseData;
 
 	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData;
 
@@ -28,6 +31,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 
 	public bool IsInt => CaseIndex == IntIndex;
 	public bool IsLong => CaseIndex == LongIndex;
+	public bool IsTCase => CaseIndex == TCaseIndex;
 	public bool IsUCase => CaseIndex == UCaseIndex;
 
 	public static partial TestUnion<T> Int(
@@ -48,6 +52,15 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		return ___factoryReturnValue;
 	}
 
+	public static partial TestUnion<T> TCase(
+		T? @value
+	)
+	{
+		TestUnion<T> ___factoryReturnValue = new(TCaseIndex);
+		___factoryReturnValue.TCaseData = @value;
+		return ___factoryReturnValue;
+	}
+
 	public static partial TestUnion<T> UCase(
 		Tests.TestUnion<T>.TestGeneric<byte, short>? @value
 	)
@@ -60,6 +73,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public void Switch(
 		global::System.Action<int?> @int,
 		global::System.Action<long?> @long,
+		global::System.Action<T?> @tCase,
 		global::System.Action<Tests.TestUnion<T>.TestGeneric<byte, short>?> @uCase
 	)
 	{
@@ -67,6 +81,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			case IntIndex: @int.Invoke(IntData); break;
 			case LongIndex: @long.Invoke(LongData); break;
+			case TCaseIndex: @tCase.Invoke(TCaseData); break;
 			case UCaseIndex: @uCase.Invoke(UCaseData); break;
 			default: throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.");
 		}
@@ -75,6 +90,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public TMatchOut Match<TMatchOut>(
 		global::System.Func<int?, TMatchOut> @int,
 		global::System.Func<long?, TMatchOut> @long,
+		global::System.Func<T?, TMatchOut> @tCase,
 		global::System.Func<Tests.TestUnion<T>.TestGeneric<byte, short>?, TMatchOut> @uCase
 	)
 	{
@@ -82,6 +98,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => @int.Invoke(IntData),
 			LongIndex => @long.Invoke(LongData),
+			TCaseIndex => @tCase.Invoke(TCaseData),
 			UCaseIndex => @uCase.Invoke(UCaseData),
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
@@ -93,6 +110,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => $"Int {{ Value = {IntData} }}",
 			LongIndex => $"Long {{ Value = {LongData} }}",
+			TCaseIndex => $"TCase {{ Value = {TCaseData} }}",
 			UCaseIndex => $"UCase {{ Value = {UCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
@@ -114,8 +132,9 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData.HasValue ? global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData.Value) : 0) ),
 			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData.HasValue ? global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData.Value) : 0) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(TCaseData)) ),
 			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value) : 0) ),
-			_ => 3,
+			_ => 4,
 		};
 	}
 
@@ -130,6 +149,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(IntData, other.IntData),
 			LongIndex => global::System.Collections.Generic.EqualityComparer<long?>.Default.Equals(LongData, other.LongData),
+			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(TCaseData, other.TCaseData),
 			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.Equals(UCaseData, other.UCaseData),
 			_ => true,
 		};
