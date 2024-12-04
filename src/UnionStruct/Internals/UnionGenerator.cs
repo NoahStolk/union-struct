@@ -174,26 +174,6 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 		writer.WriteLine();
 	}
 
-	private void GenerateNestedTypes(CodeWriter writer)
-	{
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-		{
-			if (unionCaseModel.DataTypes.Count <= 1)
-				continue;
-
-			writer.WriteLine($"public struct {unionCaseModel.CaseTypeName}");
-			writer.StartBlock();
-			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
-			{
-				writer.WriteLine($"public {dataType.GetFullyQualifiedTypeName()} {dataType.FieldName};");
-				writer.WriteLine();
-			}
-
-			writer.EndBlock();
-			writer.WriteLine();
-		}
-	}
-
 	private void GenerateEqualityOperators(CodeWriter writer)
 	{
 		writer.WriteLine($"public static bool operator !=({unionModel.StructIdentifier} left, {unionModel.StructIdentifier} right)");
@@ -276,5 +256,25 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 		writer.EndBlock();
 		writer.WriteLine();
+	}
+
+	private void GenerateNestedTypes(CodeWriter writer)
+	{
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+		{
+			if (unionCaseModel.DataTypes.Count <= 1)
+				continue;
+
+			writer.WriteLine($"public struct {unionCaseModel.CaseTypeName}");
+			writer.StartBlock();
+			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
+			{
+				writer.WriteLine($"public {dataType.GetFullyQualifiedTypeName()} {dataType.FieldName};");
+				writer.WriteLine();
+			}
+
+			writer.EndBlock();
+			writer.WriteLine();
+		}
 	}
 }

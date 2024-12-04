@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Collections.Immutable;
 
 namespace UnionStruct.Tests.Utils;
 
@@ -15,7 +16,6 @@ internal static class TestHelper
 	public static Task Verify(string source)
 	{
 		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
-
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "UnionStruct.Tests",
 			syntaxTrees: [syntaxTree],
@@ -24,6 +24,12 @@ internal static class TestHelper
 		UnionStructIncrementalGenerator generator = new();
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 		driver = driver.RunGenerators(compilation);
+
+		GeneratorDriverRunResult runResult = driver.GetRunResult();
+		ImmutableArray<Diagnostic> postGeneratorErrors = [..runResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)];
+		if (postGeneratorErrors.Length > 0)
+			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({postGeneratorErrors.Length} errors): {string.Join(Environment.NewLine, postGeneratorErrors)}"));
+
 		return Verifier.Verify(driver, _settings);
 	}
 }
