@@ -232,4 +232,58 @@ public sealed class UnionStructIncrementalGeneratorTests
 
 		await TestHelper.Verify(code);
 	}
+
+	[Fact]
+	public async Task RecursiveUnion()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct RecursiveUnion
+			{
+				[UnionCase] public static partial RecursiveUnion Empty();
+				[UnionCase] public static partial RecursiveUnion Node(RecursiveUnion left, RecursiveUnion right);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task UnionWithReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithReferenceType
+			{
+				[UnionCase] public static partial UnionWithReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithReferenceType String(string value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task UnionWithStructContainingReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithStructContainingReferenceType
+			{
+				[UnionCase] public static partial UnionWithStructContainingReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithStructContainingReferenceType Text(char a, string b);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
 }
