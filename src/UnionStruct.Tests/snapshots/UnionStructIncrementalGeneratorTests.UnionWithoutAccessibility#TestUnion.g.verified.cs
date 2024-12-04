@@ -18,10 +18,10 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public int CaseAData = default!;
+	public int CaseAData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public long CaseBData = default!;
+	public long CaseBData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -113,8 +113,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 		return CaseIndex switch
 		{
 			EmptyIndex => unchecked ( EmptyIndex ),
-			CaseAIndex => unchecked ( CaseAIndex * -1521134295 + (CaseAData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(CaseAData)) ),
-			CaseBIndex => unchecked ( CaseBIndex * -1521134295 + (CaseBData == null ? 0 : global::System.Collections.Generic.EqualityComparer<long>.Default.GetHashCode(CaseBData)) ),
+			CaseAIndex => unchecked ( CaseAIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(CaseAData) ),
+			CaseBIndex => unchecked ( CaseBIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<long>.Default.GetHashCode(CaseBData) ),
 			_ => 3,
 		};
 	}

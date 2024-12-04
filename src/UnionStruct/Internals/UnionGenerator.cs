@@ -54,7 +54,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 
 			if (unionModel.AllowMemoryOverlap)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName} = default!;");
+			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
 			writer.WriteLine();
 		}
 	}
@@ -209,7 +209,8 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 				string fields = string.Join($" * {prime} + ", unionCaseModel.DataTypes.Select(dt =>
 				{
 					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
-					return $"({fieldName} == null ? 0 : global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName()}>.Default.GetHashCode({fieldName}))";
+					string getHashCodeCall = $"global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName()}>.Default.GetHashCode({fieldName})";
+					return dt.TypeSymbol.IsReferenceType ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
 			}

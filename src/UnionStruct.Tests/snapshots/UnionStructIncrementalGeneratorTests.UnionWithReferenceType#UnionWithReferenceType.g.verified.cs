@@ -14,9 +14,9 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public int IntData = default!;
+	public int IntData;
 
-	public string? StringData = default!;
+	public string? StringData;
 
 	private UnionWithReferenceType(global::System.Int32 caseIndex)
 	{
@@ -94,7 +94,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 	{
 		return CaseIndex switch
 		{
-			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData)) ),
+			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData) ),
 			StringIndex => unchecked ( StringIndex * -1521134295 + (StringData == null ? 0 : global::System.Collections.Generic.EqualityComparer<string?>.Default.GetHashCode(StringData)) ),
 			_ => 2,
 		};

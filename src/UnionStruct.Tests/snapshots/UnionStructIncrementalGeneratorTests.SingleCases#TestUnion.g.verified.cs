@@ -18,13 +18,13 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public float AngleCaseData = default!;
+	public float AngleCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Vector3 PositionCaseData = default!;
+	public System.Numerics.Vector3 PositionCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Quaternion RotationCaseData = default!;
+	public System.Numerics.Quaternion RotationCaseData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -117,9 +117,9 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	{
 		return CaseIndex switch
 		{
-			AngleCaseIndex => unchecked ( AngleCaseIndex * -1521134295 + (AngleCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<float>.Default.GetHashCode(AngleCaseData)) ),
-			PositionCaseIndex => unchecked ( PositionCaseIndex * -1521134295 + (PositionCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(PositionCaseData)) ),
-			RotationCaseIndex => unchecked ( RotationCaseIndex * -1521134295 + (RotationCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<System.Numerics.Quaternion>.Default.GetHashCode(RotationCaseData)) ),
+			AngleCaseIndex => unchecked ( AngleCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<float>.Default.GetHashCode(AngleCaseData) ),
+			PositionCaseIndex => unchecked ( PositionCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(PositionCaseData) ),
+			RotationCaseIndex => unchecked ( RotationCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Quaternion>.Default.GetHashCode(RotationCaseData) ),
 			_ => 3,
 		};
 	}

@@ -17,15 +17,15 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public int? IntData = default!;
+	public int? IntData;
 
-	public long? LongData = default!;
+	public long? LongData;
 
-	public T1? TCaseData = default!;
+	public T1? TCaseData;
 
-	public UCaseCase UCaseData = default!;
+	public UCaseCase UCaseData;
 
-	public UCaseNestedCase UCaseNestedData = default!;
+	public UCaseNestedCase UCaseNestedData;
 
 	private ComplexUnion(global::System.Int32 caseIndex)
 	{
@@ -156,11 +156,11 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 	{
 		return CaseIndex switch
 		{
-			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData)) ),
-			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData == null ? 0 : global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData)) ),
-			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(TCaseData)) ),
-			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.Value == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value)) * -1521134295 + (UCaseData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseData.A)) * -1521134295 + (UCaseData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseData.B)) ),
-			UCaseNestedIndex => unchecked ( UCaseNestedIndex * -1521134295 + (UCaseNestedData.Value == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.GetHashCode(UCaseNestedData.Value)) * -1521134295 + (UCaseNestedData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseNestedData.A)) * -1521134295 + (UCaseNestedData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseNestedData.B)) ),
+			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData) ),
+			LongIndex => unchecked ( LongIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(TCaseData) ),
+			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value) * -1521134295 + global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseData.A) * -1521134295 + global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseData.B) ),
+			UCaseNestedIndex => unchecked ( UCaseNestedIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.GetHashCode(UCaseNestedData.Value) * -1521134295 + global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseNestedData.A) * -1521134295 + global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseNestedData.B) ),
 			_ => 5,
 		};
 	}

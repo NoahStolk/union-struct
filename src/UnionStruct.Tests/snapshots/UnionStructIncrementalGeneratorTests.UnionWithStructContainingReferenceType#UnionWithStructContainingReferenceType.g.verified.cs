@@ -14,9 +14,9 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public int IntData = default!;
+	public int IntData;
 
-	public TextCase TextData = default!;
+	public TextCase TextData;
 
 	private UnionWithStructContainingReferenceType(global::System.Int32 caseIndex)
 	{
@@ -96,8 +96,8 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 	{
 		return CaseIndex switch
 		{
-			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData)) ),
-			TextIndex => unchecked ( TextIndex * -1521134295 + (TextData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<char>.Default.GetHashCode(TextData.A)) * -1521134295 + (TextData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<string?>.Default.GetHashCode(TextData.B)) ),
+			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData) ),
+			TextIndex => unchecked ( TextIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<char>.Default.GetHashCode(TextData.A) * -1521134295 + (TextData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<string?>.Default.GetHashCode(TextData.B)) ),
 			_ => 2,
 		};
 	}

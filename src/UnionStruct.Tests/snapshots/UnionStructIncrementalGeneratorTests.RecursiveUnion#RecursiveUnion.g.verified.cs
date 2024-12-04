@@ -17,7 +17,7 @@ internal partial struct RecursiveUnion : global::System.IEquatable<RecursiveUnio
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public NodeCase NodeData = default!;
+	public NodeCase NodeData;
 
 	private RecursiveUnion(global::System.Int32 caseIndex)
 	{
@@ -96,7 +96,7 @@ internal partial struct RecursiveUnion : global::System.IEquatable<RecursiveUnio
 		return CaseIndex switch
 		{
 			EmptyIndex => unchecked ( EmptyIndex ),
-			NodeIndex => unchecked ( NodeIndex * -1521134295 + (NodeData.Left == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.RecursiveUnion>.Default.GetHashCode(NodeData.Left)) * -1521134295 + (NodeData.Right == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.RecursiveUnion>.Default.GetHashCode(NodeData.Right)) ),
+			NodeIndex => unchecked ( NodeIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<Tests.RecursiveUnion>.Default.GetHashCode(NodeData.Left) * -1521134295 + global::System.Collections.Generic.EqualityComparer<Tests.RecursiveUnion>.Default.GetHashCode(NodeData.Right) ),
 			_ => 2,
 		};
 	}

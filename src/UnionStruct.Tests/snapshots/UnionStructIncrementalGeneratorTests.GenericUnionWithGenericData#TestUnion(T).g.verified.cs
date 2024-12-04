@@ -16,13 +16,13 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public int? IntData = default!;
+	public int? IntData;
 
-	public long? LongData = default!;
+	public long? LongData;
 
-	public T? TCaseData = default!;
+	public T? TCaseData;
 
-	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData = default!;
+	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -130,10 +130,10 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	{
 		return CaseIndex switch
 		{
-			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData)) ),
-			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData == null ? 0 : global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData)) ),
-			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(TCaseData)) ),
-			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData)) ),
+			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData) ),
+			LongIndex => unchecked ( LongIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(TCaseData) ),
+			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData) ),
 			_ => 4,
 		};
 	}
