@@ -196,12 +196,29 @@ public sealed class UnionStructIncrementalGeneratorTests
 			[Union]
 			internal partial struct TestUnion<T>
 			{
-				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
-				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
-				[UnionCase] public static partial TestUnion TCase(System.Nullable<T> value);
-				[UnionCase] public static partial TestUnion UCase(System.Nullable<TestGeneric<byte, short>> value);
+				[UnionCase] public static partial TestUnion<T> Int(System.Nullable<int> value);
+				[UnionCase] public static partial TestUnion<T> Long(System.Nullable<long> value);
+				[UnionCase] public static partial TestUnion<T> UCase(System.Nullable<TestGeneric<byte, short>> value);
 
 				internal record struct TestGeneric<T1, T2>(T1 A, T2 B);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task GenericUnionWithNullableOfT()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct TestUnion<T> where T : struct
+			{
+				[UnionCase] public static partial TestUnion<T> Empty();
+				[UnionCase] public static partial TestUnion<T> Nullable(System.Nullable<T> value);
 			}
 			""";
 
