@@ -12,7 +12,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
@@ -31,7 +31,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion AngleCase(float angle);
 				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
@@ -50,7 +50,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion;
+			internal partial struct TestUnion;
 			""";
 
 		await TestHelper.Verify(code);
@@ -64,7 +64,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty1();
 				[UnionCase] public static partial TestUnion Empty2();
@@ -82,7 +82,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			public partial record struct TestUnion
+			public partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion CaseA(int A);
@@ -101,7 +101,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			partial record struct TestUnion
+			partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion CaseA(int A);
@@ -120,7 +120,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Int(int value);
 				[UnionCase] public static partial TestUnion Long(long value);
@@ -138,8 +138,8 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct Shape<T>
-				where T : INumber<T>
+			internal partial struct Shape<T>
+				where T : System.Numerics.INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
 				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
@@ -157,8 +157,8 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct Shape<T>
-				where T : struct, INumber<T>
+			internal partial struct Shape<T>
+				where T : struct, System.Numerics.INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
 				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
@@ -176,7 +176,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
 				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
@@ -194,14 +194,32 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion<T>
+			internal partial struct TestUnion<T>
 			{
-				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
-				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
-				[UnionCase] public static partial TestUnion TCase(System.Nullable<T> value);
-				[UnionCase] public static partial TestUnion UCase(System.Nullable<TestGeneric<byte, short>> value);
+				[UnionCase] public static partial TestUnion<T> Int(System.Nullable<int> value);
+				[UnionCase] public static partial TestUnion<T> Long(System.Nullable<long> value);
+				[UnionCase] public static partial TestUnion<T> TCase(T value);
+				[UnionCase] public static partial TestUnion<T> UCase(System.Nullable<TestGeneric<byte, short>> value);
 
 				internal record struct TestGeneric<T1, T2>(T1 A, T2 B);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task GenericUnionWithNullableOfT()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct TestUnion<T> where T : struct
+			{
+				[UnionCase] public static partial TestUnion<T> Empty();
+				[UnionCase] public static partial TestUnion<T> Nullable(System.Nullable<T> value);
 			}
 			""";
 
@@ -216,7 +234,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct ComplexUnion<T1, T2>
+			internal partial struct ComplexUnion<T1, T2>
 			{
 				[UnionCase] public static partial ComplexUnion<T1, T2> Int(int? value);
 				[UnionCase] public static partial ComplexUnion<T1, T2> Long(long? value);
@@ -228,6 +246,67 @@ public sealed class UnionStructIncrementalGeneratorTests
 			}
 
 			internal record struct TestGeneric<T3, T4>(T3 A, T4 B);
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task RecursiveUnion()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct RecursiveUnion
+			{
+				[UnionCase] public static partial RecursiveUnion Empty();
+				[UnionCase] public static partial RecursiveUnion Nested(NestedUnion value);
+			}
+
+			[Union]
+			internal partial struct NestedUnion
+			{
+				[UnionCase] public static partial NestedUnion Empty();
+				[UnionCase] public static partial NestedUnion Node(int value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task UnionWithReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithReferenceType
+			{
+				[UnionCase] public static partial UnionWithReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithReferenceType String(string value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task UnionWithStructContainingReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithStructContainingReferenceType
+			{
+				[UnionCase] public static partial UnionWithStructContainingReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithStructContainingReferenceType Text(char a, string b);
+			}
 			""";
 
 		await TestHelper.Verify(code);

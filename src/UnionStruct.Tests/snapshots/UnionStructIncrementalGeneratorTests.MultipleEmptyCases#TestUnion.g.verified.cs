@@ -8,7 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-internal partial record struct TestUnion
+internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 Empty1Index = 0;
 	public const global::System.Int32 Empty2Index = 1;
@@ -71,6 +71,41 @@ internal partial record struct TestUnion
 			Empty1Index => "Empty1",
 			Empty2Index => "Empty2",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(TestUnion left, TestUnion right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(TestUnion left, TestUnion right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			Empty1Index => unchecked ( Empty1Index ),
+			Empty2Index => unchecked ( Empty2Index ),
+			_ => 2,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is TestUnion && Equals((TestUnion)obj);
+	}
+
+	public global::System.Boolean Equals(TestUnion other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			Empty1Index => true,
+			Empty2Index => true,
+			_ => true,
 		};
 	}
 

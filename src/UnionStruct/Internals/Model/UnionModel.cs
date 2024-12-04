@@ -3,18 +3,27 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace UnionStruct.Internals.Model;
 
-internal sealed record UnionModel(RecordDeclarationSyntax RecordDeclarationSyntax, IReadOnlyList<UnionCaseModel> Cases)
+internal sealed record UnionModel(StructDeclarationSyntax StructDeclarationSyntax, IReadOnlyList<UnionCaseModel> Cases)
 {
-	public RecordDeclarationSyntax RecordDeclarationSyntax { get; } = RecordDeclarationSyntax;
+	public StructDeclarationSyntax StructDeclarationSyntax { get; } = StructDeclarationSyntax;
 
 	public IReadOnlyList<UnionCaseModel> Cases { get; } = Cases;
 
-	public bool HasTypeParameters
+	public bool AllowMemoryOverlap
 	{
 		get
 		{
-			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = RecordDeclarationSyntax.TypeParameterList?.Parameters;
-			return typeParameters is { Count: > 0 };
+			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = StructDeclarationSyntax.TypeParameterList?.Parameters;
+			if (typeParameters is { Count: > 0 })
+				return false;
+
+			foreach (UnionCaseModel unionCase in Cases)
+			{
+				if (unionCase.DataTypes.Any(dt => dt.TypeSymbol.IsReferenceType))
+					return false;
+			}
+
+			return true;
 		}
 	}
 
@@ -25,7 +34,7 @@ internal sealed record UnionModel(RecordDeclarationSyntax RecordDeclarationSynta
 	{
 		get
 		{
-			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = RecordDeclarationSyntax.TypeParameterList?.Parameters;
+			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = StructDeclarationSyntax.TypeParameterList?.Parameters;
 			if (typeParameters is { Count: > 0 })
 				return $"{StructName}<{string.Join(", ", typeParameters.Value.Select(tp => tp.Identifier.Text))}>";
 
@@ -36,5 +45,5 @@ internal sealed record UnionModel(RecordDeclarationSyntax RecordDeclarationSynta
 	/// <summary>
 	/// Returns the name of the struct.
 	/// </summary>
-	public string StructName => RecordDeclarationSyntax.Identifier.Text;
+	public string StructName => StructDeclarationSyntax.Identifier.Text;
 }

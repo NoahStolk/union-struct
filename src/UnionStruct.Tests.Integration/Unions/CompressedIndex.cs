@@ -1,7 +1,7 @@
 ﻿namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
-internal partial record struct CompressedIndex
+internal partial struct CompressedIndex
 {
 	[UnionCase]
 	public static partial CompressedIndex Unsigned8(byte value);

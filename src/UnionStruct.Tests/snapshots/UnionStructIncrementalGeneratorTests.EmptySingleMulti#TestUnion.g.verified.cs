@@ -8,7 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-internal partial record struct TestUnion
+internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 EmptyIndex = 0;
 	public const global::System.Int32 PositionCaseIndex = 1;
@@ -18,10 +18,10 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Vector3 PositionCaseData = default!;
+	public System.Numerics.Vector3 PositionCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public MultiCaseCase MultiCaseData = default!;
+	public MultiCaseCase MultiCaseData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -97,6 +97,43 @@ internal partial record struct TestUnion
 			PositionCaseIndex => $"PositionCase {{ Position = {PositionCaseData} }}",
 			MultiCaseIndex => $"MultiCase {{ Position = {MultiCaseData.Position}, Velocity = {MultiCaseData.Velocity} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(TestUnion left, TestUnion right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(TestUnion left, TestUnion right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			EmptyIndex => unchecked ( EmptyIndex ),
+			PositionCaseIndex => unchecked ( PositionCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(PositionCaseData) ),
+			MultiCaseIndex => unchecked ( MultiCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(MultiCaseData.Position) * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(MultiCaseData.Velocity) ),
+			_ => 3,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is TestUnion && Equals((TestUnion)obj);
+	}
+
+	public global::System.Boolean Equals(TestUnion other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			EmptyIndex => true,
+			PositionCaseIndex => global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.Equals(PositionCaseData, other.PositionCaseData),
+			MultiCaseIndex => global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.Equals(MultiCaseData.Position, other.MultiCaseData.Position) && global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.Equals(MultiCaseData.Velocity, other.MultiCaseData.Velocity),
+			_ => true,
 		};
 	}
 

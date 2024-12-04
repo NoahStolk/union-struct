@@ -1,7 +1,7 @@
 ﻿namespace UnionStruct.Sample;
 
 [Union]
-internal partial record struct ComplexUnion<T1, T2>
+internal partial struct ComplexUnion<T1, T2>
 {
 	[UnionCase]
 	public static partial ComplexUnion<T1, T2> Int(int? value);

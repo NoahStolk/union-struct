@@ -4,7 +4,7 @@ using UnionStruct.Sample.Cases;
 namespace UnionStruct.Sample;
 
 [Union]
-internal partial record struct TestUnion
+internal partial struct TestUnion
 {
 	[UnionCase]
 	public static partial TestUnion Empty();

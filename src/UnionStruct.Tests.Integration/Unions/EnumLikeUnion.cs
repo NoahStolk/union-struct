@@ -1,7 +1,7 @@
 ﻿namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
-internal readonly partial record struct EnumLikeUnion
+internal readonly partial struct EnumLikeUnion
 {
 	[UnionCase]
 	public static partial EnumLikeUnion Bronze();

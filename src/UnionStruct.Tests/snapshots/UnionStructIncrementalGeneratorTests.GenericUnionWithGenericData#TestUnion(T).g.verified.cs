@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-internal partial record struct TestUnion<T>
+internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 {
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 LongIndex = 1;
@@ -16,13 +16,13 @@ internal partial record struct TestUnion<T>
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public int? IntData = default!;
+	public int? IntData;
 
-	public long? LongData = default!;
+	public long? LongData;
 
-	public T? TCaseData = default!;
+	public T? TCaseData;
 
-	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData = default!;
+	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -113,6 +113,45 @@ internal partial record struct TestUnion<T>
 			TCaseIndex => $"TCase {{ Value = {TCaseData} }}",
 			UCaseIndex => $"UCase {{ Value = {UCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(TestUnion<T> left, TestUnion<T> right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(TestUnion<T> left, TestUnion<T> right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData.HasValue ? global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData.Value) : 0) ),
+			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData.HasValue ? global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData.Value) : 0) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(TCaseData)) ),
+			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value) : 0) ),
+			_ => 4,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is TestUnion<T> && Equals((TestUnion<T>)obj);
+	}
+
+	public global::System.Boolean Equals(TestUnion<T> other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			IntIndex => global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(IntData, other.IntData),
+			LongIndex => global::System.Collections.Generic.EqualityComparer<long?>.Default.Equals(LongData, other.LongData),
+			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(TCaseData, other.TCaseData),
+			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.Equals(UCaseData, other.UCaseData),
+			_ => true,
 		};
 	}
 

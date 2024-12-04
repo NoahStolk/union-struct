@@ -15,16 +15,22 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 	public string ParameterName => SourceBuilderUtils.ToEscapedLocal(CaseName);
 
 	/// <summary>
-	/// Returns the name of the generated struct type for this case.
+	/// Returns the case type name. This is either the only data type in the case, or the generated struct type.
 	/// </summary>
-	public string CaseTypeName => DataTypes.Count == 1 ? DataTypes[0].GetFullyQualifiedTypeName() : $"{CaseName}Case";
+	public string GetCaseTypeName(bool includeNullability)
+	{
+		if (DataTypes.Count != 1)
+			return $"{CaseName}Case";
+
+		return DataTypes[0].GetFullyQualifiedTypeName(includeNullability);
+	}
 
 	public string GetActionType()
 	{
 		return DataTypes.Count switch
 		{
 			0 => "global::System.Action",
-			_ => $"global::System.Action<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}>",
+			_ => $"global::System.Action<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName(includeNullability: true)))}>",
 		};
 	}
 
@@ -33,7 +39,7 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		return DataTypes.Count switch
 		{
 			0 => $"global::System.Func<{funcOutTypeParameterName}>",
-			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName()))}, {funcOutTypeParameterName}>",
+			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName(includeNullability: true)))}, {funcOutTypeParameterName}>",
 		};
 	}
 

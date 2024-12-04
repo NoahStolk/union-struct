@@ -8,7 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-internal partial record struct TestUnion
+internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 AngleCaseIndex = 0;
 	public const global::System.Int32 PositionCaseIndex = 1;
@@ -18,13 +18,13 @@ internal partial record struct TestUnion
 	public readonly global::System.Int32 CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public float AngleCaseData = default!;
+	public float AngleCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Vector3 PositionCaseData = default!;
+	public System.Numerics.Vector3 PositionCaseData;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public System.Numerics.Quaternion RotationCaseData = default!;
+	public System.Numerics.Quaternion RotationCaseData;
 
 	private TestUnion(global::System.Int32 caseIndex)
 	{
@@ -100,6 +100,43 @@ internal partial record struct TestUnion
 			PositionCaseIndex => $"PositionCase {{ Position = {PositionCaseData} }}",
 			RotationCaseIndex => $"RotationCase {{ Rotation = {RotationCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(TestUnion left, TestUnion right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(TestUnion left, TestUnion right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			AngleCaseIndex => unchecked ( AngleCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<float>.Default.GetHashCode(AngleCaseData) ),
+			PositionCaseIndex => unchecked ( PositionCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.GetHashCode(PositionCaseData) ),
+			RotationCaseIndex => unchecked ( RotationCaseIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<System.Numerics.Quaternion>.Default.GetHashCode(RotationCaseData) ),
+			_ => 3,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is TestUnion && Equals((TestUnion)obj);
+	}
+
+	public global::System.Boolean Equals(TestUnion other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			AngleCaseIndex => global::System.Collections.Generic.EqualityComparer<float>.Default.Equals(AngleCaseData, other.AngleCaseData),
+			PositionCaseIndex => global::System.Collections.Generic.EqualityComparer<System.Numerics.Vector3>.Default.Equals(PositionCaseData, other.PositionCaseData),
+			RotationCaseIndex => global::System.Collections.Generic.EqualityComparer<System.Numerics.Quaternion>.Default.Equals(RotationCaseData, other.RotationCaseData),
+			_ => true,
 		};
 	}
 
