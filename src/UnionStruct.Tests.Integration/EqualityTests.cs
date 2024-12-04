@@ -32,11 +32,18 @@ public sealed class EqualityTests
 		Shape<int>.Circle(1).Equals(Shape<int>.Circle(1)).Should().BeTrue();
 		Shape<int>.Circle(1).Equals(Shape<int>.Circle(2)).Should().BeFalse();
 		Shape<int>.Circle(1).Equals(null).Should().BeFalse();
+	}
 
+	[Fact]
+	public void EqualsShouldNotUseDataFromInactiveCase()
+	{
 		// Create a circle and incorrectly set the rectangle data.
 		Shape<int> shape = Shape<int>.Circle(1);
 		shape.RectangleData = new Shape<int>.RectangleCase { Width = 1, Height = 1 };
 
+		shape.IsCircle.Should().BeTrue();
+		shape.IsRectangle.Should().BeFalse();
+		shape.CircleData.Should().Be(1);
 		shape.CaseIndex.Should().Be(Shape<int>.CircleIndex);
 		shape.Equals(Shape<int>.Circle(1)).Should().BeTrue();
 	}

@@ -12,7 +12,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 		writer.WriteLine();
 		if (!unionModel.HasTypeParameters)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
-		writer.WriteLine($"{accessibility} partial struct {unionModel.StructIdentifier}");
+		writer.WriteLine($"{accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
 		writer.StartBlock();
 		GenerateUnionCaseConstants(writer);
 		if (!unionModel.HasTypeParameters)
@@ -26,6 +26,9 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 		GenerateSwitchMethod(writer);
 		GenerateMatchMethod(writer);
 		GenerateToStringMethod(writer);
+		GenerateEqualityOperators(writer);
+		GenerateGetHashCodeMethod(writer);
+		GenerateEqualsMethods(writer);
 		GenerateNestedTypes(writer);
 		writer.EndBlock();
 
@@ -189,5 +192,89 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 			writer.EndBlock();
 			writer.WriteLine();
 		}
+	}
+
+	private void GenerateEqualityOperators(CodeWriter writer)
+	{
+		writer.WriteLine($"public static bool operator !=({unionModel.StructIdentifier} left, {unionModel.StructIdentifier} right)");
+		writer.StartBlock();
+		writer.WriteLine("return !(left == right);");
+		writer.EndBlock();
+		writer.WriteLine();
+
+		writer.WriteLine($"public static bool operator ==({unionModel.StructIdentifier} left, {unionModel.StructIdentifier} right)");
+		writer.StartBlock();
+		writer.WriteLine("return left.Equals(right);");
+		writer.EndBlock();
+		writer.WriteLine();
+	}
+
+	private void GenerateGetHashCodeMethod(CodeWriter writer)
+	{
+		const int prime = -1521134295;
+
+		writer.WriteLine("public override global::System.Int32 GetHashCode()");
+		writer.StartBlock();
+
+		writer.WriteLine("return CaseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+		{
+			if (unionCaseModel.DataTypes.Count == 0)
+			{
+				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} ),");
+			}
+			else
+			{
+				string fields = string.Join($" * {prime} + ", unionCaseModel.DataTypes.Select(dt =>
+				{
+					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
+					return $"({fieldName} == null ? 0 : global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName()}>.Default.GetHashCode({fieldName}))";
+				}));
+				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
+			}
+		}
+
+		writer.WriteLine($"_ => {unionModel.Cases.Count},");
+		writer.EndBlockWithSemicolon();
+
+		writer.EndBlock();
+		writer.WriteLine();
+	}
+
+	private void GenerateEqualsMethods(CodeWriter writer)
+	{
+		writer.WriteLine("public override global::System.Boolean Equals(global::System.Object? obj)");
+		writer.StartBlock();
+		writer.WriteLine($"return obj is {unionModel.StructIdentifier} && Equals(({unionModel.StructIdentifier})obj);");
+		writer.EndBlock();
+		writer.WriteLine();
+
+		writer.WriteLine($"public global::System.Boolean Equals({unionModel.StructIdentifier} other)");
+		writer.StartBlock();
+		writer.WriteLine("return CaseIndex == other.CaseIndex && CaseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+		{
+			if (unionCaseModel.DataTypes.Count == 0)
+			{
+				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => true,");
+			}
+			else
+			{
+				string fields = string.Join(" && ", unionCaseModel.DataTypes.Select(dt =>
+				{
+					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
+					return $"global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName()}>.Default.Equals({fieldName}, other.{fieldName})";
+				}));
+				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {fields},");
+			}
+		}
+
+		writer.WriteLine("_ => true,");
+		writer.EndBlockWithSemicolon();
+
+		writer.EndBlock();
+		writer.WriteLine();
 	}
 }

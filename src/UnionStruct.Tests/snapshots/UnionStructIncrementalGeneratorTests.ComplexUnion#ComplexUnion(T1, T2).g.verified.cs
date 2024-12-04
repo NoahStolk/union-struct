@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-internal partial struct ComplexUnion<T1, T2>
+internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<ComplexUnion<T1, T2>>
 {
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 LongIndex = 1;
@@ -139,6 +139,47 @@ internal partial struct ComplexUnion<T1, T2>
 			UCaseIndex => $"UCase {{ Value = {UCaseData.Value}, A = {UCaseData.A}, B = {UCaseData.B} }}",
 			UCaseNestedIndex => $"UCaseNested {{ Value = {UCaseNestedData.Value}, A = {UCaseNestedData.A}, B = {UCaseNestedData.B} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(ComplexUnion<T1, T2> left, ComplexUnion<T1, T2> right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(ComplexUnion<T1, T2> left, ComplexUnion<T1, T2> right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData)) ),
+			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData == null ? 0 : global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData)) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(TCaseData)) ),
+			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.Value == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value)) * -1521134295 + (UCaseData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseData.A)) * -1521134295 + (UCaseData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseData.B)) ),
+			UCaseNestedIndex => unchecked ( UCaseNestedIndex * -1521134295 + (UCaseNestedData.Value == null ? 0 : global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.GetHashCode(UCaseNestedData.Value)) * -1521134295 + (UCaseNestedData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseNestedData.A)) * -1521134295 + (UCaseNestedData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseNestedData.B)) ),
+			_ => 5,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is ComplexUnion<T1, T2> && Equals((ComplexUnion<T1, T2>)obj);
+	}
+
+	public global::System.Boolean Equals(ComplexUnion<T1, T2> other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			IntIndex => global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(IntData, other.IntData),
+			LongIndex => global::System.Collections.Generic.EqualityComparer<long?>.Default.Equals(LongData, other.LongData),
+			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(TCaseData, other.TCaseData),
+			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.Equals(UCaseData.Value, other.UCaseData.Value) && global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(UCaseData.A, other.UCaseData.A) && global::System.Collections.Generic.EqualityComparer<T2?>.Default.Equals(UCaseData.B, other.UCaseData.B),
+			UCaseNestedIndex => global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.Equals(UCaseNestedData.Value, other.UCaseNestedData.Value) && global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(UCaseNestedData.A, other.UCaseNestedData.A) && global::System.Collections.Generic.EqualityComparer<T2?>.Default.Equals(UCaseNestedData.B, other.UCaseNestedData.B),
+			_ => true,
 		};
 	}
 

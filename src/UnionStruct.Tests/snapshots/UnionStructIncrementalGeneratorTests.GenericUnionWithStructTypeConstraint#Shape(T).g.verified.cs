@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-internal partial struct Shape<T>
+internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 {
 	public const global::System.Int32 CircleIndex = 0;
 	public const global::System.Int32 RectangleIndex = 1;
@@ -79,6 +79,41 @@ internal partial struct Shape<T>
 			CircleIndex => $"Circle {{ Radius = {CircleData} }}",
 			RectangleIndex => $"Rectangle {{ Width = {RectangleData.Width}, Height = {RectangleData.Height} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(Shape<T> left, Shape<T> right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(Shape<T> left, Shape<T> right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			CircleIndex => unchecked ( CircleIndex * -1521134295 + (CircleData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(CircleData)) ),
+			RectangleIndex => unchecked ( RectangleIndex * -1521134295 + (RectangleData.Width == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(RectangleData.Width)) * -1521134295 + (RectangleData.Height == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(RectangleData.Height)) ),
+			_ => 2,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is Shape<T> && Equals((Shape<T>)obj);
+	}
+
+	public global::System.Boolean Equals(Shape<T> other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			CircleIndex => global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(CircleData, other.CircleData),
+			RectangleIndex => global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(RectangleData.Width, other.RectangleData.Width) && global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(RectangleData.Height, other.RectangleData.Height),
+			_ => true,
 		};
 	}
 

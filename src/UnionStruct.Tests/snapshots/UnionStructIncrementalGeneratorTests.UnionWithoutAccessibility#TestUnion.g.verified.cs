@@ -8,7 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-internal partial struct TestUnion
+internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 EmptyIndex = 0;
 	public const global::System.Int32 CaseAIndex = 1;
@@ -95,6 +95,43 @@ internal partial struct TestUnion
 			CaseAIndex => $"CaseA {{ A = {CaseAData} }}",
 			CaseBIndex => $"CaseB {{ B = {CaseBData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
+		};
+	}
+
+	public static bool operator !=(TestUnion left, TestUnion right)
+	{
+		return !(left == right);
+	}
+
+	public static bool operator ==(TestUnion left, TestUnion right)
+	{
+		return left.Equals(right);
+	}
+
+	public override global::System.Int32 GetHashCode()
+	{
+		return CaseIndex switch
+		{
+			EmptyIndex => unchecked ( EmptyIndex ),
+			CaseAIndex => unchecked ( CaseAIndex * -1521134295 + (CaseAData == null ? 0 : global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(CaseAData)) ),
+			CaseBIndex => unchecked ( CaseBIndex * -1521134295 + (CaseBData == null ? 0 : global::System.Collections.Generic.EqualityComparer<long>.Default.GetHashCode(CaseBData)) ),
+			_ => 3,
+		};
+	}
+
+	public override global::System.Boolean Equals(global::System.Object? obj)
+	{
+		return obj is TestUnion && Equals((TestUnion)obj);
+	}
+
+	public global::System.Boolean Equals(TestUnion other)
+	{
+		return CaseIndex == other.CaseIndex && CaseIndex switch
+		{
+			EmptyIndex => true,
+			CaseAIndex => global::System.Collections.Generic.EqualityComparer<int>.Default.Equals(CaseAData, other.CaseAData),
+			CaseBIndex => global::System.Collections.Generic.EqualityComparer<long>.Default.Equals(CaseBData, other.CaseBData),
+			_ => true,
 		};
 	}
 
