@@ -98,8 +98,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	{
 		return CaseIndex switch
 		{
-			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData) ),
-			LongIndex => unchecked ( LongIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData) ),
+			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData.HasValue ? global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData.Value) : 0) ),
+			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData.HasValue ? global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData.Value) : 0) ),
 			_ => 2,
 		};
 	}

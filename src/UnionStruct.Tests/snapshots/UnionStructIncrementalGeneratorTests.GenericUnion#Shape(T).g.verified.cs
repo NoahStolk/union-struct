@@ -96,8 +96,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	{
 		return CaseIndex switch
 		{
-			CircleIndex => unchecked ( CircleIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(CircleData) ),
-			RectangleIndex => unchecked ( RectangleIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Width) * -1521134295 + global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Height) ),
+			CircleIndex => unchecked ( CircleIndex * -1521134295 + (CircleData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(CircleData)) ),
+			RectangleIndex => unchecked ( RectangleIndex * -1521134295 + (RectangleData.Width == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Width)) * -1521134295 + (RectangleData.Height == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Height)) ),
 			_ => 2,
 		};
 	}

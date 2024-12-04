@@ -118,7 +118,7 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 			string namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
 			string accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
 
-			UnionGenerator generator = new(unionModel, namespaceName, accessibility);
+			UnionGenerator generator = new(compilation, unionModel, namespaceName, accessibility);
 			string sourceCode = SourceBuilderUtils.Build(generator.Generate());
 
 			context.AddSource($"{unionModel.StructIdentifier.Replace('<', '(').Replace('>', ')')}.g.cs", SourceText.From(sourceCode, Encoding.UTF8));
