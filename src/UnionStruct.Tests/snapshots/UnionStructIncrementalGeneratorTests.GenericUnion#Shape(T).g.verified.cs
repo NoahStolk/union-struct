@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-internal partial record struct Shape<T>
+internal partial struct Shape<T>
 {
 	public const global::System.Int32 CircleIndex = 0;
 	public const global::System.Int32 RectangleIndex = 1;

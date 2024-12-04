@@ -12,7 +12,7 @@ internal sealed class UnionGenerator(UnionModel unionModel, string namespaceName
 		writer.WriteLine();
 		if (!unionModel.HasTypeParameters)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
-		writer.WriteLine($"{accessibility} partial record struct {unionModel.StructIdentifier}");
+		writer.WriteLine($"{accessibility} partial struct {unionModel.StructIdentifier}");
 		writer.StartBlock();
 		GenerateUnionCaseConstants(writer);
 		if (!unionModel.HasTypeParameters)

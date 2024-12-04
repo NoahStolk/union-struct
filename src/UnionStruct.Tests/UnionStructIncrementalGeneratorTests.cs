@@ -12,7 +12,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
@@ -31,7 +31,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion AngleCase(float angle);
 				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
@@ -50,7 +50,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion;
+			internal partial struct TestUnion;
 			""";
 
 		await TestHelper.Verify(code);
@@ -64,7 +64,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty1();
 				[UnionCase] public static partial TestUnion Empty2();
@@ -82,7 +82,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			public partial record struct TestUnion
+			public partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion CaseA(int A);
@@ -101,7 +101,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			partial record struct TestUnion
+			partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Empty();
 				[UnionCase] public static partial TestUnion CaseA(int A);
@@ -120,7 +120,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Int(int value);
 				[UnionCase] public static partial TestUnion Long(long value);
@@ -138,7 +138,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct Shape<T>
+			internal partial struct Shape<T>
 				where T : INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
@@ -157,7 +157,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct Shape<T>
+			internal partial struct Shape<T>
 				where T : struct, INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
@@ -176,7 +176,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion
+			internal partial struct TestUnion
 			{
 				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
 				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
@@ -194,7 +194,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct TestUnion<T>
+			internal partial struct TestUnion<T>
 			{
 				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
 				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
@@ -216,7 +216,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial record struct ComplexUnion<T1, T2>
+			internal partial struct ComplexUnion<T1, T2>
 			{
 				[UnionCase] public static partial ComplexUnion<T1, T2> Int(int? value);
 				[UnionCase] public static partial ComplexUnion<T1, T2> Long(long? value);

@@ -3,7 +3,7 @@
 namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
-internal partial record struct Shape<T>
+internal partial struct Shape<T>
 	where T : INumber<T>
 {
 	[UnionCase]

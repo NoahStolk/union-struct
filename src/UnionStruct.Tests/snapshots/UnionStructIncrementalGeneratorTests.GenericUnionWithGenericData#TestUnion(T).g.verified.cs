@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-internal partial record struct TestUnion<T>
+internal partial struct TestUnion<T>
 {
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 LongIndex = 1;

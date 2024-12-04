@@ -3,7 +3,7 @@
 namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
-internal partial record struct RotationType
+internal partial struct RotationType
 {
 	[UnionCase]
 	public static partial RotationType None();

@@ -8,7 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-internal partial record struct TestUnion
+internal partial struct TestUnion
 {
 
 	[global::System.Runtime.InteropServices.FieldOffset(0)]

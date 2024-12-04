@@ -40,7 +40,7 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 		// ! LINQ is used to filter out null values.
 		IncrementalValuesProvider<UnionModel> provider = context.SyntaxProvider
 			.CreateSyntaxProvider(
-				(sn, _) => sn is RecordDeclarationSyntax recordDeclarationSyntax && recordDeclarationSyntax.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword),
+				(sn, _) => sn is StructDeclarationSyntax,
 				(ctx, _) => GetUnionModel(ctx))
 			.Where(um => um != null)
 			.Select((um, _) => um!);
@@ -52,10 +52,10 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 
 	private static UnionModel? GetUnionModel(GeneratorSyntaxContext context)
 	{
-		RecordDeclarationSyntax recordDeclarationSyntax = (RecordDeclarationSyntax)context.Node;
+		StructDeclarationSyntax structDeclarationSyntax = (StructDeclarationSyntax)context.Node;
 
 		bool isUnion = false;
-		foreach (AttributeListSyntax attributeListSyntax in recordDeclarationSyntax.AttributeLists)
+		foreach (AttributeListSyntax attributeListSyntax in structDeclarationSyntax.AttributeLists)
 		{
 			foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
 			{
@@ -74,7 +74,7 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 			return null;
 
 		List<UnionCaseModel> cases = [];
-		foreach (MethodDeclarationSyntax methodDeclarationSyntax in recordDeclarationSyntax.Members.OfType<MethodDeclarationSyntax>())
+		foreach (MethodDeclarationSyntax methodDeclarationSyntax in structDeclarationSyntax.Members.OfType<MethodDeclarationSyntax>())
 		{
 			foreach (AttributeListSyntax attributeListSyntax in methodDeclarationSyntax.AttributeLists)
 			{
@@ -104,15 +104,15 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 			}
 		}
 
-		return new UnionModel(recordDeclarationSyntax, cases);
+		return new UnionModel(structDeclarationSyntax, cases);
 	}
 
 	private static void GenerateUnionStruct(SourceProductionContext context, Compilation compilation, ImmutableArray<UnionModel> unionModels)
 	{
 		foreach (UnionModel unionModel in unionModels)
 		{
-			SemanticModel semanticModel = compilation.GetSemanticModel(unionModel.RecordDeclarationSyntax.SyntaxTree);
-			if (ModelExtensions.GetDeclaredSymbol(semanticModel, unionModel.RecordDeclarationSyntax) is not INamedTypeSymbol structSymbol)
+			SemanticModel semanticModel = compilation.GetSemanticModel(unionModel.StructDeclarationSyntax.SyntaxTree);
+			if (ModelExtensions.GetDeclaredSymbol(semanticModel, unionModel.StructDeclarationSyntax) is not INamedTypeSymbol structSymbol)
 				continue;
 
 			string namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
