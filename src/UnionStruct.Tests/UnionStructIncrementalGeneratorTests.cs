@@ -139,7 +139,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			namespace Tests;
 			[Union]
 			internal partial struct Shape<T>
-				where T : INumber<T>
+				where T : System.Numerics.INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
 				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
@@ -158,7 +158,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 			namespace Tests;
 			[Union]
 			internal partial struct Shape<T>
-				where T : struct, INumber<T>
+				where T : struct, System.Numerics.INumber<T>
 			{
 				[UnionCase] public static partial Shape<T> Circle(T radius);
 				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);

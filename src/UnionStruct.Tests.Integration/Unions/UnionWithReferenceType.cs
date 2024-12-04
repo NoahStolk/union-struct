@@ -1,7 +1,7 @@
 ﻿namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
-public partial struct UnionWithReferenceType
+internal partial struct UnionWithReferenceType
 {
 	[UnionCase]
 	public static partial UnionWithReferenceType Int(int value);

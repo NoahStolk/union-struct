@@ -6,12 +6,10 @@ namespace UnionStruct.Tests.Utils;
 
 internal static class TestHelper
 {
-	private static readonly VerifySettings _settings = new();
-
-	static TestHelper()
-	{
-		_settings.UseDirectory(Path.Combine("..", "snapshots"));
-	}
+	private static readonly CSharpCompilationOptions _compilationOptions = new(
+		outputKind: OutputKind.DynamicallyLinkedLibrary,
+		generalDiagnosticOption: ReportDiagnostic.Error,
+		nullableContextOptions: NullableContextOptions.Enable);
 
 	public static Task Verify(string source)
 	{
@@ -19,17 +17,17 @@ internal static class TestHelper
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "UnionStruct.Tests",
 			syntaxTrees: [syntaxTree],
-			references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+			references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+			options: _compilationOptions);
 
 		UnionStructIncrementalGenerator generator = new();
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-		driver = driver.RunGenerators(compilation);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation outputCompilation, out _);
 
-		GeneratorDriverRunResult runResult = driver.GetRunResult();
-		ImmutableArray<Diagnostic> postGeneratorErrors = [..runResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error)];
-		if (postGeneratorErrors.Length > 0)
-			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({postGeneratorErrors.Length} errors): {string.Join(Environment.NewLine, postGeneratorErrors)}"));
+		ImmutableArray<Diagnostic> diagnostics = outputCompilation.GetDiagnostics();
+		if (diagnostics.Length > 0)
+			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({diagnostics.Length} errors):\n{string.Join(Environment.NewLine, diagnostics)}"));
 
-		return Verifier.Verify(driver, _settings);
+		return Verifier.Verify(driver).UseDirectory(Path.Combine("..", "snapshots"));
 	}
 }
