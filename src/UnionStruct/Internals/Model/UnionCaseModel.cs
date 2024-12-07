@@ -2,6 +2,7 @@
 
 namespace UnionStruct.Internals.Model;
 
+// TODO: Refactor to UnionCaseModelBuilder.
 internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDataTypeModel> DataTypes)
 {
 	public string CaseName { get; } = CaseName;
@@ -22,7 +23,7 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		if (DataTypes.Count != 1)
 			return $"{CaseName}Case";
 
-		return DataTypes[0].GetFullyQualifiedTypeName(includeNullability);
+		return includeNullability ? DataTypes[0].FullyQualifiedTypeName : DataTypes[0].FullyQualifiedTypeNameWithoutNullability;
 	}
 
 	public string GetActionType()
@@ -30,7 +31,7 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		return DataTypes.Count switch
 		{
 			0 => "global::System.Action",
-			_ => $"global::System.Action<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName(includeNullability: true)))}>",
+			_ => $"global::System.Action<{string.Join(", ", DataTypes.Select(dt => dt.FullyQualifiedTypeName))}>",
 		};
 	}
 
@@ -39,7 +40,7 @@ internal sealed record UnionCaseModel(string CaseName, IReadOnlyList<UnionCaseDa
 		return DataTypes.Count switch
 		{
 			0 => $"global::System.Func<{funcOutTypeParameterName}>",
-			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.GetFullyQualifiedTypeName(includeNullability: true)))}, {funcOutTypeParameterName}>",
+			_ => $"global::System.Func<{string.Join(", ", DataTypes.Select(dt => dt.FullyQualifiedTypeName))}, {funcOutTypeParameterName}>",
 		};
 	}
 

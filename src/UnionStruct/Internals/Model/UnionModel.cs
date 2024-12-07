@@ -1,49 +1,19 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿namespace UnionStruct.Internals.Model;
 
-namespace UnionStruct.Internals.Model;
-
-internal sealed record UnionModel(StructDeclarationSyntax StructDeclarationSyntax, IReadOnlyList<UnionCaseModel> Cases)
+internal sealed record UnionModel
 {
-	public StructDeclarationSyntax StructDeclarationSyntax { get; } = StructDeclarationSyntax;
+	public required IReadOnlyList<UnionCaseModel> Cases { get; init; }
 
-	public IReadOnlyList<UnionCaseModel> Cases { get; } = Cases;
-
-	public bool AllowMemoryOverlap
-	{
-		get
-		{
-			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = StructDeclarationSyntax.TypeParameterList?.Parameters;
-			if (typeParameters is { Count: > 0 })
-				return false;
-
-			foreach (UnionCaseModel unionCase in Cases)
-			{
-				if (unionCase.DataTypes.Any(dt => dt.TypeSymbol.IsReferenceType))
-					return false;
-			}
-
-			return true;
-		}
-	}
+	public required bool AllowMemoryOverlap { get; init; }
 
 	/// <summary>
 	/// Returns the name of the struct including type parameters if any.
 	/// </summary>
-	public string StructIdentifier
-	{
-		get
-		{
-			SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = StructDeclarationSyntax.TypeParameterList?.Parameters;
-			if (typeParameters is { Count: > 0 })
-				return $"{StructName}<{string.Join(", ", typeParameters.Value.Select(tp => tp.Identifier.Text))}>";
+	public required string StructIdentifier { get; init; }
 
-			return StructName;
-		}
-	}
+	public required string StructName { get; init; }
 
-	/// <summary>
-	/// Returns the name of the struct.
-	/// </summary>
-	public string StructName => StructDeclarationSyntax.Identifier.Text;
+	public required string NamespaceName { get; init; }
+
+	public required string Accessibility { get; init; }
 }

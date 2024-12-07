@@ -4,16 +4,16 @@ using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Internals;
 
-internal sealed class UnionGenerator(Compilation compilation, UnionModel unionModel, string namespaceName, string accessibility)
+internal sealed class UnionGenerator(Compilation compilation, UnionModel unionModel)
 {
 	public string Generate()
 	{
 		CodeWriter writer = new();
-		writer.WriteLine($"namespace {namespaceName};");
+		writer.WriteLine($"namespace {unionModel.NamespaceName};");
 		writer.WriteLine();
 		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
-		writer.WriteLine($"{accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
+		writer.WriteLine($"{unionModel.Accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
 		writer.StartBlock();
 		GenerateUnionCaseConstants(writer);
 		if (unionModel.AllowMemoryOverlap)
@@ -82,7 +82,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 		{
-			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.GetFullyQualifiedTypeName(includeNullability: true)} {dt.FactoryParameterName}").ToList();
+			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.FullyQualifiedTypeName} {dt.FactoryParameterName}").ToList();
 
 			writer.WriteLine($"public static partial {unionModel.StructIdentifier} {unionCaseModel.CaseName}(");
 
@@ -210,14 +210,15 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 				string fields = string.Join($" * {prime} + ", unionCaseModel.DataTypes.Select(dt =>
 				{
 					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
-					string equalityComparer = $"global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName(includeNullability: true)}>.Default";
+					string equalityComparer = $"global::System.Collections.Generic.EqualityComparer<{dt.FullyQualifiedTypeName}>.Default";
 
+					// TODO: Add IsNullableOfT to UnionCaseDataTypeModel and remove compilation parameter/field from builder.
 					bool isNullableOfT = SymbolEqualityComparer.IncludeNullability.Equals(dt.TypeSymbol.OriginalDefinition, compilation.GetTypeByMetadataName("System.Nullable`1"));
 					if (isNullableOfT)
 						return $"({fieldName}.HasValue ? {equalityComparer}.GetHashCode({fieldName}.Value) : 0)";
 
 					string getHashCodeCall = $"{equalityComparer}.GetHashCode({fieldName})";
-					return dt.GetNullableFlowState() == NullableFlowState.MaybeNull ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
+					return dt.IsNullable ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
 			}
@@ -253,7 +254,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 				string fields = string.Join(" && ", unionCaseModel.DataTypes.Select(dt =>
 				{
 					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
-					return $"global::System.Collections.Generic.EqualityComparer<{dt.GetFullyQualifiedTypeName(includeNullability: true)}>.Default.Equals({fieldName}, other.{fieldName})";
+					return $"global::System.Collections.Generic.EqualityComparer<{dt.FullyQualifiedTypeName}>.Default.Equals({fieldName}, other.{fieldName})";
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {fields},");
 			}
@@ -277,7 +278,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			writer.StartBlock();
 			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
 			{
-				writer.WriteLine($"public {dataType.GetFullyQualifiedTypeName(includeNullability: true)} {dataType.FieldName};");
+				writer.WriteLine($"public {dataType.FullyQualifiedTypeName} {dataType.FieldName};");
 				writer.WriteLine();
 			}
 
