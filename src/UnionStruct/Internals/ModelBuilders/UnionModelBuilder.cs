@@ -12,7 +12,9 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 		if (semanticModel.GetDeclaredSymbol(structDeclarationSyntax) is not INamedTypeSymbol structSymbol)
 			return null;
 
-		IReadOnlyList<UnionCaseModel> cases = GetUnionCases();
+		const string funcOutTypeParameterName = "TMatchOut"; // TODO: Find a better way to avoid naming conflicts with struct type parameter names.
+
+		IReadOnlyList<UnionCaseModel> cases = GetUnionCases(funcOutTypeParameterName);
 
 		string structName = structDeclarationSyntax.Identifier.Text;
 		string structIdentifier = GetStructIdentifier(structName);
@@ -28,6 +30,7 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 			NamespaceName = namespaceName,
 			Accessibility = accessibility,
 			AllowMemoryOverlap = allowMemoryOverlap,
+			FuncOutTypeParameterName = funcOutTypeParameterName,
 		};
 	}
 
@@ -55,7 +58,7 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 		return true;
 	}
 
-	private List<UnionCaseModel> GetUnionCases()
+	private List<UnionCaseModel> GetUnionCases(string funcOutTypeParameterName)
 	{
 		List<UnionCaseModel> cases = [];
 		foreach (MethodDeclarationSyntax methodDeclarationSyntax in structDeclarationSyntax.Members.OfType<MethodDeclarationSyntax>())
@@ -81,11 +84,12 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 							if (parameterType != null)
 							{
 								UnionCaseDataTypeModelBuilder builder = new(parameterSyntax, parameterType);
-								dataTypes.Add(builder.CreateUnionCaseDataTypeModel());
+								dataTypes.Add(builder.Build());
 							}
 						}
 
-						cases.Add(new UnionCaseModel(methodDeclarationSyntax.Identifier.Text, dataTypes));
+						UnionCaseModelBuilder caseBuilder = new(methodDeclarationSyntax.Identifier.Text, dataTypes, funcOutTypeParameterName);
+						cases.Add(caseBuilder.Build());
 					}
 				}
 			}

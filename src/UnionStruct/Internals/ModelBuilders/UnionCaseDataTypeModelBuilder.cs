@@ -7,7 +7,7 @@ namespace UnionStruct.Internals.ModelBuilders;
 
 internal sealed class UnionCaseDataTypeModelBuilder(ParameterSyntax parameterSyntax, ITypeSymbol parameterType)
 {
-	public UnionCaseDataTypeModel CreateUnionCaseDataTypeModel()
+	public UnionCaseDataTypeModel Build()
 	{
 		string name = parameterSyntax.Identifier.Text;
 		return new UnionCaseDataTypeModel

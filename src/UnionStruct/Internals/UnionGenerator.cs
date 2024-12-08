@@ -55,7 +55,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 			if (unionModel.AllowMemoryOverlap)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.GetCaseTypeName(includeNullability: true)} {unionCaseModel.CaseFieldName};");
+			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
 			writer.WriteLine();
 		}
 	}
@@ -114,7 +114,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 	private void GenerateSwitchMethod(CodeWriter writer)
 	{
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.GetActionType()} {ucm.ParameterName}").ToList();
+		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.ActionTypeName} {ucm.ParameterName}").ToList();
 
 		writer.WriteLine("public void Switch(");
 
@@ -128,7 +128,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine("switch (CaseIndex)");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"case {unionCaseModel.CaseIndexFieldName}: {unionCaseModel.ParameterName}.Invoke({unionCaseModel.GetInvocationParameters()}); break;");
+			writer.WriteLine($"case {unionCaseModel.CaseIndexFieldName}: {unionCaseModel.ParameterName}.Invoke({unionCaseModel.InvocationParameters}); break;");
 		writer.WriteLine("default: throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\");");
 		writer.EndBlock();
 		writer.EndBlock();
@@ -137,11 +137,9 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 	private void GenerateMatchMethod(CodeWriter writer)
 	{
-		const string typeParameterName = "TMatchOut"; // TODO: Find a better way to avoid naming conflicts with struct type parameter names.
+		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.FuncTypeName} {ucm.ParameterName}").ToList();
 
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.GetFuncType(typeParameterName)} {ucm.ParameterName}").ToList();
-
-		writer.WriteLine($"public {typeParameterName} Match<{typeParameterName}>(");
+		writer.WriteLine($"public {unionModel.FuncOutTypeParameterName} Match<{unionModel.FuncOutTypeParameterName}>(");
 
 		writer.StartIndent();
 		for (int i = 0; i < parameters.Count; i++)
@@ -153,7 +151,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine("return CaseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ParameterName}.Invoke({unionCaseModel.GetInvocationParameters()}),");
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ParameterName}.Invoke({unionCaseModel.InvocationParameters}),");
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\"),");
 		writer.EndBlockWithSemicolon();
 		writer.EndBlock();
@@ -167,7 +165,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine("return CaseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.GetToStringReturnValue()},");
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ToStringReturnValue},");
 
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\"),");
 		writer.EndBlockWithSemicolon();
@@ -274,7 +272,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			if (unionCaseModel.DataTypes.Count <= 1)
 				continue;
 
-			writer.WriteLine($"public struct {unionCaseModel.GetCaseTypeName(includeNullability: false)}");
+			writer.WriteLine($"public struct {unionCaseModel.CaseTypeNameWithoutNullability}");
 			writer.StartBlock();
 			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
 			{

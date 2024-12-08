@@ -35,7 +35,7 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 		context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{GeneratorConstants.UnionCaseAttributeName}.g.cs", SourceText.From(SourceBuilderUtils.Build(_unionCaseAttributeSourceCode), Encoding.UTF8)));
 
 		// ! LINQ is used to filter out null values.
-		IncrementalValuesProvider<UnionModel> provider = context.SyntaxProvider
+		IncrementalValuesProvider<UnionModel> unionModelProvider = context.SyntaxProvider
 			.CreateSyntaxProvider(
 				(sn, _) => sn is StructDeclarationSyntax,
 				(ctx, _) => GetUnionModel(ctx))
@@ -43,7 +43,7 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 			.Select((um, _) => um!);
 
 		context.RegisterSourceOutput(
-			context.CompilationProvider.Combine(provider.Collect()),
+			context.CompilationProvider.Combine(unionModelProvider.Collect()),
 			(ctx, t) => GenerateUnionStruct(ctx, t.Left, t.Right));
 	}
 

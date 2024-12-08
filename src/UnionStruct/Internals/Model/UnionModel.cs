@@ -16,4 +16,6 @@ internal sealed record UnionModel
 	public required string NamespaceName { get; init; }
 
 	public required string Accessibility { get; init; }
+
+	public required string FuncOutTypeParameterName { get; init; }
 }
