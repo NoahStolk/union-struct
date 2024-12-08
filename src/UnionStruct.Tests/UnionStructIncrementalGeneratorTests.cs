@@ -252,17 +252,17 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Fact]
-	public async Task RecursiveUnion()
+	public async Task NestedUnions()
 	{
 		const string code =
 			"""
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial struct RecursiveUnion
+			internal partial struct RootUnion
 			{
-				[UnionCase] public static partial RecursiveUnion Empty();
-				[UnionCase] public static partial RecursiveUnion Nested(NestedUnion value);
+				[UnionCase] public static partial RootUnion Empty();
+				[UnionCase] public static partial RootUnion NestedCase(NestedUnion value);
 			}
 
 			[Union]
