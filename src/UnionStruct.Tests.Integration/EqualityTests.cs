@@ -41,6 +41,19 @@ public sealed class EqualityTests
 		UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("2")).Should().BeFalse();
 		UnionWithReferenceType.String("1").Equals(null).Should().BeFalse();
 		UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.Int(1)).Should().BeFalse();
+
+		RootUnion.Empty().Equals(RootUnion.Empty()).Should().BeTrue();
+		RootUnion.Empty().Equals(RootUnion.NestedCase(NestedUnion.Empty())).Should().BeFalse();
+		RootUnion.Empty().Equals(null).Should().BeFalse();
+
+		RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Empty())).Should().BeTrue();
+		RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Node(1))).Should().BeFalse();
+		RootUnion.NestedCase(NestedUnion.Empty()).Equals(null).Should().BeFalse();
+
+		RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(1))).Should().BeTrue();
+		RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(2))).Should().BeFalse();
+		RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Empty())).Should().BeFalse();
+		RootUnion.NestedCase(NestedUnion.Node(1)).Equals(null).Should().BeFalse();
 	}
 
 	[Fact]

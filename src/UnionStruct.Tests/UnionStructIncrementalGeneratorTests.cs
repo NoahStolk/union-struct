@@ -311,4 +311,22 @@ public sealed class UnionStructIncrementalGeneratorTests
 
 		await TestHelper.Verify(code);
 	}
+
+	[Fact]
+	public async Task UnionWithOptionalParameters()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithOptionalParameters
+			{
+				[UnionCase] public static partial UnionWithOptionalParameters Int(int value = 16);
+				[UnionCase] public static partial UnionWithOptionalParameters Text(string b = "default");
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
 }

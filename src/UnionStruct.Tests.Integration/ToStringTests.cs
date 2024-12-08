@@ -29,5 +29,12 @@ public sealed class ToStringTests
 
 		Shape<int>.Circle(1).ToString().Should().Be("Circle { Radius = 1 }");
 		Shape<int>.Rectangle(2, 3).ToString().Should().Be("Rectangle { Width = 2, Height = 3 }");
+
+		UnionWithReferenceType.Int(1).ToString().Should().Be("Int { Value = 1 }");
+		UnionWithReferenceType.String("1").ToString().Should().Be("String { Value = 1 }");
+
+		RootUnion.Empty().ToString().Should().Be("Empty");
+		RootUnion.NestedCase(NestedUnion.Empty()).ToString().Should().Be("NestedCase { Value = Empty }");
+		RootUnion.NestedCase(NestedUnion.Node(1)).ToString().Should().Be("NestedCase { Value = Node { Value = 1 } }");
 	}
 }
