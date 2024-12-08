@@ -5,38 +5,49 @@ using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Internals.ModelBuilders;
 
-internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDeclarationSyntax structDeclarationSyntax)
+internal sealed class UnionModelBuilder
 {
-	public UnionModel? TryCreateUnionModel()
-	{
-		if (semanticModel.GetDeclaredSymbol(structDeclarationSyntax) is not INamedTypeSymbol structSymbol)
-			return null;
+	private readonly SemanticModel _semanticModel;
+	private readonly StructDeclarationSyntax _structDeclarationSyntax;
 
-		const string funcOutTypeParameterName = "TMatchOut"; // TODO: Find a better way to avoid naming conflicts with struct type parameter names.
+	private readonly string _structName;
+	private readonly string _structIdentifier;
+	private readonly string _namespaceName;
+	private readonly string _accessibility;
+
+	public UnionModelBuilder(SemanticModel semanticModel, StructDeclarationSyntax structDeclarationSyntax, INamedTypeSymbol structSymbol)
+	{
+		_semanticModel = semanticModel;
+		_structDeclarationSyntax = structDeclarationSyntax;
+
+		_structName = _structDeclarationSyntax.Identifier.Text;
+		_structIdentifier = GetStructIdentifier(_structName);
+		_namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
+		_accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
+	}
+
+	public UnionModel Build()
+	{
+		// TODO: Find a better way to avoid naming conflicts with struct type parameter names.
+		const string funcOutTypeParameterName = "TMatchOut";
 
 		IReadOnlyList<UnionCaseModel> cases = GetUnionCases(funcOutTypeParameterName);
-
-		string structName = structDeclarationSyntax.Identifier.Text;
-		string structIdentifier = GetStructIdentifier(structName);
-		bool allowMemoryOverlap = AllowMemoryOverlap(cases);
-		string namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
-		string accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
 
 		return new UnionModel
 		{
 			Cases = cases,
-			StructName = structName,
-			StructIdentifier = structIdentifier,
-			NamespaceName = namespaceName,
-			Accessibility = accessibility,
-			AllowMemoryOverlap = allowMemoryOverlap,
+			StructName = _structName,
+			StructIdentifier = _structIdentifier,
+			NamespaceName = _namespaceName,
+			Accessibility = _accessibility,
+			AllowMemoryOverlap = AllowMemoryOverlap(cases),
 			FuncOutTypeParameterName = funcOutTypeParameterName,
 		};
 	}
 
 	private string GetStructIdentifier(string structName)
 	{
-		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = structDeclarationSyntax.TypeParameterList?.Parameters;
+		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
 		if (typeParameters is { Count: > 0 })
 			return $"{structName}<{string.Join(", ", typeParameters.Value.Select(tp => tp.Identifier.Text))}>";
 
@@ -45,7 +56,7 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 
 	private bool AllowMemoryOverlap(IReadOnlyList<UnionCaseModel> cases)
 	{
-		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = structDeclarationSyntax.TypeParameterList?.Parameters;
+		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
 		if (typeParameters is { Count: > 0 })
 			return false;
 
@@ -61,36 +72,21 @@ internal sealed class UnionModelBuilder(SemanticModel semanticModel, StructDecla
 	private List<UnionCaseModel> GetUnionCases(string funcOutTypeParameterName)
 	{
 		List<UnionCaseModel> cases = [];
-		foreach (MethodDeclarationSyntax methodDeclarationSyntax in structDeclarationSyntax.Members.OfType<MethodDeclarationSyntax>())
+		foreach (MethodDeclarationSyntax methodDeclarationSyntax in _structDeclarationSyntax.Members.OfType<MethodDeclarationSyntax>())
 		{
 			foreach (AttributeListSyntax attributeListSyntax in methodDeclarationSyntax.AttributeLists)
 			{
 				foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
 				{
-					if (semanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
+					if (_semanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
 						continue;
 
 					string attributeName = attributeSymbol.ContainingType.ToDisplayString();
+					if (attributeName != $"{GeneratorConstants.RootNamespace}.{GeneratorConstants.UnionCaseAttributeName}")
+						continue;
 
-					if (attributeName == $"{GeneratorConstants.RootNamespace}.{GeneratorConstants.UnionCaseAttributeName}")
-					{
-						List<UnionCaseDataTypeModel> dataTypes = [];
-						foreach (ParameterSyntax parameterSyntax in methodDeclarationSyntax.ParameterList.Parameters)
-						{
-							if (parameterSyntax.Type == null)
-								continue;
-
-							ITypeSymbol? parameterType = semanticModel.GetTypeInfo(parameterSyntax.Type).Type;
-							if (parameterType != null)
-							{
-								UnionCaseDataTypeModelBuilder builder = new(parameterSyntax, parameterType);
-								dataTypes.Add(builder.Build());
-							}
-						}
-
-						UnionCaseModelBuilder caseBuilder = new(methodDeclarationSyntax.Identifier.Text, dataTypes, funcOutTypeParameterName);
-						cases.Add(caseBuilder.Build());
-					}
+					UnionCaseModelBuilder caseBuilder = new(_semanticModel, methodDeclarationSyntax, funcOutTypeParameterName);
+					cases.Add(caseBuilder.Build());
 				}
 			}
 		}
