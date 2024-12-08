@@ -10,22 +10,22 @@ internal sealed class UnionModelBuilder
 	private readonly SemanticModel _semanticModel;
 	private readonly StructDeclarationSyntax _structDeclarationSyntax;
 
+	private readonly SeparatedSyntaxList<TypeParameterSyntax>? _typeParameters;
 	private readonly string _structName;
 	private readonly string _structIdentifier;
 	private readonly string _namespaceName;
 	private readonly string _accessibility;
-	private readonly SeparatedSyntaxList<TypeParameterSyntax>? _typeParameters;
 
 	public UnionModelBuilder(SemanticModel semanticModel, StructDeclarationSyntax structDeclarationSyntax, INamedTypeSymbol structSymbol)
 	{
 		_semanticModel = semanticModel;
 		_structDeclarationSyntax = structDeclarationSyntax;
 
+		_typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
 		_structName = _structDeclarationSyntax.Identifier.Text;
 		_structIdentifier = GetStructIdentifier(_structName);
 		_namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
 		_accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
-		_typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
 	}
 
 	public UnionModel Build()

@@ -22,7 +22,7 @@ WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
 
 ComplexUnion<int, long> test = ComplexUnion<int, long>.UCaseNested(new ComplexUnion<int, long>.TestGenericNested<byte, short>(1, 2), 3, 4);
 Console.WriteLine(test);
-Console.WriteLine(test.UCaseNestedData.Value.HasValue ? test.UCaseNestedData.Value.Value.A : 0);
+Console.WriteLine($"A: {test.UCaseNestedData.Value?.A ?? 0}");
 
 void WriteShape<T>(Shape<T> shape)
 	where T : INumber<T>
