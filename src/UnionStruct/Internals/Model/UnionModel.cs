@@ -11,6 +11,9 @@ internal sealed record UnionModel
 	/// </summary>
 	public required string StructIdentifier { get; init; }
 
+	/// <summary>
+	/// Returns the name of the struct without type parameters.
+	/// </summary>
 	public required string StructName { get; init; }
 
 	public required string NamespaceName { get; init; }

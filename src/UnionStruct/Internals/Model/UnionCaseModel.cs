@@ -6,9 +6,9 @@ internal sealed record UnionCaseModel
 
 	public required IReadOnlyList<UnionCaseDataTypeModel> DataTypes { get; init; }
 
-	public required string CaseTypeName { get; init; }
+	public required string CaseFieldTypeName { get; init; }
 
-	public required string CaseTypeNameWithoutNullability { get; init; }
+	public required string CaseStructTypeIdentifier { get; init; }
 
 	public required string ActionTypeName { get; init; }
 

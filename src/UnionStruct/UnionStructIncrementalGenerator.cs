@@ -53,7 +53,15 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 		if (context.SemanticModel.GetDeclaredSymbol(structDeclarationSyntax) is not INamedTypeSymbol structSymbol)
 			return null;
 
-		bool hasUnionAttribute = false;
+		if (!HasUnionAttribute(context, structDeclarationSyntax))
+			return null;
+
+		UnionModelBuilder builder = new(context.SemanticModel, structDeclarationSyntax, structSymbol);
+		return builder.Build();
+	}
+
+	private static bool HasUnionAttribute(GeneratorSyntaxContext context, StructDeclarationSyntax structDeclarationSyntax)
+	{
 		foreach (AttributeListSyntax attributeListSyntax in structDeclarationSyntax.AttributeLists)
 		{
 			foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
@@ -64,16 +72,11 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 				if (attributeSymbol.ContainingType.ToDisplayString() != $"{GeneratorConstants.RootNamespace}.{GeneratorConstants.UnionAttributeName}")
 					continue;
 
-				hasUnionAttribute = true;
-				break;
+				return true;
 			}
 		}
 
-		if (!hasUnionAttribute)
-			return null;
-
-		UnionModelBuilder builder = new(context.SemanticModel, structDeclarationSyntax, structSymbol);
-		return builder.Build();
+		return false;
 	}
 
 	private static void GenerateUnionStruct(SourceProductionContext context, Compilation compilation, ImmutableArray<UnionModel> unionModels)

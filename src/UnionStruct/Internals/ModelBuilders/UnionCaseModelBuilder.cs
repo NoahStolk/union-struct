@@ -44,8 +44,8 @@ internal sealed class UnionCaseModelBuilder
 		{
 			CaseName = _caseName,
 			DataTypes = dataTypes,
-			CaseTypeName = GetCaseTypeName(dataTypes, includeNullability: true),
-			CaseTypeNameWithoutNullability = GetCaseTypeName(dataTypes, includeNullability: false),
+			CaseFieldTypeName = GetCaseTypeName(dataTypes, includeNullability: true),
+			CaseStructTypeIdentifier = GetCaseTypeName(dataTypes, includeNullability: false),
 			ActionTypeName = GetActionType(dataTypes),
 			FuncTypeName = GetFuncType(dataTypes),
 			InvocationParameters = GetInvocationParameters(dataTypes),

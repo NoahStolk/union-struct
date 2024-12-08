@@ -55,7 +55,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 			if (unionModel.AllowMemoryOverlap)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.CaseTypeName} {unionCaseModel.CaseFieldName};");
+			writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName};");
 			writer.WriteLine();
 		}
 	}
@@ -272,7 +272,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			if (unionCaseModel.DataTypes.Count <= 1)
 				continue;
 
-			writer.WriteLine($"public struct {unionCaseModel.CaseTypeNameWithoutNullability}");
+			writer.WriteLine($"public struct {unionCaseModel.CaseStructTypeIdentifier}");
 			writer.StartBlock();
 			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
 			{

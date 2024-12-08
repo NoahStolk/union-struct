@@ -14,6 +14,7 @@ internal sealed class UnionModelBuilder
 	private readonly string _structIdentifier;
 	private readonly string _namespaceName;
 	private readonly string _accessibility;
+	private readonly SeparatedSyntaxList<TypeParameterSyntax>? _typeParameters;
 
 	public UnionModelBuilder(SemanticModel semanticModel, StructDeclarationSyntax structDeclarationSyntax, INamedTypeSymbol structSymbol)
 	{
@@ -24,6 +25,7 @@ internal sealed class UnionModelBuilder
 		_structIdentifier = GetStructIdentifier(_structName);
 		_namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
 		_accessibility = structSymbol.DeclaredAccessibility.ToString().ToLowerInvariant();
+		_typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
 	}
 
 	public UnionModel Build()
@@ -47,17 +49,15 @@ internal sealed class UnionModelBuilder
 
 	private string GetStructIdentifier(string structName)
 	{
-		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
-		if (typeParameters is { Count: > 0 })
-			return $"{structName}<{string.Join(", ", typeParameters.Value.Select(tp => tp.Identifier.Text))}>";
+		if (_typeParameters is { Count: > 0 })
+			return $"{structName}<{string.Join(", ", _typeParameters.Value.Select(tp => tp.Identifier.Text))}>";
 
 		return structName;
 	}
 
 	private bool AllowMemoryOverlap(IReadOnlyList<UnionCaseModel> cases)
 	{
-		SeparatedSyntaxList<TypeParameterSyntax>? typeParameters = _structDeclarationSyntax.TypeParameterList?.Parameters;
-		if (typeParameters is { Count: > 0 })
+		if (_typeParameters is { Count: > 0 })
 			return false;
 
 		foreach (UnionCaseModel unionCase in cases)
