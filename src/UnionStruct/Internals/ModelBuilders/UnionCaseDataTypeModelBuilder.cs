@@ -27,7 +27,7 @@ internal sealed class UnionCaseDataTypeModelBuilder
 			FullyQualifiedTypeName = GetFullyQualifiedTypeName(includeNullability: true),
 			FullyQualifiedTypeNameWithoutNullability = GetFullyQualifiedTypeName(includeNullability: false),
 			TypeSymbol = _parameterType,
-			IsNullable = GetNullableFlowState() == NullableFlowState.MaybeNull,
+			IsNullableReferenceType = GetNullableFlowState() == NullableFlowState.MaybeNull,
 		};
 	}
 

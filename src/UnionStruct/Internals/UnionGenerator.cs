@@ -6,6 +6,8 @@ namespace UnionStruct.Internals;
 
 internal sealed class UnionGenerator(Compilation compilation, UnionModel unionModel)
 {
+	private readonly INamedTypeSymbol? _nullableOfTTypeSymbol = compilation.GetTypeByMetadataName("System.Nullable`1");
+
 	public string Generate()
 	{
 		CodeWriter writer = new();
@@ -210,13 +212,12 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
 					string equalityComparer = $"global::System.Collections.Generic.EqualityComparer<{dt.FullyQualifiedTypeName}>.Default";
 
-					// TODO: Add IsNullableOfT to UnionCaseDataTypeModel and remove compilation parameter/field from builder.
-					bool isNullableOfT = SymbolEqualityComparer.IncludeNullability.Equals(dt.TypeSymbol.OriginalDefinition, compilation.GetTypeByMetadataName("System.Nullable`1"));
+					bool isNullableOfT = SymbolEqualityComparer.IncludeNullability.Equals(dt.TypeSymbol.OriginalDefinition, _nullableOfTTypeSymbol);
 					if (isNullableOfT)
 						return $"({fieldName}.HasValue ? {equalityComparer}.GetHashCode({fieldName}.Value) : 0)";
 
 					string getHashCodeCall = $"{equalityComparer}.GetHashCode({fieldName})";
-					return dt.IsNullable ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
+					return dt.IsNullableReferenceType ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
 			}
