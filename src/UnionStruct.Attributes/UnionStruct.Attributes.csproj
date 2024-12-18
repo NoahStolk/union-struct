@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>UnionStruct</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>
