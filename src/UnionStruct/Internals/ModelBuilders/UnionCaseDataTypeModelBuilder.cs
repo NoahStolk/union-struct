@@ -31,6 +31,7 @@ internal sealed class UnionCaseDataTypeModelBuilder
 			TypeSymbol = _parameterType,
 			IsNullableReferenceType = GetNullableFlowState() == NullableFlowState.MaybeNull,
 			TypeParameterAllowsNullability = TypeParameterAllowsNullability(),
+			IsNullableTypeSyntax = _parameterSyntax.Type is NullableTypeSyntax,
 		};
 	}
 

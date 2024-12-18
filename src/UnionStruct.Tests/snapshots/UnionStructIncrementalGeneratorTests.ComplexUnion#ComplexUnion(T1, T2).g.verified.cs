@@ -21,7 +21,7 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 
 	public long? LongData;
 
-	public T1? TCaseData = default!;
+	public T1? TCaseData;
 
 	public UCaseCase UCaseData;
 
