@@ -15,4 +15,8 @@ internal sealed record UnionCaseDataTypeModel
 	public required string FullyQualifiedTypeNameWithoutNullability { get; init; }
 
 	public required bool IsNullableReferenceType { get; init; }
+
+	public required bool TypeParameterAllowsNullability { get; init; }
+
+	public required bool IsNullableTypeSyntax { get; init; }
 }

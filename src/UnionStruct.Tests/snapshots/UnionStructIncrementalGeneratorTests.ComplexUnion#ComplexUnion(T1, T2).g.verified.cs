@@ -67,27 +67,23 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 
 	public static partial ComplexUnion<T1, T2> UCase(
 		Tests.TestGeneric<byte, short>? @value,
-		T1? @a,
-		T2? @b
+		T1 @a,
+		T2 @b
 	)
 	{
 		ComplexUnion<T1, T2> ___factoryReturnValue = new(UCaseIndex);
-		___factoryReturnValue.UCaseData.Value = @value;
-		___factoryReturnValue.UCaseData.A = @a;
-		___factoryReturnValue.UCaseData.B = @b;
+		___factoryReturnValue.UCaseData = new(@value, @a, @b);
 		return ___factoryReturnValue;
 	}
 
 	public static partial ComplexUnion<T1, T2> UCaseNested(
 		Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>? @value,
-		T1? @a,
-		T2? @b
+		T1 @a,
+		T2 @b
 	)
 	{
 		ComplexUnion<T1, T2> ___factoryReturnValue = new(UCaseNestedIndex);
-		___factoryReturnValue.UCaseNestedData.Value = @value;
-		___factoryReturnValue.UCaseNestedData.A = @a;
-		___factoryReturnValue.UCaseNestedData.B = @b;
+		___factoryReturnValue.UCaseNestedData = new(@value, @a, @b);
 		return ___factoryReturnValue;
 	}
 
@@ -95,8 +91,8 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 		global::System.Action<int?> @int,
 		global::System.Action<long?> @long,
 		global::System.Action<T1?> @tCase,
-		global::System.Action<Tests.TestGeneric<byte, short>?, T1?, T2?> @uCase,
-		global::System.Action<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?, T1?, T2?> @uCaseNested
+		global::System.Action<Tests.TestGeneric<byte, short>?, T1, T2> @uCase,
+		global::System.Action<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?, T1, T2> @uCaseNested
 	)
 	{
 		switch (CaseIndex)
@@ -114,8 +110,8 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 		global::System.Func<int?, TMatchOut> @int,
 		global::System.Func<long?, TMatchOut> @long,
 		global::System.Func<T1?, TMatchOut> @tCase,
-		global::System.Func<Tests.TestGeneric<byte, short>?, T1?, T2?, TMatchOut> @uCase,
-		global::System.Func<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?, T1?, T2?, TMatchOut> @uCaseNested
+		global::System.Func<Tests.TestGeneric<byte, short>?, T1, T2, TMatchOut> @uCase,
+		global::System.Func<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?, T1, T2, TMatchOut> @uCaseNested
 	)
 	{
 		return CaseIndex switch
@@ -159,8 +155,8 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData.HasValue ? global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData.Value) : 0) ),
 			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData.HasValue ? global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData.Value) : 0) ),
 			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(TCaseData)) ),
-			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.Value.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value.Value) : 0) * -1521134295 + (UCaseData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseData.A)) * -1521134295 + (UCaseData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseData.B)) ),
-			UCaseNestedIndex => unchecked ( UCaseNestedIndex * -1521134295 + (UCaseNestedData.Value.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.GetHashCode(UCaseNestedData.Value.Value) : 0) * -1521134295 + (UCaseNestedData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1?>.Default.GetHashCode(UCaseNestedData.A)) * -1521134295 + (UCaseNestedData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2?>.Default.GetHashCode(UCaseNestedData.B)) ),
+			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.Value.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value.Value) : 0) * -1521134295 + (UCaseData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1>.Default.GetHashCode(UCaseData.A)) * -1521134295 + (UCaseData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2>.Default.GetHashCode(UCaseData.B)) ),
+			UCaseNestedIndex => unchecked ( UCaseNestedIndex * -1521134295 + (UCaseNestedData.Value.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.GetHashCode(UCaseNestedData.Value.Value) : 0) * -1521134295 + (UCaseNestedData.A == null ? 0 : global::System.Collections.Generic.EqualityComparer<T1>.Default.GetHashCode(UCaseNestedData.A)) * -1521134295 + (UCaseNestedData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<T2>.Default.GetHashCode(UCaseNestedData.B)) ),
 			_ => 5,
 		};
 	}
@@ -177,8 +173,8 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 			IntIndex => global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(IntData, other.IntData),
 			LongIndex => global::System.Collections.Generic.EqualityComparer<long?>.Default.Equals(LongData, other.LongData),
 			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(TCaseData, other.TCaseData),
-			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.Equals(UCaseData.Value, other.UCaseData.Value) && global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(UCaseData.A, other.UCaseData.A) && global::System.Collections.Generic.EqualityComparer<T2?>.Default.Equals(UCaseData.B, other.UCaseData.B),
-			UCaseNestedIndex => global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.Equals(UCaseNestedData.Value, other.UCaseNestedData.Value) && global::System.Collections.Generic.EqualityComparer<T1?>.Default.Equals(UCaseNestedData.A, other.UCaseNestedData.A) && global::System.Collections.Generic.EqualityComparer<T2?>.Default.Equals(UCaseNestedData.B, other.UCaseNestedData.B),
+			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestGeneric<byte, short>?>.Default.Equals(UCaseData.Value, other.UCaseData.Value) && global::System.Collections.Generic.EqualityComparer<T1>.Default.Equals(UCaseData.A, other.UCaseData.A) && global::System.Collections.Generic.EqualityComparer<T2>.Default.Equals(UCaseData.B, other.UCaseData.B),
+			UCaseNestedIndex => global::System.Collections.Generic.EqualityComparer<Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>?>.Default.Equals(UCaseNestedData.Value, other.UCaseNestedData.Value) && global::System.Collections.Generic.EqualityComparer<T1>.Default.Equals(UCaseNestedData.A, other.UCaseNestedData.A) && global::System.Collections.Generic.EqualityComparer<T2>.Default.Equals(UCaseNestedData.B, other.UCaseNestedData.B),
 			_ => true,
 		};
 	}
@@ -187,20 +183,40 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 	{
 		public Tests.TestGeneric<byte, short>? Value;
 
-		public T1? A;
+		public T1 A;
 
-		public T2? B;
+		public T2 B;
 
+		public UCaseCase(
+			Tests.TestGeneric<byte, short>? @value,
+			T1 @a,
+			T2 @b
+		)
+		{
+			Value = @value;
+			A = @a;
+			B = @b;
+		}
 	}
 
 	public struct UCaseNestedCase
 	{
 		public Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>? Value;
 
-		public T1? A;
+		public T1 A;
 
-		public T2? B;
+		public T2 B;
 
+		public UCaseNestedCase(
+			Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>? @value,
+			T1 @a,
+			T2 @b
+		)
+		{
+			Value = @value;
+			A = @a;
+			B = @b;
+		}
 	}
 
 }

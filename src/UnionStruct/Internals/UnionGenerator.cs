@@ -57,7 +57,14 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 			if (unionModel.AllowMemoryOverlap)
 				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
-			writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName};");
+
+			if (unionCaseModel.DataTypes.Count == 1 && unionCaseModel.DataTypes[0].TypeSymbol.IsReferenceType && !unionCaseModel.DataTypes[0].IsNullableTypeSyntax && unionCaseModel.DataTypes[0].TypeSymbol.NullableAnnotation != NullableAnnotation.Annotated)
+				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = null!;");
+			else if (unionCaseModel.DataTypes.Count == 1 && !unionCaseModel.DataTypes[0].IsNullableTypeSyntax && unionCaseModel.DataTypes[0].TypeParameterAllowsNullability)
+				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = default!;");
+			else
+				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName};");
+
 			writer.WriteLine();
 		}
 	}
@@ -98,14 +105,9 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			writer.WriteLine($"{unionModel.StructIdentifier} {localName} = new({unionCaseModel.CaseIndexFieldName});");
 
 			if (parameterDeclarations.Count == 1)
-			{
 				writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName} = {unionCaseModel.DataTypes[0].FactoryParameterName};");
-			}
-			else
-			{
-				foreach (UnionCaseDataTypeModel dt in unionCaseModel.DataTypes)
-					writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName}.{dt.FieldName} = {dt.FactoryParameterName};");
-			}
+			else if (parameterDeclarations.Count > 1)
+				writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName} = new({string.Join(", ", unionCaseModel.DataTypes.Select(dt => dt.FactoryParameterName))});");
 
 			writer.WriteLine($"return {localName};");
 
@@ -217,7 +219,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 						return $"({fieldName}.HasValue ? {equalityComparer}.GetHashCode({fieldName}.Value) : 0)";
 
 					string getHashCodeCall = $"{equalityComparer}.GetHashCode({fieldName})";
-					return dt.IsNullableReferenceType ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
+					return dt.IsNullableReferenceType || dt.TypeParameterAllowsNullability ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
 			}
@@ -280,6 +282,19 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 				writer.WriteLine($"public {dataType.FullyQualifiedTypeName} {dataType.FieldName};");
 				writer.WriteLine();
 			}
+
+			writer.WriteLine($"public {unionCaseModel.CaseStructTypeIdentifier}(");
+			writer.StartIndent();
+			for (int i = 0; i < unionCaseModel.DataTypes.Count; i++)
+				writer.WriteLine($"{unionCaseModel.DataTypes[i].FullyQualifiedTypeName} {unionCaseModel.DataTypes[i].FactoryParameterName}{(i < unionCaseModel.DataTypes.Count - 1 ? "," : string.Empty)}");
+			writer.EndIndent();
+			writer.WriteLine(")");
+
+			writer.StartBlock();
+			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
+				writer.WriteLine($"{dataType.FieldName} = {dataType.FactoryParameterName};");
+
+			writer.EndBlock();
 
 			writer.EndBlock();
 			writer.WriteLine();

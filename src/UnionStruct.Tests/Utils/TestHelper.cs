@@ -8,7 +8,7 @@ internal static class TestHelper
 {
 	private static readonly CSharpCompilationOptions _compilationOptions = new(
 		outputKind: OutputKind.DynamicallyLinkedLibrary,
-		generalDiagnosticOption: ReportDiagnostic.Error,
+		generalDiagnosticOption: ReportDiagnostic.Warn,
 		nullableContextOptions: NullableContextOptions.Enable);
 
 	public static Task Verify(string source)

@@ -16,7 +16,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 
 	public int IntData;
 
-	public string? StringData;
+	public string StringData = null!;
 
 	private UnionWithReferenceType(global::System.Int32 caseIndex)
 	{
@@ -36,7 +36,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 	}
 
 	public static partial UnionWithReferenceType String(
-		string? @value
+		string @value
 	)
 	{
 		UnionWithReferenceType ___factoryReturnValue = new(StringIndex);
@@ -46,7 +46,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 
 	public void Switch(
 		global::System.Action<int> @int,
-		global::System.Action<string?> @string
+		global::System.Action<string> @string
 	)
 	{
 		switch (CaseIndex)
@@ -59,7 +59,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 
 	public TMatchOut Match<TMatchOut>(
 		global::System.Func<int, TMatchOut> @int,
-		global::System.Func<string?, TMatchOut> @string
+		global::System.Func<string, TMatchOut> @string
 	)
 	{
 		return CaseIndex switch
@@ -95,7 +95,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 		return CaseIndex switch
 		{
 			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData) ),
-			StringIndex => unchecked ( StringIndex * -1521134295 + (StringData == null ? 0 : global::System.Collections.Generic.EqualityComparer<string?>.Default.GetHashCode(StringData)) ),
+			StringIndex => unchecked ( StringIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<string>.Default.GetHashCode(StringData) ),
 			_ => 2,
 		};
 	}
@@ -110,7 +110,7 @@ internal partial struct UnionWithReferenceType : global::System.IEquatable<Union
 		return CaseIndex == other.CaseIndex && CaseIndex switch
 		{
 			IntIndex => global::System.Collections.Generic.EqualityComparer<int>.Default.Equals(IntData, other.IntData),
-			StringIndex => global::System.Collections.Generic.EqualityComparer<string?>.Default.Equals(StringData, other.StringData),
+			StringIndex => global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(StringData, other.StringData),
 			_ => true,
 		};
 	}

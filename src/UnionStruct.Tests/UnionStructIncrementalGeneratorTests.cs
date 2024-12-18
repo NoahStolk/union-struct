@@ -295,6 +295,24 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Fact]
+	public async Task UnionWithNullableReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithNullableReferenceType
+			{
+				[UnionCase] public static partial UnionWithNullableReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithNullableReferenceType String(string? nullableString);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
 	public async Task UnionWithStructContainingReferenceType()
 	{
 		const string code =
@@ -306,6 +324,24 @@ public sealed class UnionStructIncrementalGeneratorTests
 			{
 				[UnionCase] public static partial UnionWithStructContainingReferenceType Int(int value);
 				[UnionCase] public static partial UnionWithStructContainingReferenceType Text(char a, string b);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
+	public async Task UnionWithStructContainingNullableReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithStructContainingNullableReferenceType
+			{
+				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Text(char a, string? b);
 			}
 			""";
 
