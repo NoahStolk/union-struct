@@ -11,7 +11,7 @@
 
   <PropertyGroup Label="Package configuration">
     <PackageId>NoahStolk.UnionStruct</PackageId>
-    <Version>0.0.0-alpha.2</Version>
+    <Version>0.0.0-alpha.3</Version>
     <Authors>Noah Stolk</Authors>
     <Copyright>Copyright © Noah Stolk</Copyright>
     <RepositoryType>git</RepositoryType>
@@ -27,7 +27,7 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="" Visible="false"/>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-    <None Include="$(OutputPath)\UnionStruct.Attributes.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true"/>
+    <None Include="$(OutputPath)\..\..\UnionStruct.Attributes\release\UnionStruct.Attributes.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -21,7 +21,7 @@ jobs:
     - name: Pack
       run: |
         cd src/
-        dotnet pack -c Release -o .
+        dotnet pack -c Release -o . UnionStruct/UnionStruct.csproj
     - name: Push
       run: |
         cd src/
