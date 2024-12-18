@@ -313,6 +313,24 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Fact]
+	public async Task UnionWithStructContainingNullableReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithStructContainingNullableReferenceType
+			{
+				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Text(char a, string? b);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
 	public async Task UnionWithOptionalParameters()
 	{
 		const string code =
