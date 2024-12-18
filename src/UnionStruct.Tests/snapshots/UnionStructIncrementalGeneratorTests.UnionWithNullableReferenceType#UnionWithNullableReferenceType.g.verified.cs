@@ -16,7 +16,7 @@ internal partial struct UnionWithNullableReferenceType : global::System.IEquatab
 
 	public int IntData;
 
-	public string? StringData = null!;
+	public string? StringData;
 
 	private UnionWithNullableReferenceType(global::System.Int32 caseIndex)
 	{
