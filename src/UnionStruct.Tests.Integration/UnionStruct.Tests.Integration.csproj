@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UnionStruct.Attributes\UnionStruct.Attributes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
     <ProjectReference Include="..\UnionStruct\UnionStruct.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
