@@ -14,7 +14,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 
 	public readonly global::System.Int32 CaseIndex;
 
-	public T? CircleData;
+	public T CircleData = default!;
 
 	public RectangleCase RectangleData;
 
@@ -27,7 +27,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	public bool IsRectangle => CaseIndex == RectangleIndex;
 
 	public static partial Shape<T> Circle(
-		T? @radius
+		T @radius
 	)
 	{
 		Shape<T> ___factoryReturnValue = new(CircleIndex);
@@ -36,8 +36,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	}
 
 	public static partial Shape<T> Rectangle(
-		T? @width,
-		T? @height
+		T @width,
+		T @height
 	)
 	{
 		Shape<T> ___factoryReturnValue = new(RectangleIndex);
@@ -46,8 +46,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	}
 
 	public void Switch(
-		global::System.Action<T?> @circle,
-		global::System.Action<T?, T?> @rectangle
+		global::System.Action<T> @circle,
+		global::System.Action<T, T> @rectangle
 	)
 	{
 		switch (CaseIndex)
@@ -59,8 +59,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	}
 
 	public TMatchOut Match<TMatchOut>(
-		global::System.Func<T?, TMatchOut> @circle,
-		global::System.Func<T?, T?, TMatchOut> @rectangle
+		global::System.Func<T, TMatchOut> @circle,
+		global::System.Func<T, T, TMatchOut> @rectangle
 	)
 	{
 		return CaseIndex switch
@@ -95,8 +95,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	{
 		return CaseIndex switch
 		{
-			CircleIndex => unchecked ( CircleIndex * -1521134295 + (CircleData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(CircleData)) ),
-			RectangleIndex => unchecked ( RectangleIndex * -1521134295 + (RectangleData.Width == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Width)) * -1521134295 + (RectangleData.Height == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(RectangleData.Height)) ),
+			CircleIndex => unchecked ( CircleIndex * -1521134295 + (CircleData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(CircleData)) ),
+			RectangleIndex => unchecked ( RectangleIndex * -1521134295 + (RectangleData.Width == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(RectangleData.Width)) * -1521134295 + (RectangleData.Height == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(RectangleData.Height)) ),
 			_ => 2,
 		};
 	}
@@ -110,21 +110,21 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	{
 		return CaseIndex == other.CaseIndex && CaseIndex switch
 		{
-			CircleIndex => global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(CircleData, other.CircleData),
-			RectangleIndex => global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(RectangleData.Width, other.RectangleData.Width) && global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(RectangleData.Height, other.RectangleData.Height),
+			CircleIndex => global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(CircleData, other.CircleData),
+			RectangleIndex => global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(RectangleData.Width, other.RectangleData.Width) && global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(RectangleData.Height, other.RectangleData.Height),
 			_ => true,
 		};
 	}
 
 	public struct RectangleCase
 	{
-		public T? Width;
+		public T Width;
 
-		public T? Height;
+		public T Height;
 
 		public RectangleCase(
-			T? @width,
-			T? @height
+			T @width,
+			T @height
 		)
 		{
 			Width = @width;

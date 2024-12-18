@@ -60,6 +60,8 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 			if (unionCaseModel.DataTypes.Count == 1 && unionCaseModel.DataTypes[0].TypeSymbol.IsReferenceType && unionCaseModel.DataTypes[0].TypeSymbol.NullableAnnotation != NullableAnnotation.Annotated)
 				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = null!;");
+			else if (unionCaseModel.DataTypes.Count == 1 && unionCaseModel.DataTypes[0].TypeParameterAllowsNullability)
+				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = default!;");
 			else
 				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName};");
 
@@ -217,7 +219,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 						return $"({fieldName}.HasValue ? {equalityComparer}.GetHashCode({fieldName}.Value) : 0)";
 
 					string getHashCodeCall = $"{equalityComparer}.GetHashCode({fieldName})";
-					return dt.IsNullableReferenceType ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
+					return dt.IsNullableReferenceType || dt.TypeParameterAllowsNullability ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
 				}));
 				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
 			}

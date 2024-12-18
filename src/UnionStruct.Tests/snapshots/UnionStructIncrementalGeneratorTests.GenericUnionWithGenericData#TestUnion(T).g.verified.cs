@@ -20,7 +20,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 
 	public long? LongData;
 
-	public T? TCaseData;
+	public T TCaseData = default!;
 
 	public Tests.TestUnion<T>.TestGeneric<byte, short>? UCaseData;
 
@@ -53,7 +53,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	}
 
 	public static partial TestUnion<T> TCase(
-		T? @value
+		T @value
 	)
 	{
 		TestUnion<T> ___factoryReturnValue = new(TCaseIndex);
@@ -73,7 +73,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public void Switch(
 		global::System.Action<int?> @int,
 		global::System.Action<long?> @long,
-		global::System.Action<T?> @tCase,
+		global::System.Action<T> @tCase,
 		global::System.Action<Tests.TestUnion<T>.TestGeneric<byte, short>?> @uCase
 	)
 	{
@@ -90,7 +90,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public TMatchOut Match<TMatchOut>(
 		global::System.Func<int?, TMatchOut> @int,
 		global::System.Func<long?, TMatchOut> @long,
-		global::System.Func<T?, TMatchOut> @tCase,
+		global::System.Func<T, TMatchOut> @tCase,
 		global::System.Func<Tests.TestUnion<T>.TestGeneric<byte, short>?, TMatchOut> @uCase
 	)
 	{
@@ -132,7 +132,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => unchecked ( IntIndex * -1521134295 + (IntData.HasValue ? global::System.Collections.Generic.EqualityComparer<int?>.Default.GetHashCode(IntData.Value) : 0) ),
 			LongIndex => unchecked ( LongIndex * -1521134295 + (LongData.HasValue ? global::System.Collections.Generic.EqualityComparer<long?>.Default.GetHashCode(LongData.Value) : 0) ),
-			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T?>.Default.GetHashCode(TCaseData)) ),
+			TCaseIndex => unchecked ( TCaseIndex * -1521134295 + (TCaseData == null ? 0 : global::System.Collections.Generic.EqualityComparer<T>.Default.GetHashCode(TCaseData)) ),
 			UCaseIndex => unchecked ( UCaseIndex * -1521134295 + (UCaseData.HasValue ? global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.GetHashCode(UCaseData.Value) : 0) ),
 			_ => 4,
 		};
@@ -149,7 +149,7 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		{
 			IntIndex => global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(IntData, other.IntData),
 			LongIndex => global::System.Collections.Generic.EqualityComparer<long?>.Default.Equals(LongData, other.LongData),
-			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T?>.Default.Equals(TCaseData, other.TCaseData),
+			TCaseIndex => global::System.Collections.Generic.EqualityComparer<T>.Default.Equals(TCaseData, other.TCaseData),
 			UCaseIndex => global::System.Collections.Generic.EqualityComparer<Tests.TestUnion<T>.TestGeneric<byte, short>?>.Default.Equals(UCaseData, other.UCaseData),
 			_ => true,
 		};

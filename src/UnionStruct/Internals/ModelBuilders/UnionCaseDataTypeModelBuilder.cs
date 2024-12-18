@@ -30,6 +30,7 @@ internal sealed class UnionCaseDataTypeModelBuilder
 			FullyQualifiedTypeNameWithoutNullability = GetFullyQualifiedTypeName(includeNullability: false),
 			TypeSymbol = _parameterType,
 			IsNullableReferenceType = GetNullableFlowState() == NullableFlowState.MaybeNull,
+			TypeParameterAllowsNullability = TypeParameterAllowsNullability(),
 		};
 	}
 
@@ -43,33 +44,35 @@ internal sealed class UnionCaseDataTypeModelBuilder
 
 	private NullableFlowState GetNullableFlowState()
 	{
+		if (_parameterType is ITypeParameterSymbol)
+			return GetNullableFlowStateFromSyntax();
+
 		if (_parameterType.IsReferenceType)
 		{
 			return _parameterType.NullableAnnotation switch
 			{
 				NullableAnnotation.Annotated => NullableFlowState.MaybeNull,
 				NullableAnnotation.NotAnnotated => NullableFlowState.NotNull,
-				_ => GetFromSyntax(),
+				_ => GetNullableFlowStateFromSyntax(),
 			};
-
-			NullableFlowState GetFromSyntax()
-			{
-				if (_parameterSyntax.Type is NullableTypeSyntax)
-					return NullableFlowState.MaybeNull;
-
-				return NullableFlowState.NotNull;
-			}
 		}
 
-		if (_parameterType is not ITypeParameterSymbol typeParameterSymbol)
-			return NullableFlowState.NotNull;
+		return NullableFlowState.NotNull;
+	}
 
-		if (typeParameterSymbol.HasReferenceTypeConstraint)
+	private NullableFlowState GetNullableFlowStateFromSyntax()
+	{
+		if (_parameterSyntax.Type is NullableTypeSyntax)
 			return NullableFlowState.MaybeNull;
 
-		if (typeParameterSymbol.HasNotNullConstraint || typeParameterSymbol.HasValueTypeConstraint || typeParameterSymbol.HasUnmanagedTypeConstraint)
-			return NullableFlowState.NotNull;
+		return NullableFlowState.NotNull;
+	}
 
-		return NullableFlowState.MaybeNull;
+	private bool TypeParameterAllowsNullability()
+	{
+		if (_parameterType is not ITypeParameterSymbol typeParameterSymbol)
+			return false;
+
+		return typeParameterSymbol is { HasUnmanagedTypeConstraint: false, HasValueTypeConstraint: false, HasNotNullConstraint: false };
 	}
 }
