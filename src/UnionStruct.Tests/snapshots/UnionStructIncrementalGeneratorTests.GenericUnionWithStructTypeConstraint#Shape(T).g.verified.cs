@@ -41,8 +41,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	)
 	{
 		Shape<T> ___factoryReturnValue = new(RectangleIndex);
-		___factoryReturnValue.RectangleData.Width = @width;
-		___factoryReturnValue.RectangleData.Height = @height;
+		___factoryReturnValue.RectangleData = new(@width, @height);
 		return ___factoryReturnValue;
 	}
 
@@ -123,6 +122,14 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 
 		public T Height;
 
+		public RectangleCase(
+			T @width,
+			T @height
+		)
+		{
+			Width = @width;
+			Height = @height;
+		}
 	}
 
 }

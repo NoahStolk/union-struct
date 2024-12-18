@@ -72,9 +72,7 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 	)
 	{
 		ComplexUnion<T1, T2> ___factoryReturnValue = new(UCaseIndex);
-		___factoryReturnValue.UCaseData.Value = @value;
-		___factoryReturnValue.UCaseData.A = @a;
-		___factoryReturnValue.UCaseData.B = @b;
+		___factoryReturnValue.UCaseData = new(@value, @a, @b);
 		return ___factoryReturnValue;
 	}
 
@@ -85,9 +83,7 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 	)
 	{
 		ComplexUnion<T1, T2> ___factoryReturnValue = new(UCaseNestedIndex);
-		___factoryReturnValue.UCaseNestedData.Value = @value;
-		___factoryReturnValue.UCaseNestedData.A = @a;
-		___factoryReturnValue.UCaseNestedData.B = @b;
+		___factoryReturnValue.UCaseNestedData = new(@value, @a, @b);
 		return ___factoryReturnValue;
 	}
 
@@ -191,6 +187,16 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 
 		public T2? B;
 
+		public UCaseCase(
+			Tests.TestGeneric<byte, short>? @value,
+			T1? @a,
+			T2? @b
+		)
+		{
+			Value = @value;
+			A = @a;
+			B = @b;
+		}
 	}
 
 	public struct UCaseNestedCase
@@ -201,6 +207,16 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 
 		public T2? B;
 
+		public UCaseNestedCase(
+			Tests.ComplexUnion<T1, T2>.TestGenericNested<byte, short>? @value,
+			T1? @a,
+			T2? @b
+		)
+		{
+			Value = @value;
+			A = @a;
+			B = @b;
+		}
 	}
 
 }

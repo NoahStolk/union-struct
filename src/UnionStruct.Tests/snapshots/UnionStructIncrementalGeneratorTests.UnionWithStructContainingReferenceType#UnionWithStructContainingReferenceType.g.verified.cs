@@ -37,18 +37,17 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 
 	public static partial UnionWithStructContainingReferenceType Text(
 		char @a,
-		string? @b
+		string @b
 	)
 	{
 		UnionWithStructContainingReferenceType ___factoryReturnValue = new(TextIndex);
-		___factoryReturnValue.TextData.A = @a;
-		___factoryReturnValue.TextData.B = @b;
+		___factoryReturnValue.TextData = new(@a, @b);
 		return ___factoryReturnValue;
 	}
 
 	public void Switch(
 		global::System.Action<int> @int,
-		global::System.Action<char, string?> @text
+		global::System.Action<char, string> @text
 	)
 	{
 		switch (CaseIndex)
@@ -61,7 +60,7 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 
 	public TMatchOut Match<TMatchOut>(
 		global::System.Func<int, TMatchOut> @int,
-		global::System.Func<char, string?, TMatchOut> @text
+		global::System.Func<char, string, TMatchOut> @text
 	)
 	{
 		return CaseIndex switch
@@ -97,7 +96,7 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 		return CaseIndex switch
 		{
 			IntIndex => unchecked ( IntIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(IntData) ),
-			TextIndex => unchecked ( TextIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<char>.Default.GetHashCode(TextData.A) * -1521134295 + (TextData.B == null ? 0 : global::System.Collections.Generic.EqualityComparer<string?>.Default.GetHashCode(TextData.B)) ),
+			TextIndex => unchecked ( TextIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<char>.Default.GetHashCode(TextData.A) * -1521134295 + global::System.Collections.Generic.EqualityComparer<string>.Default.GetHashCode(TextData.B) ),
 			_ => 2,
 		};
 	}
@@ -112,7 +111,7 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 		return CaseIndex == other.CaseIndex && CaseIndex switch
 		{
 			IntIndex => global::System.Collections.Generic.EqualityComparer<int>.Default.Equals(IntData, other.IntData),
-			TextIndex => global::System.Collections.Generic.EqualityComparer<char>.Default.Equals(TextData.A, other.TextData.A) && global::System.Collections.Generic.EqualityComparer<string?>.Default.Equals(TextData.B, other.TextData.B),
+			TextIndex => global::System.Collections.Generic.EqualityComparer<char>.Default.Equals(TextData.A, other.TextData.A) && global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(TextData.B, other.TextData.B),
 			_ => true,
 		};
 	}
@@ -121,8 +120,16 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 	{
 		public char A;
 
-		public string? B;
+		public string B;
 
+		public TextCase(
+			char @a,
+			string @b
+		)
+		{
+			A = @a;
+			B = @b;
+		}
 	}
 
 }

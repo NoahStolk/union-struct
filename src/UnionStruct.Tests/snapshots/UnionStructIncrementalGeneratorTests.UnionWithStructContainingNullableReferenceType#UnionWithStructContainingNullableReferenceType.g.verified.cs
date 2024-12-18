@@ -41,8 +41,7 @@ internal partial struct UnionWithStructContainingNullableReferenceType : global:
 	)
 	{
 		UnionWithStructContainingNullableReferenceType ___factoryReturnValue = new(TextIndex);
-		___factoryReturnValue.TextData.A = @a;
-		___factoryReturnValue.TextData.B = @b;
+		___factoryReturnValue.TextData = new(@a, @b);
 		return ___factoryReturnValue;
 	}
 
@@ -123,6 +122,14 @@ internal partial struct UnionWithStructContainingNullableReferenceType : global:
 
 		public string? B;
 
+		public TextCase(
+			char @a,
+			string? @b
+		)
+		{
+			A = @a;
+			B = @b;
+		}
 	}
 
 }

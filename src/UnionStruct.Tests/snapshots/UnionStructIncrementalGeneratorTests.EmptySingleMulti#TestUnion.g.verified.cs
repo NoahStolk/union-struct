@@ -54,8 +54,7 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	)
 	{
 		TestUnion ___factoryReturnValue = new(MultiCaseIndex);
-		___factoryReturnValue.MultiCaseData.Position = @position;
-		___factoryReturnValue.MultiCaseData.Velocity = @velocity;
+		___factoryReturnValue.MultiCaseData = new(@position, @velocity);
 		return ___factoryReturnValue;
 	}
 
@@ -143,6 +142,14 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 
 		public System.Numerics.Vector3 Velocity;
 
+		public MultiCaseCase(
+			System.Numerics.Vector3 @position,
+			System.Numerics.Vector3 @velocity
+		)
+		{
+			Position = @position;
+			Velocity = @velocity;
+		}
 	}
 
 }

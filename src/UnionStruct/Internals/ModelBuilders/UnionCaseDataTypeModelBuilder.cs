@@ -7,12 +7,14 @@ namespace UnionStruct.Internals.ModelBuilders;
 
 internal sealed class UnionCaseDataTypeModelBuilder
 {
+	private readonly ParameterSyntax _parameterSyntax;
 	private readonly ITypeSymbol _parameterType;
 
 	private readonly string _name;
 
 	public UnionCaseDataTypeModelBuilder(ParameterSyntax parameterSyntax, ITypeSymbol parameterType)
 	{
+		_parameterSyntax = parameterSyntax;
 		_parameterType = parameterType;
 
 		_name = parameterSyntax.Identifier.Text;
@@ -42,16 +44,31 @@ internal sealed class UnionCaseDataTypeModelBuilder
 	private NullableFlowState GetNullableFlowState()
 	{
 		if (_parameterType.IsReferenceType)
-			return NullableFlowState.MaybeNull;
+		{
+			return _parameterType.NullableAnnotation switch
+			{
+				NullableAnnotation.Annotated => NullableFlowState.MaybeNull,
+				NullableAnnotation.NotAnnotated => NullableFlowState.NotNull,
+				_ => GetFromSyntax(),
+			};
+
+			NullableFlowState GetFromSyntax()
+			{
+				if (_parameterSyntax.Type is NullableTypeSyntax)
+					return NullableFlowState.MaybeNull;
+
+				return NullableFlowState.NotNull;
+			}
+		}
 
 		if (_parameterType is not ITypeParameterSymbol typeParameterSymbol)
-			return NullableFlowState.None;
+			return NullableFlowState.NotNull;
 
 		if (typeParameterSymbol.HasReferenceTypeConstraint)
 			return NullableFlowState.MaybeNull;
 
 		if (typeParameterSymbol.HasNotNullConstraint || typeParameterSymbol.HasValueTypeConstraint || typeParameterSymbol.HasUnmanagedTypeConstraint)
-			return NullableFlowState.None;
+			return NullableFlowState.NotNull;
 
 		return NullableFlowState.MaybeNull;
 	}
