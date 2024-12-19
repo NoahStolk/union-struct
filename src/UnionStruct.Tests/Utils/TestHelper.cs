@@ -32,7 +32,7 @@ internal static class TestHelper
 			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({diagnostics.Length} errors):\n{string.Join(Environment.NewLine, diagnostics)}"));
 
 		return Verifier.Verify(driver)
-			.IgnoreGeneratedResult(gsr => gsr.HintName.Contains("Attribute", StringComparison.Ordinal))
+			.IgnoreGeneratedResult(gsr => gsr.HintName is "UnionAttribute.g.cs" or "UnionCaseAttribute.g.cs")
 			.UseDirectory(Path.Combine("..", "snapshots"));
 	}
 }
