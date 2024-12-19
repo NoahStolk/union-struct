@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package configuration">
+    <PackageId>NoahStolk.UnionStruct</PackageId>
+    <Version>0.0.0-alpha.4</Version>
+    <Authors>Noah Stolk</Authors>
+    <Copyright>Copyright © Noah Stolk</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NoahStolk/UnionStruct</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/NoahStolk/UnionStruct</PackageProjectUrl>
+    <Description>UnionStruct is a C# source generator for creating memory-efficient union structs.</Description>
+    <PackageTags>discriminated unions, source generator</PackageTags>
+    <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="" Visible="false"/>
+    <None Include="$(OutputPath)\..\..\UnionStruct\release\UnionStruct.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+    <None Include="$(OutputPath)\..\..\UnionStruct.Attributes\release\UnionStruct.Attributes.dll" Pack="true" PackagePath="lib/netstandard2.0" Visible="false"/>
+  </ItemGroup>
+
+</Project>

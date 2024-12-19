@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>UnionStruct</RootNamespace>
     <IsPackable>false</IsPackable>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
   </PropertyGroup>
 
 </Project>

@@ -6,29 +6,8 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IsRoslynComponent>true</IsRoslynComponent>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <DevelopmentDependency>true</DevelopmentDependency>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <PropertyGroup Label="Package configuration">
-    <PackageId>NoahStolk.UnionStruct</PackageId>
-    <Version>0.0.0-alpha.4</Version>
-    <Authors>Noah Stolk</Authors>
-    <Copyright>Copyright © Noah Stolk</Copyright>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NoahStolk/UnionStruct</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/NoahStolk/UnionStruct</PackageProjectUrl>
-    <Description>UnionStruct is a C# source generator for creating memory-efficient union structs.</Description>
-    <PackageTags>discriminated unions, source generator</PackageTags>
-    <IsPackable>true</IsPackable>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="" Visible="false"/>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
-    <None Include="$(OutputPath)\..\..\UnionStruct.Attributes\release\UnionStruct.Attributes.dll" Pack="true" PackagePath="lib\netstandard2.0" Visible="true"/>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
@@ -38,12 +17,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\UnionStruct.Attributes\UnionStruct.Attributes.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
   </ItemGroup>
 
 </Project>
