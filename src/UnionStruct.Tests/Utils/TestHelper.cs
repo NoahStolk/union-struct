@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
-using System.Reflection;
 
 namespace UnionStruct.Tests.Utils;
 
@@ -14,20 +13,13 @@ internal static class TestHelper
 
 	public static Task Verify(string source)
 	{
-		Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-		Assembly netstandard = assemblies.Single(a => a.GetName().Name == "netstandard");
-		Assembly systemRuntime = assemblies.Single(a => a.GetName().Name == "System.Runtime");
-
 		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "UnionStruct.Tests",
 			syntaxTrees: [syntaxTree],
 			references:
 			[
-				MetadataReference.CreateFromFile(netstandard.Location),
-				MetadataReference.CreateFromFile(systemRuntime.Location),
 				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(UnionAttribute).Assembly.Location),
 			],
 			options: _compilationOptions);
 
@@ -39,6 +31,8 @@ internal static class TestHelper
 		if (diagnostics.Length > 0)
 			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({diagnostics.Length} errors):\n{string.Join(Environment.NewLine, diagnostics)}"));
 
-		return Verifier.Verify(driver).UseDirectory(Path.Combine("..", "snapshots"));
+		return Verifier.Verify(driver)
+			.IgnoreGeneratedResult(gsr => gsr.HintName is "UnionAttribute.g.cs" or "UnionCaseAttribute.g.cs")
+			.UseDirectory(Path.Combine("..", "snapshots"));
 	}
 }
