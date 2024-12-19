@@ -17,4 +17,6 @@ jobs:
     - name: Build
       run: dotnet build src/UnionStruct.sln -c Release
     - name: Test
-      run: dotnet test src/UnionStruct.sln -c Release --no-build
+      run: |
+        dotnet test src/UnionStruct.sln -c Release --no-build
+        src/test-nuget.bat
