@@ -1,0 +1,8 @@
+﻿<Solution>
+  <Project Path="UnionStruct.Attributes\UnionStruct.Attributes.csproj" Type="Classic C#" />
+  <Project Path="UnionStruct.Package\UnionStruct.Package.csproj" Type="Classic C#" />
+  <Project Path="UnionStruct.Sample\UnionStruct.Sample.csproj" Type="Classic C#" />
+  <Project Path="UnionStruct.Tests.Integration\UnionStruct.Tests.Integration.csproj" Type="Classic C#" />
+  <Project Path="UnionStruct.Tests\UnionStruct.Tests.csproj" Type="Classic C#" />
+  <Project Path="UnionStruct\UnionStruct.csproj" Type="Classic C#" />
+</Solution>
