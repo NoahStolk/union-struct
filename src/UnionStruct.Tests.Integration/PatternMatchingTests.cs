@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using System.Numerics;
+﻿using System.Numerics;
 using UnionStruct.Tests.Integration.Unions;
 using Xunit;
 
@@ -10,19 +9,19 @@ public sealed class PatternMatchingTests
 	[Fact]
 	public void MatchWorksCorrectly()
 	{
-		GetPoints(EnumLikeUnion.Bronze()).Should().Be(1);
-		GetPoints(EnumLikeUnion.Silver()).Should().Be(2);
-		GetPoints(EnumLikeUnion.Gold()).Should().Be(3);
+		Assert.Equal(1, GetPoints(EnumLikeUnion.Bronze()));
+		Assert.Equal(2, GetPoints(EnumLikeUnion.Silver()));
+		Assert.Equal(3, GetPoints(EnumLikeUnion.Gold()));
 
-		GetRotation(RotationType.None()).Should().Be(Quaternion.Identity);
-		GetRotation(RotationType.RandomRotation()).Should().Be(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f));
-		GetRotation(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX))).Should().Be(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f));
-		GetRotation(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f))).Should().Be(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f));
-		GetRotation(RotationType.CustomRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3)))).Should().Be(Quaternion.CreateFromYawPitchRoll(1, 2, 3));
+		Assert.Equal(Quaternion.Identity, GetRotation(RotationType.None()));
+		Assert.Equal(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f), GetRotation(RotationType.RandomRotation()));
+		Assert.Equal(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f), GetRotation(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX))));
+		Assert.Equal(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f), GetRotation(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f))));
+		Assert.Equal(Quaternion.CreateFromYawPitchRoll(1, 2, 3), GetRotation(RotationType.CustomRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3)))));
 
-		GetNode(RootUnion.Empty()).Should().Be(0);
-		GetNode(RootUnion.NestedCase(NestedUnion.Empty())).Should().Be(0);
-		GetNode(RootUnion.NestedCase(NestedUnion.Node(1))).Should().Be(1);
+		Assert.Equal(0, GetNode(RootUnion.Empty()));
+		Assert.Equal(0, GetNode(RootUnion.NestedCase(NestedUnion.Empty())));
+		Assert.Equal(1, GetNode(RootUnion.NestedCase(NestedUnion.Node(1))));
 
 		static int GetPoints(EnumLikeUnion enumLikeUnion)
 		{
@@ -59,8 +58,8 @@ public sealed class PatternMatchingTests
 		foreach (EnumLikeUnion enumLikeUnion in new[] { EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Silver(), EnumLikeUnion.Silver(), EnumLikeUnion.Gold() })
 			enumLikeUnion.Switch(() => bronzeCount++, () => silverCount++, () => goldCount++);
 
-		bronzeCount.Should().Be(3);
-		silverCount.Should().Be(2);
-		goldCount.Should().Be(1);
+		Assert.Equal(3, bronzeCount);
+		Assert.Equal(2, silverCount);
+		Assert.Equal(1, goldCount);
 	}
 }

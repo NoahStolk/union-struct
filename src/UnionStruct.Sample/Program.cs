@@ -36,40 +36,40 @@ void WriteShape<T>(Shape<T> shape)
 
 void WriteUnion(TestUnion testUnion)
 {
-    Console.WriteLine(testUnion);
-    foreach (byte b in Marshal(testUnion))
-        Console.Write(b.ToString("X2", CultureInfo.InvariantCulture));
+	Console.WriteLine(testUnion);
+	foreach (byte b in Marshal(testUnion))
+		Console.Write(b.ToString("X2", CultureInfo.InvariantCulture));
 
-    string result = testUnion.Match(
-        static () => "Empty",
-        static pos => $"Position: {pos.Value}",
-        static posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
-        static (position, velocity) => $"MultiCase: {position} {velocity}",
-        static value => $"Value: {value}");
-    Console.WriteLine($" -> {result}");
+	string result = testUnion.Match(
+		static () => "Empty",
+		static pos => $"Position: {pos.Value}",
+		static posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
+		static (position, velocity) => $"MultiCase: {position} {velocity}",
+		static value => $"Value: {value}");
+	Console.WriteLine($" -> {result}");
 
-    if (testUnion.IsPositionCase)
-    {
-        Console.WriteLine($"This is a position: {testUnion.PositionCaseData.Value}");
+	if (testUnion.IsPositionCase)
+	{
+		Console.WriteLine($"This is a position: {testUnion.PositionCaseData.Value}");
 
-        testUnion.PositionCaseData.Value *= 2;
-        Console.WriteLine($"Position now multiplied by two: {testUnion.PositionCaseData.Value}");
-    }
+		testUnion.PositionCaseData.Value *= 2;
+		Console.WriteLine($"Position now multiplied by two: {testUnion.PositionCaseData.Value}");
+	}
 
-    testUnion.Switch(
-	    static () => { },
-	    static _ => { },
-	    static _ => { },
-	    static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"),
-	    static _ => { });
+	testUnion.Switch(
+		static () => { },
+		static _ => { },
+		static _ => { },
+		static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"),
+		static _ => { });
 
-    Console.WriteLine("---");
+	Console.WriteLine("---");
 }
 
 static unsafe ReadOnlySpan<byte> Marshal<T>(T value)
-    where T : unmanaged
+	where T : unmanaged
 {
-    return new ReadOnlySpan<byte>(Unsafe.AsPointer(ref value), sizeof(T));
+	return new ReadOnlySpan<byte>(Unsafe.AsPointer(ref value), sizeof(T));
 }
 
 static unsafe void WriteSizeOf<T>()
