@@ -13,25 +13,8 @@ namespace UnionStruct;
 [Generator]
 public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 {
-	private const string _unionAttributeSourceCode =
-		$"""
-		 namespace {GeneratorConstants.RootNamespace};
-		 [global::System.AttributeUsage(global::System.AttributeTargets.Struct)]
-		 public sealed class {GeneratorConstants.UnionAttributeName} : global::System.Attribute;
-		 """;
-
-	private const string _unionCaseAttributeSourceCode =
-		$"""
-		 namespace {GeneratorConstants.RootNamespace};
-		 [global::System.AttributeUsage(global::System.AttributeTargets.Method)]
-		 public sealed class {GeneratorConstants.UnionCaseAttributeName} : global::System.Attribute;
-		 """;
-
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
-		context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{GeneratorConstants.UnionAttributeName}.g.cs", SourceText.From(SourceBuilderUtils.Build(_unionAttributeSourceCode), Encoding.UTF8)));
-		context.RegisterPostInitializationOutput(ctx => ctx.AddSource($"{GeneratorConstants.UnionCaseAttributeName}.g.cs", SourceText.From(SourceBuilderUtils.Build(_unionCaseAttributeSourceCode), Encoding.UTF8)));
-
 		// ! LINQ is used to filter out null values.
 		IncrementalValuesProvider<UnionModel> unionModelProvider = context.SyntaxProvider
 			.CreateSyntaxProvider(
