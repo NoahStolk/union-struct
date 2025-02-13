@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
+using System.Reflection;
 
 namespace UnionStruct.Tests.Utils;
 
@@ -13,6 +14,10 @@ internal static class TestHelper
 
 	public static Task Verify(string source)
 	{
+		Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+		Assembly netstandard = assemblies.Single(a => a.GetName().Name == "netstandard");
+		Assembly systemRuntime = assemblies.Single(a => a.GetName().Name == "System.Runtime");
+
 		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "UnionStruct.Tests",
@@ -20,6 +25,9 @@ internal static class TestHelper
 			references:
 			[
 				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+				MetadataReference.CreateFromFile(typeof(UnionAttribute).Assembly.Location),
+				MetadataReference.CreateFromFile(netstandard.Location),
+				MetadataReference.CreateFromFile(systemRuntime.Location),
 			],
 			options: _compilationOptions);
 

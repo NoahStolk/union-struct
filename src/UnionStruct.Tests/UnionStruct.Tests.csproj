@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UnionStruct.Attributes\UnionStruct.Attributes.csproj"/>
     <ProjectReference Include="..\UnionStruct\UnionStruct.csproj"/>
   </ItemGroup>
 
