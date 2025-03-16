@@ -8,7 +8,7 @@
 
   <PropertyGroup Label="Package configuration">
     <PackageId>NoahStolk.UnionStruct</PackageId>
-    <Version>0.0.0-alpha.6</Version>
+    <Version>0.1.0</Version>
     <Authors>Noah Stolk</Authors>
     <Copyright>Copyright © Noah Stolk</Copyright>
     <RepositoryType>git</RepositoryType>

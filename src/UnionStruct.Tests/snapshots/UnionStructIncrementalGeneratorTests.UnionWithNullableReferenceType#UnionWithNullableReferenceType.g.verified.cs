@@ -23,8 +23,8 @@ internal partial struct UnionWithNullableReferenceType : global::System.IEquatab
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsString => CaseIndex == StringIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsString => CaseIndex == StringIndex;
 
 	public static partial UnionWithNullableReferenceType Int(
 		int @value

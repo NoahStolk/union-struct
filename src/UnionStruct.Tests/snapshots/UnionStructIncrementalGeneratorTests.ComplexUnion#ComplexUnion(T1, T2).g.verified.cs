@@ -32,11 +32,11 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsLong => CaseIndex == LongIndex;
-	public bool IsTCase => CaseIndex == TCaseIndex;
-	public bool IsUCase => CaseIndex == UCaseIndex;
-	public bool IsUCaseNested => CaseIndex == UCaseNestedIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsLong => CaseIndex == LongIndex;
+	public readonly bool IsTCase => CaseIndex == TCaseIndex;
+	public readonly bool IsUCase => CaseIndex == UCaseIndex;
+	public readonly bool IsUCaseNested => CaseIndex == UCaseNestedIndex;
 
 	public static partial ComplexUnion<T1, T2> Int(
 		int? @value

@@ -27,8 +27,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsLong => CaseIndex == LongIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsLong => CaseIndex == LongIndex;
 
 	public static partial TestUnion Int(
 		int @value

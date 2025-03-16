@@ -29,10 +29,10 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsLong => CaseIndex == LongIndex;
-	public bool IsTCase => CaseIndex == TCaseIndex;
-	public bool IsUCase => CaseIndex == UCaseIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsLong => CaseIndex == LongIndex;
+	public readonly bool IsTCase => CaseIndex == TCaseIndex;
+	public readonly bool IsUCase => CaseIndex == UCaseIndex;
 
 	public static partial TestUnion<T> Int(
 		int? @value

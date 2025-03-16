@@ -23,8 +23,8 @@ internal partial struct UnionWithOptionalParameters : global::System.IEquatable<
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsText => CaseIndex == TextIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsText => CaseIndex == TextIndex;
 
 	public static partial UnionWithOptionalParameters Int(
 		int @value

@@ -28,9 +28,9 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsEmpty => CaseIndex == EmptyIndex;
-	public bool IsCaseA => CaseIndex == CaseAIndex;
-	public bool IsCaseB => CaseIndex == CaseBIndex;
+	public readonly bool IsEmpty => CaseIndex == EmptyIndex;
+	public readonly bool IsCaseA => CaseIndex == CaseAIndex;
+	public readonly bool IsCaseB => CaseIndex == CaseBIndex;
 
 	public static partial TestUnion Empty(
 	)

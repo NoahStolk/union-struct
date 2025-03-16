@@ -23,8 +23,8 @@ internal partial struct UnionWithStructContainingNullableReferenceType : global:
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsInt => CaseIndex == IntIndex;
-	public bool IsText => CaseIndex == TextIndex;
+	public readonly bool IsInt => CaseIndex == IntIndex;
+	public readonly bool IsText => CaseIndex == TextIndex;
 
 	public static partial UnionWithStructContainingNullableReferenceType Int(
 		int @value

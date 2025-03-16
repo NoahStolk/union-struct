@@ -24,7 +24,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine();
 		GenerateUnionCaseDataFields(writer);
 		GeneratePrivateConstructor(writer);
-		GenerateIsMethods(writer);
+		GenerateIsProperties(writer);
 		GenerateFactoryMethods(writer);
 		GenerateSwitchMethod(writer);
 		GenerateMatchMethod(writer);
@@ -78,10 +78,10 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine();
 	}
 
-	private void GenerateIsMethods(CodeWriter writer)
+	private void GenerateIsProperties(CodeWriter writer)
 	{
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"public bool Is{unionCaseModel.CaseName} => CaseIndex == {unionCaseModel.CaseIndexFieldName};");
+			writer.WriteLine($"public readonly bool Is{unionCaseModel.CaseName} => CaseIndex == {unionCaseModel.CaseIndexFieldName};");
 		writer.WriteLine();
 	}
 

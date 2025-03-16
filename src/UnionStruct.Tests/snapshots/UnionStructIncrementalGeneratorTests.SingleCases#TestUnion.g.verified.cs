@@ -31,9 +31,9 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsAngleCase => CaseIndex == AngleCaseIndex;
-	public bool IsPositionCase => CaseIndex == PositionCaseIndex;
-	public bool IsRotationCase => CaseIndex == RotationCaseIndex;
+	public readonly bool IsAngleCase => CaseIndex == AngleCaseIndex;
+	public readonly bool IsPositionCase => CaseIndex == PositionCaseIndex;
+	public readonly bool IsRotationCase => CaseIndex == RotationCaseIndex;
 
 	public static partial TestUnion AngleCase(
 		float @angle

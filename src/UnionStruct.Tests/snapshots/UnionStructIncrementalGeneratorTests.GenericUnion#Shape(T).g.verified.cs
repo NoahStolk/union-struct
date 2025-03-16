@@ -23,8 +23,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsCircle => CaseIndex == CircleIndex;
-	public bool IsRectangle => CaseIndex == RectangleIndex;
+	public readonly bool IsCircle => CaseIndex == CircleIndex;
+	public readonly bool IsRectangle => CaseIndex == RectangleIndex;
 
 	public static partial Shape<T> Circle(
 		T @radius

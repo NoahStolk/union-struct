@@ -24,8 +24,8 @@ internal partial struct NestedUnion : global::System.IEquatable<NestedUnion>
 		CaseIndex = caseIndex;
 	}
 
-	public bool IsEmpty => CaseIndex == EmptyIndex;
-	public bool IsNode => CaseIndex == NodeIndex;
+	public readonly bool IsEmpty => CaseIndex == EmptyIndex;
+	public readonly bool IsNode => CaseIndex == NodeIndex;
 
 	public static partial NestedUnion Empty(
 	)
