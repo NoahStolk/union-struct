@@ -24,6 +24,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	public readonly bool IsEmpty1 => CaseIndex == Empty1Index;
 	public readonly bool IsEmpty2 => CaseIndex == Empty2Index;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty1\0Empty2\0"u8;
+
 	public static partial TestUnion Empty1(
 	)
 	{
@@ -72,6 +74,36 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 			Empty2Index => "Empty2",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			Empty1Index => "Empty1",
+			Empty2Index => "Empty2",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			Empty1Index => "Empty1"u8,
+			Empty2Index => "Empty2"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(TestUnion left, TestUnion right)

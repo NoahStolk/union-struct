@@ -27,6 +27,8 @@ internal partial struct RootUnion : global::System.IEquatable<RootUnion>
 	public readonly bool IsEmpty => CaseIndex == EmptyIndex;
 	public readonly bool IsNestedCase => CaseIndex == NestedCaseIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty\0NestedCase\0"u8;
+
 	public static partial RootUnion Empty(
 	)
 	{
@@ -77,6 +79,36 @@ internal partial struct RootUnion : global::System.IEquatable<RootUnion>
 			NestedCaseIndex => $"NestedCase {{ Value = {NestedCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			EmptyIndex => "Empty",
+			NestedCaseIndex => "NestedCase",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			EmptyIndex => "Empty"u8,
+			NestedCaseIndex => "NestedCase"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(RootUnion left, RootUnion right)

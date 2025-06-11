@@ -35,6 +35,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	public readonly bool IsPositionCase => CaseIndex == PositionCaseIndex;
 	public readonly bool IsRotationCase => CaseIndex == RotationCaseIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "AngleCase\0PositionCase\0RotationCase\0"u8;
+
 	public static partial TestUnion AngleCase(
 		float @angle
 	)
@@ -101,6 +103,38 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 			RotationCaseIndex => $"RotationCase {{ Rotation = {RotationCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			AngleCaseIndex => "AngleCase",
+			PositionCaseIndex => "PositionCase",
+			RotationCaseIndex => "RotationCase",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			AngleCaseIndex => "AngleCase"u8,
+			PositionCaseIndex => "PositionCase"u8,
+			RotationCaseIndex => "RotationCase"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(TestUnion left, TestUnion right)

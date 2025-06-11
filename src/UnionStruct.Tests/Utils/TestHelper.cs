@@ -9,6 +9,7 @@ internal static class TestHelper
 {
 	private static readonly CSharpCompilationOptions _compilationOptions = new(
 		outputKind: OutputKind.DynamicallyLinkedLibrary,
+		allowUnsafe: false,
 		generalDiagnosticOption: ReportDiagnostic.Warn,
 		nullableContextOptions: NullableContextOptions.Enable);
 

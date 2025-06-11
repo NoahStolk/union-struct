@@ -34,6 +34,8 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public readonly bool IsTCase => CaseIndex == TCaseIndex;
 	public readonly bool IsUCase => CaseIndex == UCaseIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Int\0Long\0TCase\0UCase\0"u8;
+
 	public static partial TestUnion<T> Int(
 		int? @value
 	)
@@ -114,6 +116,40 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 			UCaseIndex => $"UCase {{ Value = {UCaseData} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int",
+			LongIndex => "Long",
+			TCaseIndex => "TCase",
+			UCaseIndex => "UCase",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int"u8,
+			LongIndex => "Long"u8,
+			TCaseIndex => "TCase"u8,
+			UCaseIndex => "UCase"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(TestUnion<T> left, TestUnion<T> right)

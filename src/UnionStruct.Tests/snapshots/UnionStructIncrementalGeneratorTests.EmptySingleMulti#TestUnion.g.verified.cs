@@ -32,6 +32,8 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 	public readonly bool IsPositionCase => CaseIndex == PositionCaseIndex;
 	public readonly bool IsMultiCase => CaseIndex == MultiCaseIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty\0PositionCase\0MultiCase\0"u8;
+
 	public static partial TestUnion Empty(
 	)
 	{
@@ -97,6 +99,38 @@ internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 			MultiCaseIndex => $"MultiCase {{ Position = {MultiCaseData.Position}, Velocity = {MultiCaseData.Velocity} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			EmptyIndex => "Empty",
+			PositionCaseIndex => "PositionCase",
+			MultiCaseIndex => "MultiCase",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			EmptyIndex => "Empty"u8,
+			PositionCaseIndex => "PositionCase"u8,
+			MultiCaseIndex => "MultiCase"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(TestUnion left, TestUnion right)

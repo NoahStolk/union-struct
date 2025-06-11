@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/NoahStolk.UnionStruct.svg)](https://www.nuget.org/packages/NoahStolk.UnionStruct/)
 
-Union-struct is a zero-dependency library containing a source generator that generates memory-efficient union structs in C#. Union structs are value types that can store multiple types in the same memory location.
+Union-struct is an opinionated zero-dependency library containing a source generator that generates memory-efficient union structs in C#. Union structs are value types that can store multiple types in the same memory location.
 
 ## Motivation
 

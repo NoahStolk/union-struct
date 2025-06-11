@@ -38,6 +38,8 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 	public readonly bool IsUCase => CaseIndex == UCaseIndex;
 	public readonly bool IsUCaseNested => CaseIndex == UCaseNestedIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Int\0Long\0TCase\0UCase\0UCaseNested\0"u8;
+
 	public static partial ComplexUnion<T1, T2> Int(
 		int? @value
 	)
@@ -136,6 +138,42 @@ internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<Complex
 			UCaseNestedIndex => $"UCaseNested {{ Value = {UCaseNestedData.Value}, A = {UCaseNestedData.A}, B = {UCaseNestedData.B} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int",
+			LongIndex => "Long",
+			TCaseIndex => "TCase",
+			UCaseIndex => "UCase",
+			UCaseNestedIndex => "UCaseNested",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int"u8,
+			LongIndex => "Long"u8,
+			TCaseIndex => "TCase"u8,
+			UCaseIndex => "UCase"u8,
+			UCaseNestedIndex => "UCaseNested"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(ComplexUnion<T1, T2> left, ComplexUnion<T1, T2> right)

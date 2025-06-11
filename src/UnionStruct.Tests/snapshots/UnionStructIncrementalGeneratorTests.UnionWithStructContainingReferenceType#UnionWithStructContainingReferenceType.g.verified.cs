@@ -26,6 +26,8 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 	public readonly bool IsInt => CaseIndex == IntIndex;
 	public readonly bool IsText => CaseIndex == TextIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Int\0Text\0"u8;
+
 	public static partial UnionWithStructContainingReferenceType Int(
 		int @value
 	)
@@ -79,6 +81,36 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 			TextIndex => $"Text {{ A = {TextData.A}, B = {TextData.B} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int",
+			TextIndex => "Text",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			IntIndex => "Int"u8,
+			TextIndex => "Text"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(UnionWithStructContainingReferenceType left, UnionWithStructContainingReferenceType right)

@@ -26,6 +26,8 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	public readonly bool IsCircle => CaseIndex == CircleIndex;
 	public readonly bool IsRectangle => CaseIndex == RectangleIndex;
 
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Circle\0Rectangle\0"u8;
+
 	public static partial Shape<T> Circle(
 		T @radius
 	)
@@ -79,6 +81,36 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 			RectangleIndex => $"Rectangle {{ Width = {RectangleData.Width}, Height = {RectangleData.Height} }}",
 			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
 		};
+	}
+
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			CircleIndex => "Circle",
+			RectangleIndex => "Rectangle",
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.String GetTypeString()
+	{
+		return GetTypeString(CaseIndex);
+	}
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
+	{
+		return caseIndex switch
+		{
+			CircleIndex => "Circle"u8,
+			RectangleIndex => "Rectangle"u8,
+			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+		};
+	}
+
+	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	{
+		return GetTypeAsUtf8Span(CaseIndex);
 	}
 
 	public static bool operator !=(Shape<T> left, Shape<T> right)

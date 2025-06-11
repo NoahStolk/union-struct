@@ -25,10 +25,12 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		GenerateUnionCaseDataFields(writer);
 		GeneratePrivateConstructor(writer);
 		GenerateIsProperties(writer);
+		GenerateNullTerminatedMemberNames(writer);
 		GenerateFactoryMethods(writer);
 		GenerateSwitchMethod(writer);
 		GenerateMatchMethod(writer);
 		GenerateToStringMethod(writer);
+		GenerateTypeStringMethods(writer);
 		GenerateEqualityOperators(writer);
 		GenerateGetHashCodeMethod(writer);
 		GenerateEqualsMethods(writer);
@@ -82,6 +84,16 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 	{
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
 			writer.WriteLine($"public readonly bool Is{unionCaseModel.CaseName} => CaseIndex == {unionCaseModel.CaseIndexFieldName};");
+		writer.WriteLine();
+	}
+
+	private void GenerateNullTerminatedMemberNames(CodeWriter writer)
+	{
+		if (unionModel.Cases.Count == 0)
+			return;
+
+		string nullTerminatedMemberNames = string.Concat(unionModel.Cases.Select(kvp => $"{kvp.CaseName}\\0"));
+		writer.WriteLine($"public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => \"{nullTerminatedMemberNames}\"u8;");
 		writer.WriteLine();
 	}
 
@@ -173,6 +185,45 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\"),");
 		writer.EndBlockWithSemicolon();
+		writer.EndBlock();
+		writer.WriteLine();
+	}
+
+	private void GenerateTypeStringMethods(CodeWriter writer)
+	{
+		writer.WriteLine("public static global::System.String GetTypeString(global::System.Int32 caseIndex)");
+		writer.StartBlock();
+		writer.WriteLine("return caseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.CaseName}\",");
+
+		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
+		writer.EndBlockWithSemicolon();
+		writer.EndBlock();
+		writer.WriteLine();
+
+		writer.WriteLine("public global::System.String GetTypeString()");
+		writer.StartBlock();
+		writer.WriteLine("return GetTypeString(CaseIndex);");
+		writer.EndBlock();
+		writer.WriteLine();
+
+		writer.WriteLine("public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)");
+		writer.StartBlock();
+		writer.WriteLine("return caseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.CaseName}\"u8,");
+
+		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
+		writer.EndBlockWithSemicolon();
+		writer.EndBlock();
+		writer.WriteLine();
+
+		writer.WriteLine("public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()");
+		writer.StartBlock();
+		writer.WriteLine("return GetTypeAsUtf8Span(CaseIndex);");
 		writer.EndBlock();
 		writer.WriteLine();
 	}
