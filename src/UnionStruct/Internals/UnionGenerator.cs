@@ -92,7 +92,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		if (unionModel.Cases.Count == 0)
 			return;
 
-		string nullTerminatedMemberNames = string.Concat(unionModel.Cases.Select(kvp => $"{kvp.CaseName}\\0"));
+		string nullTerminatedMemberNames = string.Concat(unionModel.Cases.Select(kvp => $"{kvp.GetDisplayName()}\\0"));
 		writer.WriteLine($"public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => \"{nullTerminatedMemberNames}\"u8;");
 		writer.WriteLine();
 	}
@@ -196,7 +196,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine("return caseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.CaseName}\",");
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.GetDisplayName()}\",");
 
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
 		writer.EndBlockWithSemicolon();
@@ -214,7 +214,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine("return caseIndex switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.CaseName}\"u8,");
+			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.GetDisplayName()}\"u8,");
 
 		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
 		writer.EndBlockWithSemicolon();

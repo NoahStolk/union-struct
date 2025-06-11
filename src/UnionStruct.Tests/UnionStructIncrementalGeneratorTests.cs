@@ -365,4 +365,31 @@ public sealed class UnionStructIncrementalGeneratorTests
 
 		await TestHelper.Verify(code);
 	}
+
+	[Fact]
+	public async Task UnionWithDisplayNames()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithDisplayNames
+			{
+				[UnionCase] public static partial UnionWithDisplayNames None();
+
+				[UnionCase(DisplayName = "Unsigned 8-bit")] public static partial UnionWithDisplayNames Unsigned8(byte value);
+				[UnionCase(DisplayName = "Unsigned 16-bit")] public static partial UnionWithDisplayNames Unsigned16(ushort value);
+				[UnionCase(DisplayName = "Unsigned 32-bit")] public static partial UnionWithDisplayNames Unsigned32(uint value);
+				[UnionCase(DisplayName = "Unsigned 64-bit")] public static partial UnionWithDisplayNames Unsigned64(ulong value);
+
+				[UnionCase(DisplayName = "Signed 8-bit")] public static partial UnionWithDisplayNames Signed8(sbyte value);
+				[UnionCase(DisplayName = "Signed 16-bit")] public static partial UnionWithDisplayNames Signed16(short value);
+				[UnionCase(DisplayName = "Signed 32-bit")] public static partial UnionWithDisplayNames Signed32(int value);
+				[UnionCase(DisplayName = "Signed 64-bit")] public static partial UnionWithDisplayNames Signed64(long value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
 }

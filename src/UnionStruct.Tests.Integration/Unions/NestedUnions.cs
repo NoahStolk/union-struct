@@ -8,7 +8,7 @@ internal partial struct RootUnion
 	[UnionCase]
 	public static partial RootUnion Empty();
 
-	[UnionCase]
+	[UnionCase(DisplayName = "Nested")]
 	public static partial RootUnion NestedCase(NestedUnion value);
 }
 

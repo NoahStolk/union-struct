@@ -85,7 +85,19 @@ internal sealed class UnionModelBuilder
 					if (attributeName != $"{GeneratorConstants.RootNamespace}.{GeneratorConstants.UnionCaseAttributeName}")
 						continue;
 
-					UnionCaseModelBuilder caseBuilder = new(_semanticModel, methodDeclarationSyntax, funcOutTypeParameterName);
+					string? displayName = null;
+					if (attributeSyntax.ArgumentList != null)
+					{
+						foreach (AttributeArgumentSyntax argumentSyntax in attributeSyntax.ArgumentList.Arguments)
+						{
+							if (argumentSyntax.NameEquals?.Name.Identifier.Text != GeneratorConstants.DisplayNamePropertyName)
+								continue;
+
+							displayName = (string?)_semanticModel.GetConstantValue(argumentSyntax.Expression).Value;
+						}
+					}
+
+					UnionCaseModelBuilder caseBuilder = new(_semanticModel, methodDeclarationSyntax, funcOutTypeParameterName, displayName);
 					cases.Add(caseBuilder.Build());
 				}
 			}

@@ -19,9 +19,9 @@ public sealed class TypeStringTests
 		Assert.Equal("RotationRangeAroundAxis", RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).GetTypeString());
 		Assert.Equal("CustomRotation", RotationType.CustomRotation(new CustomRotation(Quaternion.Identity)).GetTypeString());
 
-		Assert.Equal("Unsigned8", CompressedIndex.Unsigned8(1).GetTypeString());
-		Assert.Equal("Unsigned16", CompressedIndex.Unsigned16(2).GetTypeString());
-		Assert.Equal("Unsigned32", CompressedIndex.Unsigned32(3).GetTypeString());
+		Assert.Equal("8-bit", CompressedIndex.Unsigned8(1).GetTypeString());
+		Assert.Equal("16-bit", CompressedIndex.Unsigned16(2).GetTypeString());
+		Assert.Equal("32-bit", CompressedIndex.Unsigned32(3).GetTypeString());
 
 		Assert.Equal("Circle", Shape<float>.Circle(1.5f).GetTypeString());
 		Assert.Equal("Rectangle", Shape<float>.Rectangle(2.5f, 3.5f).GetTypeString());
@@ -33,8 +33,8 @@ public sealed class TypeStringTests
 		Assert.Equal("String", UnionWithReferenceType.String("1").GetTypeString());
 
 		Assert.Equal("Empty", RootUnion.Empty().GetTypeString());
-		Assert.Equal("NestedCase", RootUnion.NestedCase(NestedUnion.Empty()).GetTypeString());
-		Assert.Equal("NestedCase", RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeString());
+		Assert.Equal("Nested", RootUnion.NestedCase(NestedUnion.Empty()).GetTypeString());
+		Assert.Equal("Nested", RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeString());
 	}
 
 	[Fact]
@@ -50,9 +50,9 @@ public sealed class TypeStringTests
 		Assert.Equal("RotationRangeAroundAxis"u8, RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).GetTypeAsUtf8Span());
 		Assert.Equal("CustomRotation"u8, RotationType.CustomRotation(new CustomRotation(Quaternion.Identity)).GetTypeAsUtf8Span());
 
-		Assert.Equal("Unsigned8"u8, CompressedIndex.Unsigned8(1).GetTypeAsUtf8Span());
-		Assert.Equal("Unsigned16"u8, CompressedIndex.Unsigned16(2).GetTypeAsUtf8Span());
-		Assert.Equal("Unsigned32"u8, CompressedIndex.Unsigned32(3).GetTypeAsUtf8Span());
+		Assert.Equal("8-bit"u8, CompressedIndex.Unsigned8(1).GetTypeAsUtf8Span());
+		Assert.Equal("16-bit"u8, CompressedIndex.Unsigned16(2).GetTypeAsUtf8Span());
+		Assert.Equal("32-bit"u8, CompressedIndex.Unsigned32(3).GetTypeAsUtf8Span());
 
 		Assert.Equal("Circle"u8, Shape<float>.Circle(1.5f).GetTypeAsUtf8Span());
 		Assert.Equal("Rectangle"u8, Shape<float>.Rectangle(2.5f, 3.5f).GetTypeAsUtf8Span());
@@ -64,7 +64,7 @@ public sealed class TypeStringTests
 		Assert.Equal("String"u8, UnionWithReferenceType.String("1").GetTypeAsUtf8Span());
 
 		Assert.Equal("Empty"u8, RootUnion.Empty().GetTypeAsUtf8Span());
-		Assert.Equal("NestedCase"u8, RootUnion.NestedCase(NestedUnion.Empty()).GetTypeAsUtf8Span());
-		Assert.Equal("NestedCase"u8, RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeAsUtf8Span());
+		Assert.Equal("Nested"u8, RootUnion.NestedCase(NestedUnion.Empty()).GetTypeAsUtf8Span());
+		Assert.Equal("Nested"u8, RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeAsUtf8Span());
 	}
 }

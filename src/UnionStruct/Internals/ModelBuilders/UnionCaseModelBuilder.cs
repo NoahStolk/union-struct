@@ -11,14 +11,16 @@ internal sealed class UnionCaseModelBuilder
 	private readonly MethodDeclarationSyntax _methodDeclarationSyntax;
 	private readonly string _funcOutTypeParameterName;
 
+	private readonly string? _caseDisplayName;
 	private readonly string _caseName;
 	private readonly string _caseFieldName;
 
-	public UnionCaseModelBuilder(SemanticModel semanticModel, MethodDeclarationSyntax methodDeclarationSyntax, string funcOutTypeParameterName)
+	public UnionCaseModelBuilder(SemanticModel semanticModel, MethodDeclarationSyntax methodDeclarationSyntax, string funcOutTypeParameterName, string? caseDisplayName)
 	{
 		_semanticModel = semanticModel;
 		_methodDeclarationSyntax = methodDeclarationSyntax;
 		_funcOutTypeParameterName = funcOutTypeParameterName;
+		_caseDisplayName = caseDisplayName;
 
 		_caseName = _methodDeclarationSyntax.Identifier.Text;
 		_caseFieldName = $"{_caseName}Data";
@@ -43,6 +45,7 @@ internal sealed class UnionCaseModelBuilder
 		return new UnionCaseModel
 		{
 			CaseName = _caseName,
+			CaseDisplayName = _caseDisplayName,
 			DataTypes = dataTypes,
 			CaseFieldTypeName = GetCaseTypeName(dataTypes, includeNullability: true),
 			CaseStructTypeIdentifier = GetCaseTypeName(dataTypes, includeNullability: false),
@@ -98,12 +101,12 @@ internal sealed class UnionCaseModelBuilder
 	private string GetToStringReturnValue(List<UnionCaseDataTypeModel> dataTypes)
 	{
 		if (dataTypes.Count == 0)
-			return $"\"{_caseName}\"";
+			return $"\"{_caseDisplayName ?? _caseName}\"";
 
 		string fields = string.Join(", ", dataTypes.Select(GetToStringReturnValueForSingleField));
 		return
 			$$$"""
-			   $"{{{_caseName}}} {{ {{{fields}}} }}"
+			   $"{{{_caseDisplayName ?? _caseName}}} {{ {{{fields}}} }}"
 			   """;
 
 		string GetToStringReturnValueForSingleField(UnionCaseDataTypeModel dataType)

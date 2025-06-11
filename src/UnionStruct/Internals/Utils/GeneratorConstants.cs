@@ -9,4 +9,6 @@ internal static class GeneratorConstants
 	public const string UnionAttributeName = "UnionAttribute";
 
 	public const string UnionCaseAttributeName = "UnionCaseAttribute";
+
+	public const string DisplayNamePropertyName = "DisplayName";
 }

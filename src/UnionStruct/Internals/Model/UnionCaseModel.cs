@@ -4,6 +4,8 @@ internal sealed record UnionCaseModel
 {
 	public required string CaseName { get; init; }
 
+	public required string? CaseDisplayName { get; init; }
+
 	public required IReadOnlyList<UnionCaseDataTypeModel> DataTypes { get; init; }
 
 	public required string CaseFieldTypeName { get; init; }
@@ -23,4 +25,9 @@ internal sealed record UnionCaseModel
 	public required string ParameterName { get; init; }
 
 	public required string ToStringReturnValue { get; init; }
+
+	public string GetDisplayName()
+	{
+		return CaseDisplayName ?? CaseName;
+	}
 }
