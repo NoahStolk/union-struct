@@ -176,7 +176,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 	private void GenerateToStringMethod(CodeWriter writer)
 	{
-		writer.WriteLine("public override global::System.String ToString()");
+		writer.WriteLine("public override readonly global::System.String ToString()");
 		writer.StartBlock();
 		writer.WriteLine("return CaseIndex switch");
 		writer.StartBlock();
@@ -203,7 +203,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.EndBlock();
 		writer.WriteLine();
 
-		writer.WriteLine("public global::System.String GetTypeString()");
+		writer.WriteLine("public readonly global::System.String GetTypeString()");
 		writer.StartBlock();
 		writer.WriteLine("return GetTypeString(CaseIndex);");
 		writer.EndBlock();
@@ -221,7 +221,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.EndBlock();
 		writer.WriteLine();
 
-		writer.WriteLine("public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()");
+		writer.WriteLine("public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()");
 		writer.StartBlock();
 		writer.WriteLine("return GetTypeAsUtf8Span(CaseIndex);");
 		writer.EndBlock();
@@ -247,7 +247,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 	{
 		const int prime = -1521134295;
 
-		writer.WriteLine("public override global::System.Int32 GetHashCode()");
+		writer.WriteLine("public override readonly global::System.Int32 GetHashCode()");
 		writer.StartBlock();
 
 		writer.WriteLine("return CaseIndex switch");
@@ -285,13 +285,13 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 
 	private void GenerateEqualsMethods(CodeWriter writer)
 	{
-		writer.WriteLine("public override global::System.Boolean Equals(global::System.Object? obj)");
+		writer.WriteLine("public override readonly global::System.Boolean Equals(global::System.Object? obj)");
 		writer.StartBlock();
 		writer.WriteLine($"return obj is {unionModel.StructIdentifier} && Equals(({unionModel.StructIdentifier})obj);");
 		writer.EndBlock();
 		writer.WriteLine();
 
-		writer.WriteLine($"public global::System.Boolean Equals({unionModel.StructIdentifier} other)");
+		writer.WriteLine($"public readonly global::System.Boolean Equals({unionModel.StructIdentifier} other)");
 		writer.StartBlock();
 		writer.WriteLine("return CaseIndex == other.CaseIndex && CaseIndex switch");
 		writer.StartBlock();

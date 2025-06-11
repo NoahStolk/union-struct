@@ -73,7 +73,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		};
 	}
 
-	public override global::System.String ToString()
+	public override readonly global::System.String ToString()
 	{
 		return CaseIndex switch
 		{
@@ -93,7 +93,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		};
 	}
 
-	public global::System.String GetTypeString()
+	public readonly global::System.String GetTypeString()
 	{
 		return GetTypeString(CaseIndex);
 	}
@@ -108,7 +108,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		};
 	}
 
-	public global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
+	public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
 	{
 		return GetTypeAsUtf8Span(CaseIndex);
 	}
@@ -123,7 +123,7 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		return left.Equals(right);
 	}
 
-	public override global::System.Int32 GetHashCode()
+	public override readonly global::System.Int32 GetHashCode()
 	{
 		return CaseIndex switch
 		{
@@ -133,12 +133,12 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 		};
 	}
 
-	public override global::System.Boolean Equals(global::System.Object? obj)
+	public override readonly global::System.Boolean Equals(global::System.Object? obj)
 	{
 		return obj is Shape<T> && Equals((Shape<T>)obj);
 	}
 
-	public global::System.Boolean Equals(Shape<T> other)
+	public readonly global::System.Boolean Equals(Shape<T> other)
 	{
 		return CaseIndex == other.CaseIndex && CaseIndex switch
 		{
