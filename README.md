@@ -74,10 +74,12 @@ You can also debug the generator tests using the `UnionStruct.Tests` project.
 
 ### Snapshot Testing
 
+> To simply accept all snapshots immediately, run `./scripts/accept-all.sh src/UnionStruct.Tests/snapshots` from the root of the repository.
+
 To control which diff tool is used for snapshot testing, use the `DiffEngine_ToolOrder` environment variable.
 
 In JetBrains Rider, this can be configured under Build, Execution, Deployment > Unit Testing > Test Runner > Environment variables.
 
 You can also disable DiffEngine by setting the `DiffEngine_Disable` environment variable to `true`.
 
-Personally, I use the [Verify Support plugin for Rider](https://plugins.jetbrains.com/plugin/17240-verify-support).
+- [Verify Support plugin for Rider](https://plugins.jetbrains.com/plugin/17240-verify-support)
