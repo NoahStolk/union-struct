@@ -10,6 +10,8 @@ namespace Tests;
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
 internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
+	public const global::System.Int32 CaseCount = 0;
+
 
 	[global::System.Runtime.InteropServices.FieldOffset(0)]
 	public readonly global::System.Int32 CaseIndex;

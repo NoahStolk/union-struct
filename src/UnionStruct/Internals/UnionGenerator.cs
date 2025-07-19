@@ -17,6 +17,8 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
 		writer.WriteLine($"{unionModel.Accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
 		writer.StartBlock();
+		writer.WriteLine($"public const global::System.Int32 CaseCount = {unionModel.Cases.Count};");
+		writer.WriteLine();
 		GenerateUnionCaseConstants(writer);
 		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.FieldOffset(0)]");

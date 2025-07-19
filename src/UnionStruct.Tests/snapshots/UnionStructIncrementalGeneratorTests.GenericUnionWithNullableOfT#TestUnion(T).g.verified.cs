@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 EmptyIndex = 0;
 	public const global::System.Int32 NullableIndex = 1;
 

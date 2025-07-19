@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct UnionWithOptionalParameters : global::System.IEquatable<UnionWithOptionalParameters>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 TextIndex = 1;
 

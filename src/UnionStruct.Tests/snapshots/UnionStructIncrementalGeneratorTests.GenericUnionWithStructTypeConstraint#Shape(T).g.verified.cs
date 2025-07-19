@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 CircleIndex = 0;
 	public const global::System.Int32 RectangleIndex = 1;
 

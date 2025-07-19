@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct ComplexUnion<T1, T2> : global::System.IEquatable<ComplexUnion<T1, T2>>
 {
+	public const global::System.Int32 CaseCount = 5;
+
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 LongIndex = 1;
 	public const global::System.Int32 TCaseIndex = 2;

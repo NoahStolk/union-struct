@@ -10,6 +10,8 @@ namespace Tests;
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
 internal partial struct NestedUnion : global::System.IEquatable<NestedUnion>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 EmptyIndex = 0;
 	public const global::System.Int32 NodeIndex = 1;
 

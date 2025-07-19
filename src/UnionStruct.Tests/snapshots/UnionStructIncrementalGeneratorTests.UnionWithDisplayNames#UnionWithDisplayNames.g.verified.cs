@@ -10,6 +10,8 @@ namespace Tests;
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
 internal partial struct UnionWithDisplayNames : global::System.IEquatable<UnionWithDisplayNames>
 {
+	public const global::System.Int32 CaseCount = 9;
+
 	public const global::System.Int32 NoneIndex = 0;
 	public const global::System.Int32 Unsigned8Index = 1;
 	public const global::System.Int32 Unsigned16Index = 2;

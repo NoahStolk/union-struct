@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct UnionWithReferenceType : global::System.IEquatable<UnionWithReferenceType>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 StringIndex = 1;
 

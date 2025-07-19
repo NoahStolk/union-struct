@@ -9,6 +9,8 @@ namespace Tests;
 
 internal partial struct UnionWithNullableReferenceType : global::System.IEquatable<UnionWithNullableReferenceType>
 {
+	public const global::System.Int32 CaseCount = 2;
+
 	public const global::System.Int32 IntIndex = 0;
 	public const global::System.Int32 StringIndex = 1;
 
