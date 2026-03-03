@@ -349,6 +349,26 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Fact]
+	public async Task UnionWithExplicitStructContainingReferenceType()
+	{
+		const string code =
+			"""
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct UnionWithExplicitStructContainingReferenceType
+			{
+				[UnionCase] public static partial UnionWithExplicitStructContainingReferenceType Int(int value);
+				[UnionCase] public static partial UnionWithExplicitStructContainingReferenceType Text(ExplicitStruct @struct);
+			}
+
+			internal record struct ExplicitStruct(char A, string? B);
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Fact]
 	public async Task UnionWithOptionalParameters()
 	{
 		const string code =

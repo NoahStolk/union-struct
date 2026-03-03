@@ -62,8 +62,11 @@ internal sealed class UnionModelBuilder
 
 		foreach (UnionCaseModel unionCase in cases)
 		{
-			if (unionCase.DataTypes.Any(dt => dt.TypeSymbol.IsReferenceType))
-				return false;
+			foreach (UnionCaseDataTypeModel? dt in unionCase.DataTypes)
+			{
+				if (!dt.TypeSymbol.IsUnmanagedType)
+					return false;
+			}
 		}
 
 		return true;
