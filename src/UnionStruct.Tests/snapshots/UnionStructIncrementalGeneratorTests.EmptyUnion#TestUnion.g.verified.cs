@@ -8,6 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct TestUnion : global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 CaseCount = 0;

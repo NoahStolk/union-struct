@@ -7,6 +7,7 @@
 
 namespace Tests;
 
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct UnionWithStructContainingNullableReferenceType : global::System.IEquatable<UnionWithStructContainingNullableReferenceType>
 {
 	public const global::System.Int32 CaseCount = 2;
@@ -15,6 +16,14 @@ internal partial struct UnionWithStructContainingNullableReferenceType : global:
 	public const global::System.Int32 TextIndex = 1;
 
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		Int = IntIndex,
+		Text = TextIndex,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	public int IntData;
 

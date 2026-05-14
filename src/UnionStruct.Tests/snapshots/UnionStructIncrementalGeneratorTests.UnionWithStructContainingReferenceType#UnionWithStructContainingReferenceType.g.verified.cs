@@ -7,6 +7,7 @@
 
 namespace Tests;
 
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct UnionWithStructContainingReferenceType : global::System.IEquatable<UnionWithStructContainingReferenceType>
 {
 	public const global::System.Int32 CaseCount = 2;
@@ -15,6 +16,14 @@ internal partial struct UnionWithStructContainingReferenceType : global::System.
 	public const global::System.Int32 TextIndex = 1;
 
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		Int = IntIndex,
+		Text = TextIndex,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	public int IntData;
 

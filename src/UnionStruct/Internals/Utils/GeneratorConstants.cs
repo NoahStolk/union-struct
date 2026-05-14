@@ -11,4 +11,12 @@ internal static class GeneratorConstants
 	public const string UnionCaseAttributeName = "UnionCaseAttribute";
 
 	public const string DisplayNamePropertyName = "DisplayName";
+
+	public const string MarkerAttributeName = "GeneratedUnionAttribute";
+
+	public const string TagEnumName = "CaseTag";
+
+	public const string TagPropertyName = "Tag";
+
+	public const string CaseIndexFieldName = "CaseIndex";
 }

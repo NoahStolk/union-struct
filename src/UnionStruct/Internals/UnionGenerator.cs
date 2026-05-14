@@ -15,6 +15,7 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.WriteLine();
 		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
+		writer.WriteLine($"[global::{GeneratorConstants.RootNamespace}.{GeneratorConstants.MarkerAttributeName}]");
 		writer.WriteLine($"{unionModel.Accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
 		writer.StartBlock();
 		writer.WriteLine($"public const global::System.Int32 CaseCount = {unionModel.Cases.Count};");
@@ -24,6 +25,8 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 			writer.WriteLine("[global::System.Runtime.InteropServices.FieldOffset(0)]");
 		writer.WriteLine("public readonly global::System.Int32 CaseIndex;");
 		writer.WriteLine();
+		GenerateTagEnum(writer);
+		GenerateTagProperty(writer);
 		GenerateUnionCaseDataFields(writer);
 		GeneratePrivateConstructor(writer);
 		GenerateIsProperties(writer);
@@ -40,6 +43,28 @@ internal sealed class UnionGenerator(Compilation compilation, UnionModel unionMo
 		writer.EndBlock();
 
 		return writer.ToString();
+	}
+
+	private void GenerateTagEnum(CodeWriter writer)
+	{
+		if (unionModel.Cases.Count == 0)
+			return;
+
+		writer.WriteLine($"public enum {GeneratorConstants.TagEnumName} : global::System.Int32");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+			writer.WriteLine($"{unionCaseModel.CaseName} = {unionCaseModel.CaseIndexFieldName},");
+		writer.EndBlock();
+		writer.WriteLine();
+	}
+
+	private void GenerateTagProperty(CodeWriter writer)
+	{
+		if (unionModel.Cases.Count == 0)
+			return;
+
+		writer.WriteLine($"public readonly {GeneratorConstants.TagEnumName} {GeneratorConstants.TagPropertyName} => ({GeneratorConstants.TagEnumName})CaseIndex;");
+		writer.WriteLine();
 	}
 
 	private void GenerateUnionCaseConstants(CodeWriter writer)

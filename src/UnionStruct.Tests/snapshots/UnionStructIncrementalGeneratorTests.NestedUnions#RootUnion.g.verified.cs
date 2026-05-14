@@ -8,6 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct RootUnion : global::System.IEquatable<RootUnion>
 {
 	public const global::System.Int32 CaseCount = 2;
@@ -17,6 +18,14 @@ internal partial struct RootUnion : global::System.IEquatable<RootUnion>
 
 	[global::System.Runtime.InteropServices.FieldOffset(0)]
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		Empty = EmptyIndex,
+		NestedCase = NestedCaseIndex,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
 	public Tests.NestedUnion NestedCaseData;

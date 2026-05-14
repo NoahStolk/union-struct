@@ -8,6 +8,7 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct UnionWithDisplayNames : global::System.IEquatable<UnionWithDisplayNames>
 {
 	public const global::System.Int32 CaseCount = 9;
@@ -24,6 +25,21 @@ internal partial struct UnionWithDisplayNames : global::System.IEquatable<UnionW
 
 	[global::System.Runtime.InteropServices.FieldOffset(0)]
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		None = NoneIndex,
+		Unsigned8 = Unsigned8Index,
+		Unsigned16 = Unsigned16Index,
+		Unsigned32 = Unsigned32Index,
+		Unsigned64 = Unsigned64Index,
+		Signed8 = Signed8Index,
+		Signed16 = Signed16Index,
+		Signed32 = Signed32Index,
+		Signed64 = Signed64Index,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	[global::System.Runtime.InteropServices.FieldOffset(4)]
 	public byte Unsigned8Data;

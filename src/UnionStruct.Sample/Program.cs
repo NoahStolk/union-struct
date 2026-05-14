@@ -23,6 +23,39 @@ ComplexUnion<int, long> test = ComplexUnion<int, long>.UCaseNested(new ComplexUn
 Console.WriteLine(test);
 Console.WriteLine($"A: {test.UCaseNestedData.Value?.A ?? 0}");
 
+Console.WriteLine("\n=== Zero-alloc switch samples ===");
+foreach (TestUnion u in (TestUnion[])[TestUnion.Empty(), TestUnion.PositionCase(new Position(new Vector3(1, 2, 3))), TestUnion.MultiCase(new Vector3(4, 5, 6), new Vector3(7, 8, 9)), TestUnion.Value(42)])
+{
+	switch (u.CaseIndex)
+	{
+		case TestUnion.EmptyIndex: Console.WriteLine("CaseIndex switch -> Empty"); break;
+		case TestUnion.PositionCaseIndex: Console.WriteLine($"CaseIndex switch -> Position {u.PositionCaseData.Value}"); break;
+		case TestUnion.PositionRangeCaseIndex: Console.WriteLine("CaseIndex switch -> PositionRange"); break;
+		case TestUnion.MultiCaseIndex: Console.WriteLine($"CaseIndex switch -> MultiCase {u.MultiCaseData.Position}/{u.MultiCaseData.Velocity}"); break;
+		case TestUnion.ValueIndex: Console.WriteLine($"CaseIndex switch -> Value {u.ValueData}"); break;
+	}
+
+	string tagLabel = u.Tag switch
+	{
+		TestUnion.CaseTag.Empty => "Empty",
+		TestUnion.CaseTag.PositionCase => "PositionCase",
+		TestUnion.CaseTag.PositionRangeCase => "PositionRangeCase",
+		TestUnion.CaseTag.MultiCase => "MultiCase",
+		TestUnion.CaseTag.Value => "Value",
+	};
+	Console.WriteLine($"Tag switch expression -> {tagLabel}");
+
+	string caseIndexLabel = u.CaseIndex switch
+	{
+		TestUnion.EmptyIndex => "Empty",
+		TestUnion.PositionCaseIndex => "PositionCase",
+		TestUnion.PositionRangeCaseIndex => "PositionRangeCase",
+		TestUnion.MultiCaseIndex => "MultiCase",
+		TestUnion.ValueIndex => "Value",
+	};
+	Console.WriteLine($"CaseIndex switch expression -> {caseIndexLabel}");
+}
+
 void WriteShape<T>(Shape<T> shape)
 	where T : INumber<T>
 {

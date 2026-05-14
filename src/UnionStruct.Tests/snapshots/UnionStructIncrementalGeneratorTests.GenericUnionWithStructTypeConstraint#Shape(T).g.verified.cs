@@ -7,6 +7,7 @@
 
 namespace Tests;
 
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 {
 	public const global::System.Int32 CaseCount = 2;
@@ -15,6 +16,14 @@ internal partial struct Shape<T> : global::System.IEquatable<Shape<T>>
 	public const global::System.Int32 RectangleIndex = 1;
 
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		Circle = CircleIndex,
+		Rectangle = RectangleIndex,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	public T CircleData;
 

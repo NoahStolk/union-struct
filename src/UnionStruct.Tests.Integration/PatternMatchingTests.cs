@@ -62,4 +62,34 @@ public sealed class PatternMatchingTests
 		Assert.Equal(2, silverCount);
 		Assert.Equal(1, goldCount);
 	}
+
+	[Fact]
+	public void CaseIndexSwitchWithoutDefaultWorks()
+	{
+		Assert.Equal("Bronze", PointName(EnumLikeUnion.Bronze()));
+		Assert.Equal("Silver", PointName(EnumLikeUnion.Silver()));
+		Assert.Equal("Gold", PointName(EnumLikeUnion.Gold()));
+
+		static string PointName(EnumLikeUnion u) => u.CaseIndex switch
+		{
+			EnumLikeUnion.BronzeIndex => "Bronze",
+			EnumLikeUnion.SilverIndex => "Silver",
+			EnumLikeUnion.GoldIndex => "Gold",
+		};
+	}
+
+	[Fact]
+	public void TagSwitchWithoutDiscardArmWorks()
+	{
+		Assert.Equal(1, Rank(EnumLikeUnion.Bronze()));
+		Assert.Equal(2, Rank(EnumLikeUnion.Silver()));
+		Assert.Equal(3, Rank(EnumLikeUnion.Gold()));
+
+		static int Rank(EnumLikeUnion u) => u.Tag switch
+		{
+			EnumLikeUnion.CaseTag.Bronze => 1,
+			EnumLikeUnion.CaseTag.Silver => 2,
+			EnumLikeUnion.CaseTag.Gold => 3,
+		};
+	}
 }

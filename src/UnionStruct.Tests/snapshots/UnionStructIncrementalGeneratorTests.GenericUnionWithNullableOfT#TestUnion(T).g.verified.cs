@@ -7,6 +7,7 @@
 
 namespace Tests;
 
+[global::UnionStruct.GeneratedUnionAttribute]
 internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 {
 	public const global::System.Int32 CaseCount = 2;
@@ -15,6 +16,14 @@ internal partial struct TestUnion<T> : global::System.IEquatable<TestUnion<T>>
 	public const global::System.Int32 NullableIndex = 1;
 
 	public readonly global::System.Int32 CaseIndex;
+
+	public enum CaseTag : global::System.Int32
+	{
+		Empty = EmptyIndex,
+		Nullable = NullableIndex,
+	}
+
+	public readonly CaseTag Tag => (CaseTag)CaseIndex;
 
 	public T? NullableData;
 
