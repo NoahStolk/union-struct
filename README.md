@@ -60,6 +60,35 @@ int size = index.Match(
 	(u32) => sizeof(uint));
 ```
 
+### Exhaustive switching (zero-allocation)
+
+`Switch` and `Match` allocate a delegate per call. For hot paths, you can switch directly on the generated `<Case>Index` constants or the nested `CaseTag` enum — both compile to a plain integer switch with no allocation.
+
+```csharp
+// Switch on the public CaseIndex field against per-case constants.
+int size = index.CaseIndex switch
+{
+	VarIndex.Unsigned8Index => sizeof(byte),
+	VarIndex.Unsigned16Index => sizeof(ushort),
+	VarIndex.Unsigned32Index => sizeof(uint),
+};
+
+// Or switch on the generated CaseTag enum.
+int size2 = index.Tag switch
+{
+	VarIndex.CaseTag.Unsigned8 => sizeof(byte),
+	VarIndex.CaseTag.Unsigned16 => sizeof(ushort),
+	VarIndex.CaseTag.Unsigned32 => sizeof(uint),
+};
+```
+
+Because the compiler can't prove an `int`-switch is exhaustive, the library ships an analyzer and a diagnostic suppressor:
+
+- `US0001` warns when a switch on `.CaseIndex` or `.Tag` is missing one or more cases. A code fix (`Add missing union cases`) inserts the missing arms.
+- A `DiagnosticSuppressor` silences `CS8509`/`CS8524` ("switch expression isn't exhaustive") on these switches once every case is covered, so you can omit the `_ =>` default arm entirely.
+
+Adding a new `[UnionCase]` later therefore turns into a build-time warning at every call site that still needs to handle it.
+
 ## Benchmarks
 
 TODO
