@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      Standalone research project. NOT part of UnionStruct.slnx and NOT built by CI.
+      Requires the .NET 11 preview SDK (see the local global.json). Run with:
+          dotnet run -c Release
+      from this directory.
+    -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net11.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+        <!-- Keep this project out of any solution-wide analyzer/style config above it. -->
+        <NoWarn>$(NoWarn)</NoWarn>
+    </PropertyGroup>
+
+</Project>
