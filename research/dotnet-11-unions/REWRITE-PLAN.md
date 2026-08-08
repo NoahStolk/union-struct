@@ -106,17 +106,17 @@ implementing `IUnion`, with:
 
 ## 4. What gets deleted vs. the current generator (the simplification win)
 
-| Current concern | Fate in the rewrite |
-|---|---|
+| Current concern                                        | Fate in the rewrite                                                                                                                           |
+|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | `Switch(Action…)` / `Match<T>(Func…)` delegate methods | **Drop** (native `switch` replaces them; they also allocate delegates). Optionally keep an allocation-free `ref`-friendly overload if wanted. |
-| `US0001` "missing union cases" analyzer | **Drop** — native exhaustiveness. |
-| `CS8509`/`CS8524` `DiagnosticSuppressor` | **Drop** — no longer needed. |
-| `UnionStruct.CodeFixes` project | **Drop** entirely. |
-| `UnionStruct.Tests.Analyzers` | **Drop** entirely. |
-| `CaseTag` / `CaseIndex` int-switch | **Keep** (optional fast path + pre-feature fallback). |
-| `[FieldOffset]` overlap + `AllowMemoryOverlap` logic | **Keep / port** — still the memory win. |
-| Equality / ToString / UTF-8 helpers | **Keep** — language doesn't provide them. |
-| `___factoryReturnValue` / `TMatchOut` naming hacks | Mostly **gone** with delegate methods; keep the factory-local trick only where constructors need it. |
+| `US0001` "missing union cases" analyzer                | **Drop** — native exhaustiveness.                                                                                                             |
+| `CS8509`/`CS8524` `DiagnosticSuppressor`               | **Drop** — no longer needed.                                                                                                                  |
+| `UnionStruct.CodeFixes` project                        | **Drop** entirely.                                                                                                                            |
+| `UnionStruct.Tests.Analyzers`                          | **Drop** entirely.                                                                                                                            |
+| `CaseTag` / `CaseIndex` int-switch                     | **Keep** (optional fast path + pre-feature fallback).                                                                                         |
+| `[FieldOffset]` overlap + `AllowMemoryOverlap` logic   | **Keep / port** — still the memory win.                                                                                                       |
+| Equality / ToString / UTF-8 helpers                    | **Keep** — language doesn't provide them.                                                                                                     |
+| `___factoryReturnValue` / `TMatchOut` naming hacks     | Mostly **gone** with delegate methods; keep the factory-local trick only where constructors need it.                                          |
 
 Net: the generator shrinks to *storage + case types + access pattern + equality*, and
 two whole projects disappear.
