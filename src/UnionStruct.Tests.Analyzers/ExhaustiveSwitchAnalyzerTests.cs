@@ -253,4 +253,40 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
 		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
+
+	[Fact]
+	public async Task FiresOnUnionFromReferencedAssembly()
+	{
+		const string librarySource =
+			"""
+			using UnionStruct;
+			namespace TheLib;
+			[Union]
+			public partial struct Shape
+			{
+				[UnionCase] public static partial Shape Circle(float radius);
+				[UnionCase] public static partial Shape Square(float side);
+			}
+			""";
+
+		const string consumerSource =
+			"""
+			using TheLib;
+			namespace Tests;
+			internal static class Consumer
+			{
+				public static int Test(Shape s)
+				{
+					switch (s.CaseIndex)
+					{
+						case Shape.CircleIndex: return 1;
+					}
+					return 0;
+				}
+			}
+			""";
+
+		ImmutableArray<Diagnostic> diagnostics = await AnalyzerTestHelper.CompileAcrossAssembliesWithAnalyzersAsync(librarySource, consumerSource, _analyzer);
+		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+	}
 }

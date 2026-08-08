@@ -32,7 +32,6 @@ internal static class AnalyzerTestHelper
 			references:
 			[
 				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(UnionAttribute).Assembly.Location),
 				MetadataReference.CreateFromFile(netstandard.Location),
 				MetadataReference.CreateFromFile(systemRuntime.Location),
 			],
@@ -54,6 +53,67 @@ internal static class AnalyzerTestHelper
 		return (outputCompilation, all);
 	}
 
+	/// <summary>
+	/// Compiles <paramref name="librarySource"/> into a separate assembly, then analyzes <paramref name="consumerSource"/>
+	/// against it. The marker attribute is generated into every compilation, so the union coming back from metadata
+	/// carries the *library's* marker, not the consumer's - this is what keeps <c>HasMarker</c> honest about matching
+	/// on name rather than symbol identity.
+	/// </summary>
+	public static async Task<ImmutableArray<Diagnostic>> CompileAcrossAssembliesWithAnalyzersAsync(
+		string librarySource,
+		string consumerSource,
+		ImmutableArray<DiagnosticAnalyzer> analyzers)
+	{
+		Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+		Assembly netstandard = assemblies.Single(a => a.GetName().Name == "netstandard");
+		Assembly systemRuntime = assemblies.Single(a => a.GetName().Name == "System.Runtime");
+
+		MetadataReference[] baseReferences =
+		[
+			MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+			MetadataReference.CreateFromFile(netstandard.Location),
+			MetadataReference.CreateFromFile(systemRuntime.Location),
+		];
+
+		CSharpCompilation libraryCompilation = CSharpCompilation.Create(
+			assemblyName: "TheLibrary",
+			syntaxTrees: [CSharpSyntaxTree.ParseText(librarySource)],
+			references: baseReferences,
+			options: _compilationOptions);
+
+		UnionStructIncrementalGenerator libraryGenerator = new();
+		GeneratorDriver libraryDriver = CSharpGeneratorDriver.Create(libraryGenerator);
+		_ = libraryDriver.RunGeneratorsAndUpdateCompilation(libraryCompilation, out Compilation generatedLibrary, out _);
+
+		using MemoryStream peStream = new();
+		Microsoft.CodeAnalysis.Emit.EmitResult emitResult = generatedLibrary.Emit(peStream);
+		if (!emitResult.Success)
+			throw new InvalidOperationException($"Library compilation failed:\n{string.Join(Environment.NewLine, emitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error))}");
+
+		peStream.Position = 0;
+		MetadataReference libraryReference = MetadataReference.CreateFromStream(peStream);
+
+		CSharpCompilation consumerCompilation = CSharpCompilation.Create(
+			assemblyName: "TheConsumer",
+			syntaxTrees: [CSharpSyntaxTree.ParseText(consumerSource)],
+			references: [.. baseReferences, libraryReference],
+			options: _compilationOptions);
+
+		UnionStructIncrementalGenerator consumerGenerator = new();
+		GeneratorDriver consumerDriver = CSharpGeneratorDriver.Create(consumerGenerator);
+		_ = consumerDriver.RunGeneratorsAndUpdateCompilation(consumerCompilation, out Compilation generatedConsumer, out _);
+
+		AnalyzerOptions emptyOptions = new(ImmutableArray<AdditionalText>.Empty);
+		CompilationWithAnalyzersOptions options = new(
+			options: emptyOptions,
+			onAnalyzerException: static (_, _, _) => { },
+			concurrentAnalysis: false,
+			logAnalyzerExecutionTime: false,
+			reportSuppressedDiagnostics: true);
+		CompilationWithAnalyzers withAnalyzers = generatedConsumer.WithAnalyzers(analyzers, options);
+		return await withAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
+	}
+
 	public static async Task<string> ApplyCodeFixAsync(
 		string source,
 		DiagnosticAnalyzer analyzer,
@@ -71,7 +131,6 @@ internal static class AnalyzerTestHelper
 			references:
 			[
 				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(typeof(UnionAttribute).Assembly.Location),
 				MetadataReference.CreateFromFile(netstandard.Location),
 				MetadataReference.CreateFromFile(systemRuntime.Location),
 			],

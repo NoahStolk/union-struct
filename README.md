@@ -6,6 +6,23 @@
 
 Union-struct is an opinionated zero-dependency library containing a source generator that generates memory-efficient union structs in C#. Union structs are value types that can store multiple types in the same memory location.
 
+## Installation
+
+```sh
+dotnet add package NoahStolk.UnionStruct
+```
+
+This is an analyzer-only package, so the `PackageReference` it writes needs no further editing:
+
+```xml
+<PackageReference Include="NoahStolk.UnionStruct">
+  <PrivateAssets>all</PrivateAssets>
+  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+</PackageReference>
+```
+
+The `[Union]`, `[UnionCase]` and `[GeneratedUnion]` attributes are generated into your compilation as `internal` types in the `UnionStruct` namespace — there is no assembly to reference, and the package leaves no trace in your build output or in the dependencies of any package you publish.
+
 ## Motivation
 
 This library is inspired by the [Type Unions for C# proposal](https://github.com/dotnet/csharplang/blob/main/proposals/TypeUnions.md). At the time of writing, the prototype, implementation, and specification for this proposal have not been started.
