@@ -1,5 +1,4 @@
 ﻿<Solution>
-  <Project Path="UnionStruct.Attributes\UnionStruct.Attributes.csproj" Type="Classic C#" />
   <Project Path="UnionStruct.CodeFixes\UnionStruct.CodeFixes.csproj" Type="Classic C#" />
   <Project Path="UnionStruct.Package\UnionStruct.Package.csproj" Type="Classic C#" />
   <Project Path="UnionStruct.Sample\UnionStruct.Sample.csproj" Type="Classic C#" />

@@ -151,11 +151,18 @@ public sealed class ExhaustiveSwitchAnalyzer : DiagnosticAnalyzer
 		return unionType is not null && HasMarker(unionType, markerAttribute);
 	}
 
+	/// <remarks>
+	/// Matched by fully qualified name rather than by symbol identity. The marker attribute is generated into every
+	/// compilation that uses UnionStruct, so a union declared in a referenced assembly carries *that* assembly's
+	/// marker, which is a different symbol from this compilation's. Comparing symbols would silently stop recognising
+	/// unions from referenced assemblies.
+	/// </remarks>
 	private static bool HasMarker(INamedTypeSymbol type, INamedTypeSymbol marker)
 	{
+		string markerName = marker.ToDisplayString();
 		foreach (AttributeData attr in type.GetAttributes())
 		{
-			if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, marker))
+			if (attr.AttributeClass?.ToDisplayString() == markerName)
 				return true;
 		}
 

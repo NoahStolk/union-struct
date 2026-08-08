@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UnionStruct.Attributes\UnionStruct.Attributes.csproj"/>
     <ProjectReference Include="..\UnionStruct\UnionStruct.csproj"/>
     <ProjectReference Include="..\UnionStruct.CodeFixes\UnionStruct.CodeFixes.csproj"/>
   </ItemGroup>

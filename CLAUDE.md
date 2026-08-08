@@ -22,15 +22,17 @@ All commands assume `cd src/` (the solution is `src/UnionStruct.slnx`).
 
 ## Solution layout
 
-Six projects, all under `src/`:
+All under `src/`:
 
 - `UnionStruct/` — the source generator itself. Targets `netstandard2.0` (required for analyzers) and `LangVersion 14.0`. Entry point is `UnionStructIncrementalGenerator`; the bulk of the codegen is in `Internals/UnionGenerator.cs`. `Internals/ModelBuilders/*` translate Roslyn syntax+symbols into the immutable `Internals/Model/*` records that drive emission. `System/` polyfills attributes (`IsExternalInit`, `RequiredMemberAttribute`, etc.) so the generator can use modern C# features while targeting netstandard2.0.
-- `UnionStruct.Attributes/` — the runtime-facing `[Union]` and `[UnionCase(DisplayName=...)]` attributes consumed by user code. Also netstandard2.0.
-- `UnionStruct.Package/` — packaging-only project; ships both DLLs as `analyzers/dotnet/cs` and the attributes DLL as `lib/netstandard2.0`. `PackageId` and `Version` live here.
+- The attributes are **not** a separate project. `Internals/Utils/AttributeSourceUtils.cs` holds the source for `[Union]`, `[UnionCase(DisplayName=...)]` and the `[GeneratedUnion]` marker, and `UnionStructIncrementalGenerator` emits it via `RegisterPostInitializationOutput`. Post-initialization is mandatory: `HasUnionAttribute` resolves `[Union]` through the semantic model, and only post-initialization sources are visible to it during the generator run — moving this to `RegisterSourceOutput` would silently break all detection.
+- `UnionStruct.Package/` — packaging-only project; ships both DLLs as `analyzers/dotnet/cs` and nothing else. `PackageId` and `Version` live here.
+  - **The package is analyzer-only on purpose — do not add a `lib/` folder to it.** It sets `DevelopmentDependency=true`, which makes NuGet write `<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>` on install — note the absent `compile`. Anything in `lib/` would be invisible to consumers, who would have to hand-edit `IncludeAssets` after every install. This is why the attributes are generated rather than shipped as a reference assembly.
+  - The attributes are emitted as `internal`, so each compilation gets its own copy. **Never compare the `[GeneratedUnion]` marker by symbol identity** — a union from a referenced assembly carries *that* assembly's marker, which is a different symbol. `ExhaustiveSwitchAnalyzer.HasMarker` compares fully qualified names for exactly this reason; the analyzer, the suppressor, and the code fix all route through it.
 - `UnionStruct.Sample/` — executable that consumes the generator via `OutputItemType="Analyzer"` ProjectReference. Useful for debugging via `launchSettings.json` in the `UnionStruct` project.
 - `UnionStruct.Tests/` — snapshot tests of generator output using `Verify.SourceGenerators` + `Verify.XunitV3`. Each test in `UnionStructIncrementalGeneratorTests` is a small union declaration string passed to `TestHelper.Verify`; output is diffed against `snapshots/*.verified.cs`.
 - `UnionStruct.Tests.Integration/` — xUnit tests that consume the generator as an analyzer and exercise the *generated* code at runtime (equality, ToString, pattern matching, `ref` mutation, etc.). Test unions live in `Unions/`.
-- `UnionStruct.Tests.NuGetIntegration/` — same idea but consumes the packed `.nupkg` instead of a ProjectReference; only built in CI after `dotnet pack`.
+- `UnionStruct.Tests.NuGetIntegration/` — same idea but consumes the packed `.nupkg` instead of a ProjectReference; only built in CI after `dotnet pack`. It deliberately declares the **exact** `PrivateAssets`/`IncludeAssets` that `dotnet add package` writes for a development dependency, i.e. **without** `compile`. Do not add assets to make a build pass — if that project stops compiling, the *package layout* is wrong, not the test.
 
 ## How the generator works (the parts that span multiple files)
 

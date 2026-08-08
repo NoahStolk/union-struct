@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="UnionStruct.Tests"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md"/>
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md"/>
   </ItemGroup>
