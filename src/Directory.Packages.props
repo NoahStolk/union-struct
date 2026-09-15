@@ -1,0 +1,35 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="Current">
+
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0"/>
+
+		<!--
+		Do not upgrade: this is the minimum Roslyn version every consumer of the generated package must have.
+		Building against a Roslyn newer than the host compiler makes csc skip the generator (CS9057).
+		-->
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0"/>
+	</ItemGroup>
+
+	<ItemGroup Label="Test dependencies">
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="1.1.3"/>
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0"/>
+		<PackageVersion Include="Verify.SourceGenerators" Version="2.5.0"/>
+		<PackageVersion Include="Verify.XunitV3" Version="31.13.2"/>
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5"/>
+		<PackageVersion Include="xunit.v3" Version="3.2.2"/>
+	</ItemGroup>
+
+	<ItemGroup Label="Static code analysis">
+		<GlobalPackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4"/>
+		<GlobalPackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6581"/>
+		<GlobalPackageReference Include="Roslynator.Analyzers" Version="4.15.0"/>
+		<GlobalPackageReference Include="SonarAnalyzer.CSharp" Version="10.20.0.135146"/>
+		<GlobalPackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556"/>
+	</ItemGroup>
+
+</Project>
