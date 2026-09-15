@@ -2,8 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- This project exists only to produce the NuGet; its own (empty) assembly must not end up in lib/. -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
 
     <!-- Analyzer-only package: no lib/ folder, so the (empty) netstandard2.0 dependency group would only trigger NU5128. -->
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
