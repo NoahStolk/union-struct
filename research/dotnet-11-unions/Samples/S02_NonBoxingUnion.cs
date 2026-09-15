@@ -4,23 +4,27 @@ namespace Samples;
 
 // SAMPLE 2 — The non-boxing access pattern. THIS is the one that matters for gamedev.
 //
-// The union spec defines an opt-in "non-boxing union access pattern":
-//   * a `bool HasValue { get; }` property, and
-//   * one `bool TryGetValue(out TCase value)` method per case type.
+// The union spec defines an opt-in "non-boxing union access pattern": one
+// `bool TryGetValue(out TCase value)` method per case type, optionally alongside a
+// `bool HasValue { get; }` property.
 //
-// When these are present, the compiler PREFERENTIALLY lowers pattern matching
-// (switch / is / etc.) through TryGetValue — strongly typed, no trip through
-// `object Value`, no box. Combined with storing the payload in typed fields (not
-// `object`), construction AND matching are both zero-allocation.
+// When TryGetValue is present, the compiler PREFERENTIALLY lowers pattern matching
+// (switch / is / etc.) through it — strongly typed, no trip through `object Value`,
+// no box. Combined with storing the payload in typed fields (not `object`),
+// construction AND matching are both zero-allocation.
 //
-// Measured: 0 B on construction, 0 B on the language `switch`. Exhaustive with NO
-// default arm and NO null warning (because HasValue == true pins Value's null-state
-// to "not null").
+// CORRECTION vs. the preview 4 write-up: `HasValue` is NOT required for the
+// non-boxing lowering. A union carrying only TryGetValue allocates 0 B just the
+// same — measured on RC 1 and on preview 4 (see S08, delta 1). It is kept below
+// only because it is a cheap, harmless part of the documented pattern.
+//
+// Measured: 0 B on construction, 0 B on the language `switch`, exhaustive with NO
+// default arm and no null warning.
 public static class S02_NonBoxingUnion
 {
     public static void Run()
     {
-        Console.WriteLine("[S02] Non-boxing union (HasValue + TryGetValue)");
+        Console.WriteLine("[S02] Non-boxing union (TryGetValue; HasValue optional)");
 
         NbShape s = new(new Circle(5.0));
         Console.WriteLine($"  area = {Area(s):F2}");
@@ -59,7 +63,7 @@ public struct NbShape : IUnion
     public object Value => _tag == 0 ? _circle : _rectangle;
 
     // ---- non-boxing access pattern ----
-    public bool HasValue => true;
+    public bool HasValue => true;   // optional; TryGetValue alone already lowers non-boxing
     public bool TryGetValue(out Circle value) { value = _circle; return _tag == 0; }
     public bool TryGetValue(out Rectangle value) { value = _rectangle; return _tag == 1; }
 }

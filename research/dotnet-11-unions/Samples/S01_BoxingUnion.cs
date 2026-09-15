@@ -30,7 +30,10 @@ public static class S01_BoxingUnion
     {
         Circle c => Math.PI * c.Radius * c.Radius,
         Rectangle r => r.Width * r.Height,
-        _ => 0, // needed: Value is `object?` (maybe-null), so compiler wants a null/default arm
+        // RC 1 does not need this arm any more: the spurious CS8655 null-arm warning on
+        // union switches is gone. On preview 4 an `object?` Value forced a null/default
+        // arm onto every otherwise-exhaustive union switch. Kept to show that shape.
+        _ => 0,
     };
 }
 

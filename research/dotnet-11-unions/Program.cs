@@ -16,3 +16,4 @@ Samples.S04_RefAccess.Run();
 Samples.S05_GenericUnion.Run();
 Samples.S06_AllocationBench.Run();
 Samples.S07_GoldenEmission.Run();
+Samples.S08_Rc1Deltas.Run();

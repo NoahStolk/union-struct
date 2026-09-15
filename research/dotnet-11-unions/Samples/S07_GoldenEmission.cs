@@ -104,12 +104,15 @@ public partial struct Transform : IUnion, IEquatable<Transform>
     public static implicit operator Transform(Rotation value) => new(value);
 
     // IUnion contract — lazy-boxes only if explicitly read. Declared NON-nullable
-    // `object` (not `object?`): a maybe-null Value re-introduces the CS8655 null-arm
-    // warning on otherwise-exhaustive switches, so the generator must emit it this way.
+    // `object`, but as of RC 1 that is a free choice, not a requirement: the CS8655
+    // null-arm warning that `object?` used to trigger on preview 4 is gone (see S08,
+    // delta 2). Emitting `object` stays the tidier default.
     public object Value => CaseIndex switch { AngleIndex => AngleData, PositionIndex => PositionData, _ => RotationData };
 
-    // Non-boxing access pattern — the compiler prefers these for pattern matching.
-    public bool HasValue => true;   // pins Value's null-state to "not null" => no CS8655
+    // Non-boxing access pattern — the compiler prefers TryGetValue for pattern matching.
+    // HasValue is optional (TryGetValue alone suffices); it does not affect lowering or
+    // nullability. See S08, delta 1.
+    public bool HasValue => true;
     public bool TryGetValue(out Angle value) { value = AngleData; return CaseIndex == AngleIndex; }
     public bool TryGetValue(out Position value) { value = PositionData; return CaseIndex == PositionIndex; }
     public bool TryGetValue(out Rotation value) { value = RotationData; return CaseIndex == RotationIndex; }
