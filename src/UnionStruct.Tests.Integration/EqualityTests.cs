@@ -1,72 +1,71 @@
 ﻿using UnionStruct.Tests.Integration.Unions;
-using Xunit;
 
 namespace UnionStruct.Tests.Integration;
 
 public sealed class EqualityTests
 {
-	[Fact]
-	public void EqualsReturnsCorrectResult()
+	[Test]
+	public async Task EqualsReturnsCorrectResult()
 	{
-		Assert.True(EnumLikeUnion.Bronze().Equals(EnumLikeUnion.Bronze()));
-		Assert.False(EnumLikeUnion.Bronze().Equals(EnumLikeUnion.Silver()));
-		Assert.False(EnumLikeUnion.Bronze().Equals(null));
+		await Assert.That(EnumLikeUnion.Bronze().Equals(EnumLikeUnion.Bronze())).IsTrue();
+		await Assert.That(EnumLikeUnion.Bronze().Equals(EnumLikeUnion.Silver())).IsFalse();
+		await Assert.That(EnumLikeUnion.Bronze().Equals(null)).IsFalse();
 
-		Assert.True(RotationType.None().Equals(RotationType.None()));
-		Assert.False(RotationType.None().Equals(RotationType.RandomRotation()));
-		Assert.False(RotationType.None().Equals(null));
+		await Assert.That(RotationType.None().Equals(RotationType.None())).IsTrue();
+		await Assert.That(RotationType.None().Equals(RotationType.RandomRotation())).IsFalse();
+		await Assert.That(RotationType.None().Equals(null)).IsFalse();
 
-		Assert.True(CompressedIndex.Unsigned8(1).Equals(CompressedIndex.Unsigned8(1)));
-		Assert.False(CompressedIndex.Unsigned8(1).Equals(CompressedIndex.Unsigned8(2)));
-		Assert.False(CompressedIndex.Unsigned8(1).Equals(null));
+		await Assert.That(CompressedIndex.Unsigned8(1).Equals(CompressedIndex.Unsigned8(1))).IsTrue();
+		await Assert.That(CompressedIndex.Unsigned8(1).Equals(CompressedIndex.Unsigned8(2))).IsFalse();
+		await Assert.That(CompressedIndex.Unsigned8(1).Equals(null)).IsFalse();
 
-		Assert.True(Shape<float>.Circle(1.5f).Equals(Shape<float>.Circle(1.5f)));
-		Assert.False(Shape<float>.Circle(1.5f).Equals(Shape<float>.Circle(2.5f)));
-		Assert.False(Shape<float>.Circle(1.5f).Equals(null));
-		Assert.False(Shape<float>.Circle(1).Equals(Shape<float>.Rectangle(1, 1)));
+		await Assert.That(Shape<float>.Circle(1.5f).Equals(Shape<float>.Circle(1.5f))).IsTrue();
+		await Assert.That(Shape<float>.Circle(1.5f).Equals(Shape<float>.Circle(2.5f))).IsFalse();
+		await Assert.That(Shape<float>.Circle(1.5f).Equals(null)).IsFalse();
+		await Assert.That(Shape<float>.Circle(1).Equals(Shape<float>.Rectangle(1, 1))).IsFalse();
 
 		// ReSharper disable once SuspiciousTypeConversion.Global
-		Assert.False(Shape<float>.Circle(1).Equals(Shape<int>.Circle(1)));
+		await Assert.That(Shape<float>.Circle(1).Equals(Shape<int>.Circle(1))).IsFalse();
 
-		Assert.True(Shape<int>.Circle(1).Equals(Shape<int>.Circle(1)));
-		Assert.False(Shape<int>.Circle(1).Equals(Shape<int>.Circle(2)));
-		Assert.False(Shape<int>.Circle(1).Equals(null));
+		await Assert.That(Shape<int>.Circle(1).Equals(Shape<int>.Circle(1))).IsTrue();
+		await Assert.That(Shape<int>.Circle(1).Equals(Shape<int>.Circle(2))).IsFalse();
+		await Assert.That(Shape<int>.Circle(1).Equals(null)).IsFalse();
 
-		Assert.True(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(1)));
-		Assert.False(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(2)));
-		Assert.False(UnionWithReferenceType.Int(1).Equals(null));
-		Assert.False(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.String("1")));
-		Assert.True(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("1")));
-		Assert.False(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("2")));
-		Assert.False(UnionWithReferenceType.String("1").Equals(null));
-		Assert.False(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.Int(1)));
+		await Assert.That(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(1))).IsTrue();
+		await Assert.That(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.Int(2))).IsFalse();
+		await Assert.That(UnionWithReferenceType.Int(1).Equals(null)).IsFalse();
+		await Assert.That(UnionWithReferenceType.Int(1).Equals(UnionWithReferenceType.String("1"))).IsFalse();
+		await Assert.That(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("1"))).IsTrue();
+		await Assert.That(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.String("2"))).IsFalse();
+		await Assert.That(UnionWithReferenceType.String("1").Equals(null)).IsFalse();
+		await Assert.That(UnionWithReferenceType.String("1").Equals(UnionWithReferenceType.Int(1))).IsFalse();
 
-		Assert.True(RootUnion.Empty().Equals(RootUnion.Empty()));
-		Assert.False(RootUnion.Empty().Equals(RootUnion.NestedCase(NestedUnion.Empty())));
-		Assert.False(RootUnion.Empty().Equals(null));
+		await Assert.That(RootUnion.Empty().Equals(RootUnion.Empty())).IsTrue();
+		await Assert.That(RootUnion.Empty().Equals(RootUnion.NestedCase(NestedUnion.Empty()))).IsFalse();
+		await Assert.That(RootUnion.Empty().Equals(null)).IsFalse();
 
-		Assert.True(RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Empty())));
-		Assert.False(RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Node(1))));
-		Assert.False(RootUnion.NestedCase(NestedUnion.Empty()).Equals(null));
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Empty()))).IsTrue();
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Empty()).Equals(RootUnion.NestedCase(NestedUnion.Node(1)))).IsFalse();
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Empty()).Equals(null)).IsFalse();
 
-		Assert.True(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(1))));
-		Assert.False(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(2))));
-		Assert.False(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Empty())));
-		Assert.False(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(null));
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(1)))).IsTrue();
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Node(2)))).IsFalse();
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(RootUnion.NestedCase(NestedUnion.Empty()))).IsFalse();
+		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).Equals(null)).IsFalse();
 	}
 
-	[Fact]
-	public void EqualsShouldNotUseDataFromInactiveCase()
+	[Test]
+	public async Task EqualsShouldNotUseDataFromInactiveCase()
 	{
 		// Create a circle and incorrectly set the rectangle data.
 		// The memory for the rectangle case is separated because generic types cannot have an explicit layout.
 		Shape<int> shape = Shape<int>.Circle(1);
 		shape.RectangleData = new Shape<int>.RectangleCase { Width = 1, Height = 1 };
 
-		Assert.True(shape.IsCircle);
-		Assert.False(shape.IsRectangle);
-		Assert.Equal(1, shape.CircleData);
-		Assert.Equal(Shape<int>.CircleIndex, shape.CaseIndex);
-		Assert.True(shape.Equals(Shape<int>.Circle(1)));
+		await Assert.That(shape.IsCircle).IsTrue();
+		await Assert.That(shape.IsRectangle).IsFalse();
+		await Assert.That(shape.CircleData).IsEqualTo(1);
+		await Assert.That(shape.CaseIndex).IsEqualTo(Shape<int>.CircleIndex);
+		await Assert.That(shape.Equals(Shape<int>.Circle(1))).IsTrue();
 	}
 }

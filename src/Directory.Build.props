@@ -12,4 +12,15 @@
 		<UseArtifactsOutput>true</UseArtifactsOutput>
 	</PropertyGroup>
 
+	<!--
+	Verify participates in the Open Source Maintenance Fee: from v33, a build referencing any Verify package
+	must declare its fee status or fail with SC021. This repo is a non-revenue open source project, which is
+	exempt - but the claim is time-bounded (max 12 months out) and the build starts failing once the month
+	below has passed. Bump it yearly. See https://github.com/VerifyTests/Verify/blob/main/docs/maintenance-fee.md
+	-->
+	<PropertyGroup Label="Verify Open Source Maintenance Fee">
+		<Verify_SponsorshipExemption>OpenSource</Verify_SponsorshipExemption>
+		<Verify_SponsorshipExemptionUntil>2027-09</Verify_SponsorshipExemptionUntil>
+	</PropertyGroup>
+
 </Project>

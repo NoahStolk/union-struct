@@ -397,3 +397,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Verify snapshot testing: pending snapshots, never committed
+*.received.*

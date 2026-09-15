@@ -1,15 +1,14 @@
 using UnionStruct.Tests.Integration.Unions;
-using Xunit;
 
 namespace UnionStruct.Tests.Integration;
 
 public sealed class TypeLoadTests
 {
-	[Fact]
-	public void TestTypeLoad()
+	[Test]
+	public async Task TestTypeLoad()
 	{
 		UnionWithStructContainingReferenceType union = UnionWithStructContainingReferenceType.Int(1);
-		Assert.True(union.IsInt);
-		Assert.False(union.IsString);
+		await Assert.That(union.IsInt).IsTrue();
+		await Assert.That(union.IsString).IsFalse();
 	}
 }

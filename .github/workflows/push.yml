@@ -5,7 +5,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
     - name: Set up dotnet
       uses: actions/setup-dotnet@v4
@@ -18,11 +18,11 @@ jobs:
     - name: Test
       run: |
         cd src/
-        dotnet test UnionStruct.slnx -c Release --no-build
+        dotnet test --solution UnionStruct.slnx -c Release --no-build
         dotnet pack -c Release -o ./artifacts -p:Version=0.0.0-temp
         dotnet restore UnionStruct.Tests.NuGetIntegration/UnionStruct.Tests.NuGetIntegration.csproj --packages ./packages --configfile "nuget.integration-tests.config"
         dotnet build UnionStruct.Tests.NuGetIntegration/UnionStruct.Tests.NuGetIntegration.csproj -c Release --packages ./packages --no-restore
-        dotnet test UnionStruct.Tests.NuGetIntegration/UnionStruct.Tests.NuGetIntegration.csproj -c Release --no-build --no-restore
+        dotnet test --project UnionStruct.Tests.NuGetIntegration/UnionStruct.Tests.NuGetIntegration.csproj -c Release --no-build --no-restore
     - name: Pack
       run: |
         cd src/

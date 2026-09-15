@@ -9,7 +9,7 @@ namespace UnionStruct.Tests;
 /// </summary>
 public sealed class GeneratedAttributesTests
 {
-	[Fact]
+	[Test]
 	public async Task GeneratedAttributes()
 	{
 		const string code =

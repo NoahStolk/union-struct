@@ -2,7 +2,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using UnionStruct.Internals.Analyzers;
-using Xunit;
 
 namespace UnionStruct.Tests.Analyzers;
 
@@ -23,7 +22,7 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 
 	private static readonly ImmutableArray<DiagnosticAnalyzer> _analyzer = ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchAnalyzer());
 
-	[Fact]
+	[Test]
 	public async Task FiresOnMissingCaseIndexSwitchStatement()
 	{
 		string code = UnionDecl + """
@@ -43,11 +42,11 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Diagnostic d = Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
-		Assert.Contains("C", d.GetMessage(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
+		Diagnostic d = await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
+		await Assert.That(d.GetMessage(System.Globalization.CultureInfo.InvariantCulture)).Contains("C");
 	}
 
-	[Fact]
+	[Test]
 	public async Task FiresOnMissingCaseIndexSwitchExpression()
 	{
 		string code = UnionDecl + """
@@ -63,10 +62,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 
-	[Fact]
+	[Test]
 	public async Task FiresOnMissingTagSwitchStatement()
 	{
 		string code = UnionDecl + """
@@ -86,10 +85,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 
-	[Fact]
+	[Test]
 	public async Task FiresOnMissingTagSwitchExpression()
 	{
 		string code = UnionDecl + """
@@ -105,10 +104,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotFireWhenAllCasesPresent()
 	{
 		string code = UnionDecl + """
@@ -125,10 +124,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.DoesNotContain(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotFireWhenDefaultArmPresent()
 	{
 		string code = UnionDecl + """
@@ -144,10 +143,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.DoesNotContain(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotFireWhenSwitchedValueIsUnrelated()
 	{
 		string code =
@@ -163,10 +162,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.DoesNotContain(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotFireOnEmptyUnion()
 	{
 		const string code =
@@ -184,10 +183,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.DoesNotContain(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
 
-	[Fact]
+	[Test]
 	public async Task TreatsOrPatternAsCoveringEachConstant()
 	{
 		string code = UnionDecl + """
@@ -203,10 +202,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.DoesNotContain(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotCreditWhenGuardedArm()
 	{
 		string code = UnionDecl + """
@@ -223,10 +222,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 
-	[Fact]
+	[Test]
 	public async Task WorksForGenericUnionByOriginalDefinition()
 	{
 		const string code =
@@ -251,10 +250,10 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 
-	[Fact]
+	[Test]
 	public async Task FiresOnUnionFromReferencedAssembly()
 	{
 		const string librarySource =
@@ -287,6 +286,6 @@ public sealed class ExhaustiveSwitchAnalyzerTests
 			""";
 
 		ImmutableArray<Diagnostic> diagnostics = await AnalyzerTestHelper.CompileAcrossAssembliesWithAnalyzersAsync(librarySource, consumerSource, _analyzer);
-		Assert.Single(diagnostics, x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId);
+		await Assert.That(diagnostics.Where(x => x.Id == ExhaustiveSwitchAnalyzer.DiagnosticId)).HasSingleItem();
 	}
 }

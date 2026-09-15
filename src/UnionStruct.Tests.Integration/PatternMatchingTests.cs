@@ -1,27 +1,26 @@
 ﻿using System.Numerics;
 using UnionStruct.Tests.Integration.Unions;
-using Xunit;
 
 namespace UnionStruct.Tests.Integration;
 
 public sealed class PatternMatchingTests
 {
-	[Fact]
-	public void MatchWorksCorrectly()
+	[Test]
+	public async Task MatchWorksCorrectly()
 	{
-		Assert.Equal(1, GetPoints(EnumLikeUnion.Bronze()));
-		Assert.Equal(2, GetPoints(EnumLikeUnion.Silver()));
-		Assert.Equal(3, GetPoints(EnumLikeUnion.Gold()));
+		await Assert.That(GetPoints(EnumLikeUnion.Bronze())).IsEqualTo(1);
+		await Assert.That(GetPoints(EnumLikeUnion.Silver())).IsEqualTo(2);
+		await Assert.That(GetPoints(EnumLikeUnion.Gold())).IsEqualTo(3);
 
-		Assert.Equal(Quaternion.Identity, GetRotation(RotationType.None()));
-		Assert.Equal(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f), GetRotation(RotationType.RandomRotation()));
-		Assert.Equal(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f), GetRotation(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX))));
-		Assert.Equal(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f), GetRotation(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f))));
-		Assert.Equal(Quaternion.CreateFromYawPitchRoll(1, 2, 3), GetRotation(RotationType.CustomRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3)))));
+		await Assert.That(GetRotation(RotationType.None())).IsEqualTo(Quaternion.Identity);
+		await Assert.That(GetRotation(RotationType.RandomRotation())).IsEqualTo(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f));
+		await Assert.That(GetRotation(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX)))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f));
+		await Assert.That(GetRotation(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f));
+		await Assert.That(GetRotation(RotationType.CustomRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3))))).IsEqualTo(Quaternion.CreateFromYawPitchRoll(1, 2, 3));
 
-		Assert.Equal(0, GetNode(RootUnion.Empty()));
-		Assert.Equal(0, GetNode(RootUnion.NestedCase(NestedUnion.Empty())));
-		Assert.Equal(1, GetNode(RootUnion.NestedCase(NestedUnion.Node(1))));
+		await Assert.That(GetNode(RootUnion.Empty())).IsEqualTo(0);
+		await Assert.That(GetNode(RootUnion.NestedCase(NestedUnion.Empty()))).IsEqualTo(0);
+		await Assert.That(GetNode(RootUnion.NestedCase(NestedUnion.Node(1)))).IsEqualTo(1);
 
 		static int GetPoints(EnumLikeUnion enumLikeUnion)
 		{
@@ -48,8 +47,8 @@ public sealed class PatternMatchingTests
 		}
 	}
 
-	[Fact]
-	public void SwitchWorksCorrectly()
+	[Test]
+	public async Task SwitchWorksCorrectly()
 	{
 		int bronzeCount = 0;
 		int silverCount = 0;
@@ -58,17 +57,17 @@ public sealed class PatternMatchingTests
 		foreach (EnumLikeUnion enumLikeUnion in new[] { EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Silver(), EnumLikeUnion.Silver(), EnumLikeUnion.Gold() })
 			enumLikeUnion.Switch(() => bronzeCount++, () => silverCount++, () => goldCount++);
 
-		Assert.Equal(3, bronzeCount);
-		Assert.Equal(2, silverCount);
-		Assert.Equal(1, goldCount);
+		await Assert.That(bronzeCount).IsEqualTo(3);
+		await Assert.That(silverCount).IsEqualTo(2);
+		await Assert.That(goldCount).IsEqualTo(1);
 	}
 
-	[Fact]
-	public void CaseIndexSwitchWithoutDefaultWorks()
+	[Test]
+	public async Task CaseIndexSwitchWithoutDefaultWorks()
 	{
-		Assert.Equal("Bronze", PointName(EnumLikeUnion.Bronze()));
-		Assert.Equal("Silver", PointName(EnumLikeUnion.Silver()));
-		Assert.Equal("Gold", PointName(EnumLikeUnion.Gold()));
+		await Assert.That(PointName(EnumLikeUnion.Bronze())).IsEqualTo("Bronze");
+		await Assert.That(PointName(EnumLikeUnion.Silver())).IsEqualTo("Silver");
+		await Assert.That(PointName(EnumLikeUnion.Gold())).IsEqualTo("Gold");
 
 		static string PointName(EnumLikeUnion u) => u.CaseIndex switch
 		{
@@ -78,12 +77,12 @@ public sealed class PatternMatchingTests
 		};
 	}
 
-	[Fact]
-	public void TagSwitchWithoutDiscardArmWorks()
+	[Test]
+	public async Task TagSwitchWithoutDiscardArmWorks()
 	{
-		Assert.Equal(1, Rank(EnumLikeUnion.Bronze()));
-		Assert.Equal(2, Rank(EnumLikeUnion.Silver()));
-		Assert.Equal(3, Rank(EnumLikeUnion.Gold()));
+		await Assert.That(Rank(EnumLikeUnion.Bronze())).IsEqualTo(1);
+		await Assert.That(Rank(EnumLikeUnion.Silver())).IsEqualTo(2);
+		await Assert.That(Rank(EnumLikeUnion.Gold())).IsEqualTo(3);
 
 		static int Rank(EnumLikeUnion u) => u.Tag switch
 		{

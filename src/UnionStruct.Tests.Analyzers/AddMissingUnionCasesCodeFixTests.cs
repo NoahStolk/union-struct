@@ -1,6 +1,5 @@
 using UnionStruct.CodeFixes;
 using UnionStruct.Internals.Analyzers;
-using Xunit;
 
 namespace UnionStruct.Tests.Analyzers;
 
@@ -20,7 +19,7 @@ public sealed class AddMissingUnionCasesCodeFixTests
 
 		""";
 
-	[Fact]
+	[Test]
 	public async Task AddsMissingArmsToSwitchExpressionUsingTagStyle()
 	{
 		string code = UnionDecl +
@@ -40,11 +39,11 @@ public sealed class AddMissingUnionCasesCodeFixTests
 			new AddMissingUnionCasesCodeFix(),
 			ExhaustiveSwitchAnalyzer.DiagnosticId);
 
-		Assert.Contains("U.CaseTag.B => throw new global::System.NotImplementedException()", fixedCode, StringComparison.Ordinal);
-		Assert.Contains("U.CaseTag.C => throw new global::System.NotImplementedException()", fixedCode, StringComparison.Ordinal);
+		await Assert.That(fixedCode).Contains("U.CaseTag.B => throw new global::System.NotImplementedException()");
+		await Assert.That(fixedCode).Contains("U.CaseTag.C => throw new global::System.NotImplementedException()");
 	}
 
-	[Fact]
+	[Test]
 	public async Task AddsMissingArmsToSwitchStatementUsingIndexStyle()
 	{
 		string code = UnionDecl +
@@ -68,7 +67,7 @@ public sealed class AddMissingUnionCasesCodeFixTests
 			new AddMissingUnionCasesCodeFix(),
 			ExhaustiveSwitchAnalyzer.DiagnosticId);
 
-		Assert.Contains("case U.BIndex:", fixedCode, StringComparison.Ordinal);
-		Assert.Contains("case U.CIndex:", fixedCode, StringComparison.Ordinal);
+		await Assert.That(fixedCode).Contains("case U.BIndex:");
+		await Assert.That(fixedCode).Contains("case U.CIndex:");
 	}
 }

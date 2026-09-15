@@ -2,7 +2,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using UnionStruct.Internals.Analyzers;
-using Xunit;
 
 namespace UnionStruct.Tests.Analyzers;
 
@@ -22,7 +21,7 @@ public sealed class ExhaustiveSwitchSuppressorTests
 
 	private static readonly ImmutableArray<DiagnosticAnalyzer> _suppressor = ImmutableArray.Create<DiagnosticAnalyzer>(new ExhaustiveSwitchSuppressor());
 
-	[Fact]
+	[Test]
 	public async Task SuppressesCS8509WhenAllCasesCovered()
 	{
 		string code = UnionDecl + """
@@ -38,11 +37,11 @@ public sealed class ExhaustiveSwitchSuppressorTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _suppressor);
-		Diagnostic cs8509 = Assert.Single(diagnostics, x => x.Id == "CS8509");
-		Assert.True(cs8509.IsSuppressed, "CS8509 should be suppressed by USS0001.");
+		Diagnostic cs8509 = await Assert.That(diagnostics.Where(x => x.Id == "CS8509")).HasSingleItem();
+		await Assert.That(cs8509.IsSuppressed).IsTrue().Because("CS8509 should be suppressed by USS0001.");
 	}
 
-	[Fact]
+	[Test]
 	public async Task SuppressesCS8524ForTagEnumWhenAllCasesCovered()
 	{
 		string code = UnionDecl + """
@@ -59,11 +58,11 @@ public sealed class ExhaustiveSwitchSuppressorTests
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _suppressor);
 		Diagnostic? compilerDiag = diagnostics.FirstOrDefault(x => x.Id is "CS8509" or "CS8524");
-		Assert.NotNull(compilerDiag);
-		Assert.True(compilerDiag.IsSuppressed, $"{compilerDiag.Id} should be suppressed.");
+		await Assert.That(compilerDiag).IsNotNull();
+		await Assert.That(compilerDiag.IsSuppressed).IsTrue().Because($"{compilerDiag.Id} should be suppressed.");
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotSuppressWhenDiscardArmPresent()
 	{
 		string code = UnionDecl + """
@@ -80,10 +79,10 @@ public sealed class ExhaustiveSwitchSuppressorTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _suppressor);
-		Assert.DoesNotContain(diagnostics, x => x.Id == "CS8509");
+		await Assert.That(diagnostics).DoesNotContain(x => x.Id == "CS8509");
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotSuppressWhenCaseMissing()
 	{
 		string code = UnionDecl + """
@@ -98,11 +97,11 @@ public sealed class ExhaustiveSwitchSuppressorTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _suppressor);
-		Diagnostic cs8509 = Assert.Single(diagnostics, x => x.Id == "CS8509");
-		Assert.False(cs8509.IsSuppressed, "CS8509 must remain visible when cases are missing.");
+		Diagnostic cs8509 = await Assert.That(diagnostics.Where(x => x.Id == "CS8509")).HasSingleItem();
+		await Assert.That(cs8509.IsSuppressed).IsFalse().Because("CS8509 must remain visible when cases are missing.");
 	}
 
-	[Fact]
+	[Test]
 	public async Task DoesNotSuppressWhenGuardedArmIsTheOnlyCoverage()
 	{
 		string code = UnionDecl + """
@@ -118,7 +117,7 @@ public sealed class ExhaustiveSwitchSuppressorTests
 			""";
 
 		(_, ImmutableArray<Diagnostic> diagnostics) = await AnalyzerTestHelper.CompileWithAnalyzersAsync(code, _suppressor);
-		Diagnostic cs8509 = Assert.Single(diagnostics, x => x.Id == "CS8509");
-		Assert.False(cs8509.IsSuppressed);
+		Diagnostic cs8509 = await Assert.That(diagnostics.Where(x => x.Id == "CS8509")).HasSingleItem();
+		await Assert.That(cs8509.IsSuppressed).IsFalse();
 	}
 }

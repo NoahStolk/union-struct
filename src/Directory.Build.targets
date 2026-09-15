@@ -1,0 +1,17 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="Current">
+
+	<!--
+	TUnit runs on Microsoft.Testing.Platform, so every test project is an application (OutputType=Exe)
+	rather than a VSTest-hosted library. That flips on two analyzers that Microsoft.NET.Test.Sdk used to
+	keep quiet for test projects, neither of which says anything useful here:
+	  CA1515 - "make public types internal". Public test classes are the convention, and a test host has no
+	           meaningful public API surface to protect.
+	  CA2007 - "call ConfigureAwait". There is no synchronization context under the testing platform, so it
+	           would be noise on every single await. Note AnalyzerTestHelper still does it deliberately.
+	This is a .targets rather than .props because IsTestProject is set by the project files themselves.
+	-->
+	<PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+		<NoWarn>$(NoWarn);CA1515;CA2007</NoWarn>
+	</PropertyGroup>
+
+</Project>

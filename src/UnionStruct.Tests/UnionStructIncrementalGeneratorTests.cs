@@ -4,7 +4,7 @@ namespace UnionStruct.Tests;
 
 public sealed class UnionStructIncrementalGeneratorTests
 {
-	[Fact]
+	[Test]
 	public async Task EmptySingleMulti()
 	{
 		const string code =
@@ -23,7 +23,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task SingleCases()
 	{
 		const string code =
@@ -42,7 +42,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task EmptyUnion()
 	{
 		const string code =
@@ -56,7 +56,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task MultipleEmptyCases()
 	{
 		const string code =
@@ -74,7 +74,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task PublicUnion()
 	{
 		const string code =
@@ -93,7 +93,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithoutAccessibility()
 	{
 		const string code =
@@ -112,7 +112,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task CasesWithSameName()
 	{
 		const string code =
@@ -130,7 +130,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GenericUnion()
 	{
 		const string code =
@@ -149,7 +149,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GenericUnionWithStructTypeConstraint()
 	{
 		const string code =
@@ -168,7 +168,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithGenericData()
 	{
 		const string code =
@@ -186,7 +186,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GenericUnionWithGenericData()
 	{
 		const string code =
@@ -208,7 +208,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task GenericUnionWithNullableOfT()
 	{
 		const string code =
@@ -226,7 +226,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task ComplexUnion()
 	{
 		const string code =
@@ -251,7 +251,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task NestedUnions()
 	{
 		const string code =
@@ -276,7 +276,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithReferenceType()
 	{
 		const string code =
@@ -294,7 +294,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithNullableReferenceType()
 	{
 		const string code =
@@ -312,7 +312,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithStructContainingReferenceType()
 	{
 		const string code =
@@ -330,7 +330,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithStructContainingNullableReferenceType()
 	{
 		const string code =
@@ -348,7 +348,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithExplicitStructContainingReferenceType()
 	{
 		const string code =
@@ -368,7 +368,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithOptionalParameters()
 	{
 		const string code =
@@ -386,7 +386,7 @@ public sealed class UnionStructIncrementalGeneratorTests
 		await TestHelper.Verify(code);
 	}
 
-	[Fact]
+	[Test]
 	public async Task UnionWithDisplayNames()
 	{
 		const string code =
