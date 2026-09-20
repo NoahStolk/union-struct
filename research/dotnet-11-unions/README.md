@@ -26,14 +26,17 @@ re-run — `S08` is written so that RC-1 behaviour changes surface as build erro
 
 - **`FINDINGS.md`** — the write-up: the preview 4 → RC 1 delta, what ships in RC 1, the
   boxing trap, the non-boxing access pattern (with measured allocation numbers), a
-  feature-by-feature comparison against this generator, and the recommendation.
+  feature-by-feature comparison against this generator, whether unions can replace
+  enums, and the recommendation.
 - **`REWRITE-PLAN.md`** — design for a new, isolated .NET 11 library that emits the
   native union pattern. Details that RC 1 changed are marked **[RC 1]**.
-- **`Samples/`** — eight annotated, runnable samples:
+- **`Samples/`** — nine annotated, runnable samples:
   - `S01` boxing union (the trap) · `S02` non-boxing union · `S03` explicit overlap
   - `S04` `ref` payload access · `S05` generic union · `S06` allocation bench
   - `S07` golden emission (the generator's target output)
   - `S08` preview 4 → RC 1 deltas (re-run this at RC 2 / GA)
+  - `S09` enum replacement — closed enums, members on the type, and what an enum
+    still does that a union cannot
 
 ## One-line conclusion
 

@@ -72,6 +72,12 @@ float scalarish = t switch
 Notes / consequences of this model:
 - Multi-field cases are just record structs with several members (`record struct
   Segment(Vector3 Start, Vector3 End)`). Empty cases are `record struct None;`.
+- **[Enum-like unions regress under this model.]** The current generator expresses a
+  closed enum as zero-arity cases with no case types at all
+  (`[UnionCase] public static partial Medal Bronze();` — see
+  `UnionStruct.Tests.Integration/Unions/EnumLikeUnion.cs`). A pure type-union forces one
+  declared empty struct *per member*, which is a real ergonomic regression against what
+  ships today. `S09` measures the cost. See open question 7.
 - **Distinct types required.** Two cases may not be the same type (the compiler reports
   semantic duplication). The old library's "two cases, same payload, different name" is
   expressed by declaring two distinct marker types.
@@ -190,6 +196,14 @@ Decisions:
    *validation* rules ship in the `CS9386` diagnostic wording — but no BCL authoring
    surface appeared. If the authoring half lands before GA it may offer a simpler
    emission target; re-check at RC 2.
+7. **Zero-arity / enum-like cases.** The native feature keys the case set off constructor
+   *parameter types*, so every payload-less member needs its own declared type — worse
+   than the zero-arity `[UnionCase]` methods the current generator already supports.
+   Decide whether the generator **synthesizes** the empty case types for zero-arity cases
+   (keeping today's declaration surface, at the cost of emitting types the user did not
+   write) or whether enum-like unions stay on the existing `Tag`/`CaseIndex` generator.
+   `FINDINGS.md` → "Can they replace enums?" and `Samples/S09_EnumReplacement.cs` have the
+   measurements this decision needs.
 
 ## 8. Phased checklist
 
