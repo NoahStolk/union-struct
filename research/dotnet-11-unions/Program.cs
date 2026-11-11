@@ -1,4 +1,4 @@
-// .NET 11 preview union exploration.
+// .NET 11 union exploration.
 //
 // Each sample is a self-contained file under Samples/ demonstrating one facet of
 // the new `[Union]` / `IUnion` language feature (System.Runtime.CompilerServices),

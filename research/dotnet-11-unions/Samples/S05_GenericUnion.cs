@@ -10,32 +10,19 @@ namespace Samples;
 // generator falls back to sequential layout for generics for the same reason. Here
 // we use sequential typed fields, which is still zero-alloc.
 //
-// *** RC 1 BREAKING CHANGE — read this before matching a generic union. ***
+// Three ways to read a case out of an OPEN generic union (one whose own type still has
+// type parameters at the match site, e.g. inside `Show<T, E>`). All three are zero-alloc:
+//   (a) pattern VARIABLES, as on any other union          <- see Show
+//   (b) type-only pattern + read the PUBLIC FIELD         <- see ShowViaField
+//   (c) call TryGetValue explicitly                        <- see ShowViaTryGet
 //
-// You may no longer declare a pattern VARIABLE in a union match when the union's
-// own type is still open (contains type parameters) at the match site. This:
-//
-//     static string Show<T, E>(Result<T, E> r) => r switch
-//     {
-//         Ok<T> o  => $"Ok({o.Value})",     // error CS8780
-//         Err<E> e => $"Err({e.Error})",    // error CS8780
-//     };
-//
-// now fails with CS8780 ("A variable may not be declared within a 'not' or an 'or'
-// pattern or a union matching involving matching against either the instance, or its
-// underlying value"). It compiled cleanly on preview 4.
-//
-// The trigger is the UNION being open, not the case type: a generic union with
-// entirely non-generic cases is rejected just the same, while a *closed* union
-// (`Result<int, string>`) still binds variables fine — see Run() below.
-//
-// Two workarounds, both zero-alloc and both used here:
-//   (a) type-only pattern + read the payload from a PUBLIC FIELD  <- see ShowViaField
-//   (b) call TryGetValue explicitly                               <- see ShowViaTryGet
-//
-// (a) matters for this library specifically: public payload fields are already the
-// generator's signature design decision, and they turn out to be the escape hatch
-// that keeps generic unions ergonomic under the RC 1 rule.
+// History: (a) compiled on preview 4, was rejected on RC 1 with CS8780 ("A variable may
+// not be declared within a 'not' or an 'or' pattern or a union matching involving matching
+// against either the instance, or its underlying value"), and compiles again on GA
+// (11.0.100). On RC 1, (b) and (c) were the only workarounds. On GA they are a choice:
+// (b) is the only one that does not copy the payload, which is why public payload fields
+// remain the generator's signature design decision (and the route to `ref` mutation, S04);
+// (c) suits code that wants no pattern syntax at all.
 public static class S05_GenericUnion
 {
     public static void Run()
@@ -44,10 +31,11 @@ public static class S05_GenericUnion
 
         Result<int, string> ok = new(new Ok<int>(42));
         Result<int, string> err = new(new Err<string>("boom"));
+        Console.WriteLine($"  via variables    : {Show(ok)} / {Show(err)}  (CS8780 on RC 1)");
         Console.WriteLine($"  via public field : {ShowViaField(ok)} / {ShowViaField(err)}");
         Console.WriteLine($"  via TryGetValue  : {ShowViaTryGet(ok)} / {ShowViaTryGet(err)}");
 
-        // A CLOSED union type may still bind pattern variables — this is legal in RC 1.
+        // CLOSED union: pattern variables have bound fine on every build.
         long before = GC.GetAllocatedBytesForCurrentThread();
         long acc = 0;
         for (int i = 0; i < 1_000_000; i++)
@@ -56,19 +44,47 @@ public static class S05_GenericUnion
             acc += r switch { Ok<int> o => o.Value, Err<string> => -1 };
         }
         long bytes = GC.GetAllocatedBytesForCurrentThread() - before;
-        Console.WriteLine($"  1,000,000 construct+match allocated {bytes:N0} bytes  (acc={acc})\n");
+        Console.WriteLine($"  1,000,000 construct+match allocated {bytes:N0} bytes  (acc={acc})  [closed union]");
+
+        // OPEN union: the same match inside a generic method, binding a variable (a).
+        // Warm the loop method first so tiered-JIT overhead is not counted (cf. S09).
+        _ = OpenConstructAndMatch<int, string>(1000);
+        before = GC.GetAllocatedBytesForCurrentThread();
+        acc = OpenConstructAndMatch<int, string>(1_000_000);
+        bytes = GC.GetAllocatedBytesForCurrentThread() - before;
+        Console.WriteLine($"  1,000,000 construct+match allocated {bytes:N0} bytes  (acc={acc})  [open union, variable arms]\n");
     }
 
-    // Workaround (a): the pattern carries no variable, so CS8780 does not apply; the
-    // payload comes from the public field. Zero copy, zero alloc.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    static long OpenConstructAndMatch<T, E>(int n) where T : struct
+    {
+        long acc = 0;
+        for (int i = 0; i < n; i++)
+        {
+            Result<T, E> r = new(new Ok<T>(default));
+            acc += r switch { Ok<T> o => o.GetHashCode() + i, Err<E> => -1 };
+        }
+
+        return acc;
+    }
+
+    // (a): pattern variables on the open union. CS8780 on RC 1; legal on preview 4 and GA.
+    static string Show<T, E>(Result<T, E> r) => r switch
+    {
+        Ok<T> o  => $"Ok({o.Value})",
+        Err<E> e => $"Err({e.Error})",
+    };
+
+    // (b): the pattern carries no variable and the payload comes from the public field.
+    // Zero copy, zero alloc. (On RC 1 this was the CS8780 workaround.)
     static string ShowViaField<T, E>(Result<T, E> r) => r switch
     {
         Ok<T> => $"Ok({r.OkData.Value})",
         Err<E> => $"Err({r.ErrData.Error})",
     };
 
-    // Workaround (b): skip patterns entirely and call the non-boxing accessor. This
-    // hands back a COPY of the payload (the field route above does not).
+    // (c): skip patterns entirely and call the non-boxing accessor. This hands back a COPY
+    // of the payload (the field route above does not).
     static string ShowViaTryGet<T, E>(Result<T, E> r)
     {
         if (r.TryGetValue(out Ok<T> o))
@@ -87,8 +103,8 @@ public struct Result<T, E> : IUnion
 {
     private readonly bool _isOk;
 
-    // Public, so an open-generic match can read the payload without a pattern
-    // variable (see ShowViaField). This mirrors the generator's public-field design.
+    // Public, so a match can read the payload in place without copying it (see
+    // ShowViaField). This mirrors the generator's public-field design.
     public Ok<T> OkData;
     public Err<E> ErrData;
 

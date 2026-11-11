@@ -2,10 +2,10 @@
 
 Exploration of the C# 15 / .NET 11 union feature with the gamedev requirement in
 focus: **no boxing, no heap allocation**. All numbers below were measured on this
-machine with `11.0.100-rc.1.26425.128` via `GC.GetAllocatedBytesForCurrentThread()`
+machine with the GA SDK `11.0.100` via `GC.GetAllocatedBytesForCurrentThread()`
 (see `Samples/` and run `dotnet run -c Release`).
 
-> Preview note: this is a standalone research project (not part of `UnionStruct.slnx`
+> Note: this is a standalone research project (not part of `UnionStruct.slnx`
 > and not built by CI). It carries its own `global.json` pinned to the exact SDK build
 > with `rollForward: disable`, because the repo root pins the .NET 10 SDK. Run
 > `dotnet run -c Release` from `research/dotnet-11-unions/`.
@@ -16,22 +16,59 @@ machine with `11.0.100-rc.1.26425.128` via `GC.GetAllocatedBytesForCurrentThread
 > ended up describing a build it was not actually compiled with. If the pinned SDK is
 > not installed the build now fails loudly instead.
 
-## Status: RC 1 (`11.0.100-rc.1.26425.128`, 2026-09-08, support phase `go-live`)
+## Status: GA (`11.0.100` / runtime `11.0.0`, 2026-11-10, STS, support phase `active`)
 
-Previously written against `11.0.100-preview.4.26230.115`. Previews 5, 6 and 7 landed
-in between; every claim below was re-verified against RC 1, and where the two differ
-the old claim is called out. GA is expected ~Nov 2026, so treat the RC-1 rules as close
-to final but still re-runnable: `Samples/S08_Rc1Deltas.cs` exists to be re-run at RC 2
-and GA.
+First written against `11.0.100-preview.4.26230.115`, then re-verified against RC 1
+(`11.0.100-rc.1.26425.128`, 2026-09-08), and now against GA. Where an earlier build
+behaved differently, the difference is called out. `Samples/S08_Rc1Deltas.cs` holds the
+deltas as compiled code and is re-runnable on any later SDK.
 
-### What changed since preview 4
+### What changed since RC 1
+
+**One change: RC 1's `CS8780` restriction on open generic unions is gone.** Pattern
+variables bind again when the union's own type still has type parameters at the match
+site — RC 1's delta 1 below is reverted to preview-4 behaviour:
+
+```csharp
+static string Show<T, E>(Result<T, E> r) => r switch
+{
+    Ok<T> o  => $"Ok({o.Value})",     // CS8780 on RC 1; compiles on GA
+    Err<E> e => $"Err({e.Error})",
+};
+```
+
+This is not just a missing diagnostic. Each arm binds the right payload, and the match
+still lowers through `TryGetValue`: **0 B** over 1M construct+match inside a generic
+method (`S05`). Both the generic-case form above and the non-generic-case form (`S08`,
+`Boxed<T>`) are lifted. `S05` and `S08` now compile this code rather than carrying it
+as a comment, so a return of the restriction breaks the build.
+
+Everything else was re-verified on GA and is **unchanged**:
+
+- every allocation number in the table below, to the byte;
+- `CS9385` / `CS9386` / `CS0535` on the same declarations, with identical text;
+- no `CS8655` on `object? Value`, and `HasValue` still not required;
+- the BCL surface is still exactly `IUnion` + `UnionAttribute` (reflected over the
+  `11.0.0` runtime) — no union member provider authoring API shipped;
+- every `S09` diagnostic (`CS8509`, `CS8524`, `CS0161`, `CS0283`/`CS0133`, `CS0181`,
+  `CS0150`, `CS0030`, `CS0019`), with identical text.
+
+Also new at GA: `LangVersion` no longer needs to be `preview` — the feature builds with
+the `net11.0` default.
+
+Probe hygiene for re-runs: build declaration-site probes (`CS9385`/`CS9386`) separately
+from match-site probes (`CS8780`). Roslyn skips method-body diagnostics when there are
+declaration errors, so a combined build hides `CS8780` even on RC 1.
+
+### What changed between preview 4 and RC 1
 
 Four changes, verified by building the *same* sources against both SDKs:
 
-1. **Pattern variables are now banned when the union type is open.** ⚠️ **Breaking.**
-   Binding a variable in a union match fails with `CS8780` if the union's own type still
-   contains type parameters at the match site. This compiled cleanly on preview 4 and
-   is the one change that broke this project's build (`S05`).
+1. **Pattern variables were banned when the union type is open.** ⚠️ **Breaking on
+   RC 1 — reverted at GA** (see above). Binding a variable in a union match failed with
+   `CS8780` if the union's own type still contained type parameters at the match site.
+   This compiled cleanly on preview 4 and was the one change that broke this project's
+   build (`S05`).
 
    ```csharp
    static string Show<T, E>(Result<T, E> r) => r switch
@@ -45,22 +82,21 @@ Four changes, verified by building the *same* sources against both SDKs:
    > a union matching involving matching against either the instance, or its underlying
    > value.`
 
-   The trigger is the **union** being open, not the case type — a generic union whose
-   cases are all non-generic is rejected just the same, while a *closed* union
-   (`Result<int, string>`) still binds variables fine. Two zero-alloc workarounds, both
-   in `S05`:
+   The trigger was the **union** being open, not the case type — a generic union whose
+   cases are all non-generic was rejected just the same, while a *closed* union
+   (`Result<int, string>`) still bound variables fine. RC 1 had two zero-alloc
+   workarounds, both still in `S05` as alternatives:
    - **type-only pattern + read the payload from a public field** — no variable, so the
-     rule does not apply, and no copy either;
+     rule did not apply, and no copy either;
    - **call `TryGetValue` explicitly** — works, but hands back a copy.
 
-   The first one is worth noting for this library specifically: public payload fields
-   are already the generator's signature design decision, and they turn out to be the
-   escape hatch that keeps generic unions ergonomic under the new rule.
+   On GA neither is needed for ergonomics. The public-field route is still the only one
+   that reads the payload without copying it.
 
 2. **The spurious `CS8655` null-arm warning is gone.** On preview 4, a union declaring
    `object? Value` produced *"The switch expression does not handle some null inputs"*
-   on an otherwise-exhaustive union switch, forcing a dead `_ =>` arm. RC 1 no longer
-   reports it, so `Value` may be declared `object?` freely.
+   on an otherwise-exhaustive union switch, forcing a dead `_ =>` arm. RC 1 and GA no
+   longer report it, so `Value` may be declared `object?` freely.
 
 3. **Union declarations are validated at the declaration site.** Preview 4 only
    complained at the *match* site with the generic `CS8121` ("cannot be handled by a
@@ -77,8 +113,8 @@ Four changes, verified by building the *same* sources against both SDKs:
    `Value` **property**, not the interface.
 
 4. **"Union member providers" now exist in shipped diagnostics.** Preview 4's findings
-   listed them as not implemented; the provider *validation* rules are in RC 1 (the
-   `CS9386` wording). No new BCL surface appeared for them, though — see below.
+   listed them as not implemented; the provider *validation* rules are in RC 1 and GA
+   (the `CS9386` wording). No BCL surface appeared for them by GA, though — see below.
 
 ### One earlier claim was simply wrong
 
@@ -87,7 +123,7 @@ which is what removes the spurious `CS8655`". Both halves are false, and were fa
 preview 4 too:
 
 - **`HasValue` is not required for the non-boxing lowering.** A union carrying only
-  `TryGetValue` allocates **0 B** on construct + match, on both SDKs.
+  `TryGetValue` allocates **0 B** on construct + match, on preview 4, RC 1 and GA.
 - **`HasValue` never suppressed `CS8655`.** `Value`'s *declared nullability* did: on
   preview 4, `object? Value` warned even with `HasValue => true`, and `object Value`
   did not warn even with no `HasValue` at all.
@@ -96,15 +132,16 @@ So the non-boxing access pattern the generator must emit is **`TryGetValue` per 
 `HasValue` is optional; the samples keep it only because it is cheap and part of the
 documented pattern.
 
-## What ships in RC 1
+## What ships in .NET 11 (GA)
 
 - `System.Runtime.CompilerServices.UnionAttribute` (parameterless marker,
   `AttributeTargets.Class | Struct`, not multiple, not inherited) and
   `System.Runtime.CompilerServices.IUnion` (single member: `object Value { get; }`).
   Both are in `System.Private.CoreLib` — no manual declaration needed.
-- There is still **no `UnionCaseAttribute`** and no other union type in
+- There is **no `UnionCaseAttribute`** and no other union type in
   `System.Runtime.CompilerServices`; `IUnion` and `UnionAttribute` are the whole BCL
-  surface. (Reflected over the RC 1 runtime directly.)
+  surface. (Reflected over the RC 1 and the `11.0.0` GA runtimes directly; identical.)
+- C# 15 is the default language version for `net11.0`; no `LangVersion preview` needed.
 - A type is a union when it carries `[Union]`, exposes a `Value` property per `CS9386`,
   and declares **one single-parameter public constructor per case type**. The
   **constructor parameter types are the case set** — this is what the compiler
@@ -115,7 +152,7 @@ documented pattern.
 - The compiler still does **not** synthesize the body. Omitting `Value` remains a hard
   error (`CS0535` + `CS9386`). You (or a generator) write the storage, `Value`, and —
   for performance — the non-boxing members. It is a low-level primitive, not codegen.
-  **This is why a generator is still the right tool at GA.**
+  **This is why a generator is still the right tool on GA.**
 
 ## The boxing trap (and the escape hatch)
 
@@ -127,16 +164,17 @@ per case type**, and the compiler preferentially lowers pattern matching through
 `TryGetValue` — strongly typed, never touching `object Value`. Both construction and
 matching are then allocation-free.
 
-| Scenario (1,000,000 iters) | Alloc | vs. preview 4 |
+| Scenario (1,000,000 iters) | Alloc (GA) | vs. preview 4 / RC 1 |
 |---|---|---|
 | Boxing union — construct + match | **24 B/iter** | unchanged |
 | Non-boxing (`TryGetValue` + `HasValue`) — construct + match | **0 B** | unchanged |
 | Non-boxing (`TryGetValue` only, no `HasValue`) — construct + match | **0 B** | unchanged |
-| Non-boxing with `object?` `Value` — construct + match | **0 B** | unchanged (warning gone) |
-| Non-boxing generic `Result<T,E>` — construct + match | **0 B** | unchanged |
+| Non-boxing with `object?` `Value` — construct + match | **0 B** | unchanged (warning gone since RC 1) |
+| Non-boxing generic `Result<T,E>`, closed — construct + match | **0 B** | unchanged |
+| Non-boxing generic `Result<T,E>`, open, variable arms (`S05`) | **0 B** | new — `CS8780` on RC 1 |
 | Explicit `[FieldOffset]` overlap union | **0 B**, `sizeof == 8` | unchanged |
 | Golden emission `Transform` (`S07`) | **0 B**, `sizeof == 20` | unchanged |
-| Enum-like union, payload-less cases (`S09`) | **0 B**, `sizeof == 1` | new in this round |
+| Enum-like union, payload-less cases (`S09`) | **0 B**, `sizeof == 1` | unchanged since RC 1 (added then) |
 
 So: **the .NET 11 union feature can be fully allocation-free** — but only if you
 implement `TryGetValue` and back it with typed fields. That boilerplate is exactly a
@@ -144,7 +182,7 @@ source generator's job.
 
 ## Feature-by-feature: `union-struct` generator vs. raw `[Union]`
 
-| Capability | `union-struct` (yours) | Raw `[Union]` (RC 1) |
+| Capability | `union-struct` (yours) | Raw `[Union]` (GA) |
 |---|---|---|
 | Zero-alloc construction | ✅ public fields | ✅ *if* you hand-write typed-field storage |
 | Zero-alloc matching | ✅ `CaseIndex`/`Tag` int switch | ✅ *if* you hand-write `TryGetValue` |
@@ -152,17 +190,18 @@ source generator's job.
 | Explicit `[FieldOffset]` overlap for unmanaged cases | ✅ automatic | ✅ but you write the offsets by hand |
 | Sequential fallback for generic/managed | ✅ automatic | ✅ manual |
 | `switch`/`is` pattern syntax | ❌ (you match on `Tag`/`CaseIndex`) | ✅ native, first-class |
-| Pattern variables on a **generic** union | ✅ unaffected | ❌ **`CS8780`** — type-only patterns or `TryGetValue` only |
+| Pattern variables on a **generic** union | ✅ unaffected | ✅ on GA (was ❌ `CS8780` on RC 1) |
 | Compile-time exhaustiveness | ⚠️ custom analyzer `US0001` + `CS8509` suppressor | ✅ **native** — the whole analyzer+suppressor becomes unnecessary |
-| Declaration-site validation of the case set | ✅ your own diagnostics | ✅ new in RC 1 (`CS9385`/`CS9386`) |
+| Declaration-site validation of the case set | ✅ your own diagnostics | ✅ since RC 1 (`CS9385`/`CS9386`) |
 | `IEquatable`, `==`, `GetHashCode`, `ToString` | ✅ generated | ❌ your job |
 | `GetTypeString` / UTF-8 member names | ✅ generated | ❌ your job |
-| Ships today, stable | ✅ | ⚠️ RC 1, `go-live` support; C# 15 GA ~Nov 2026 |
+| Ships today, stable | ✅ | ✅ GA `11.0.100` (2026-11-10) — but .NET 11 is **STS**, and consumers need C# 15 |
 
 ## Can they replace enums? (`S09`)
 
 A separate question from "can they replace the generator", and the answer splits. Measured
-on RC 1 in `Samples/S09_EnumReplacement.cs`.
+on RC 1 in `Samples/S09_EnumReplacement.cs` and re-verified on GA — every result and
+diagnostic below is unchanged.
 
 ### The closedness is real — and it is the one thing an enum cannot do
 
@@ -179,12 +218,12 @@ what silently swallows members added later**. Verified: an enum switch with `_ =
 reports nothing at all, before or after a member is added.
 
 A union has no such hole. Adding a 4th case (`Alpha`) to `Color` flagged **every** switch
-expression over it — all four, by name — including the two inside the union's own
-declaration (`Color.Hex` and `Color.ToString`):
+expression over it — all three in `S09`, by name: `Score`, plus the two inside the union's
+own declaration (`Color.Hex` and `Color.ToString`):
 
 ```
 warning CS8509: The switch expression does not handle all possible values of its input
-type (it is not exhaustive). For example, the pattern 'Color.Alpha' is not covered.
+type (it is not exhaustive). For example, the pattern 'Samples.Color.Alpha' is not covered.
 ```
 
 Two caveats on the guarantee:
@@ -213,7 +252,7 @@ construct+match allocates **0 B**.
 ### What you give up
 
 Everything an enum gets from being a named integer. Each was compiled; diagnostics are the
-RC 1 text:
+RC 1 text, identical on GA:
 
 | Enum capability | Union |
 |---|---|
@@ -252,7 +291,7 @@ a design input for `REWRITE-PLAN.md` — see its open question 7.
 
 ## Recommendation
 
-**Unchanged by RC 1: don't replace the generator — evolve it to *emit* the `[Union]`
+**Unchanged at GA: don't replace the generator — evolve it to *emit* the `[Union]`
 pattern.** The language feature and your generator are complementary, not competitors:
 
 - Have the generator emit `[Union] : IUnion` with per-case constructors, typed-field
@@ -262,39 +301,38 @@ pattern.** The language feature and your generator are complementary, not compet
   suppressor** entirely, a real maintenance win.
 - Keep the parts the language does *not* give you: **public fields for `ref`
   mutation** (your signature feature — still required, `ref`-returning members are
-  illegal on structs, and now *doubly* useful as the `CS8780` workaround for generic
-  unions), automatic overlap decisions, and the generated
-  `IEquatable`/`==`/`GetHashCode`/`ToString`/type-name helpers.
+  illegal on structs, and the only zero-copy way to read a payload), automatic overlap
+  decisions, and the generated `IEquatable`/`==`/`GetHashCode`/`ToString`/type-name
+  helpers.
 - Keep emitting your `Tag`/`CaseIndex` int-switch too: it's the fastest match path
-  (a jump table vs. a sequence of `TryGetValue` branches) for hot loops, it's a
-  clean fallback for anyone not yet on C# 15, **and it is the only ergonomic match
-  path left for generic unions under `CS8780`**.
+  (a jump table vs. a sequence of `TryGetValue` branches) for hot loops, and a clean
+  fallback for anyone not yet on C# 15.
 
 Net: the generator's declaration surface (`[UnionCase] static partial` methods) stays;
 the emitted code gains language-union interop. Users opt into native pattern matching
 where they want ergonomics, and drop to `ref`/`Tag` where they want raw control —
 both allocation-free.
 
-RC 1 moves the balance slightly **towards** keeping the generator: generic unions lost
-pattern-variable ergonomics, which is precisely the gap `Tag`/`CaseIndex` + public
-fields fills.
+RC 1 briefly moved the balance towards keeping the generator, because generic unions
+lost pattern-variable ergonomics. GA restored them, so that argument is gone. The
+recommendation stands on the other reasons above: `ref` access, automatic overlap,
+generated equality and formatting, and the `Tag` fast path.
 
 ### Open questions / things to watch before committing
 
-- **`CS8780` on generic unions.** Is the open-union restriction intended for GA, or a
-  conservative RC-era guard? It is the one change that would reshape the emission plan
-  if relaxed. Worth tracking upstream before finalizing.
+- ~~**`CS8780` on generic unions.**~~ Resolved: it was an RC-era restriction, lifted at
+  GA. Generic unions need no special match path.
 - **`ref` ergonomics.** `TryGetValue(out T)` returns a copy. Confirm your users are
   fine taking `ref u.PublicField` at the call site (works today) vs. wanting a
   `ref`-returning accessor (impossible on structs).
-- **Union member providers.** Validation wording is in RC 1 diagnostics but no BCL
-  surface appeared. If the authoring half lands before GA it may offer a simpler
-  emission target — re-check at RC 2.
+- ~~**Union member providers.**~~ Resolved for .NET 11: validation wording is in the
+  diagnostics, but GA ships no BCL authoring surface (`IUnion` and `UnionAttribute` only).
+  Re-check in a later .NET release.
 - ~~**`Value` nullability.**~~ Resolved: no longer matters, `CS8655` is gone (delta 2).
 - ~~**`HasValue` required?**~~ Resolved: it is not, and never was (see above).
-- **Remaining preview churn.** Re-run `Samples/S08_Rc1Deltas.cs` at RC 2 and GA; it is
-  written so that a regression breaks the build and a relaxation shows up as
-  "this compiles now".
+- ~~**Remaining preview churn.**~~ Resolved: GA shipped, and `Samples/S08_Rc1Deltas.cs`
+  on GA showed no regressions and one relaxation (`CS8780`). Keep re-running it on new
+  SDKs; a regression breaks the build and a relaxation shows up as "this compiles now".
 
 ## Sources
 

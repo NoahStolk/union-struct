@@ -4,9 +4,10 @@ Standalone research spike (not part of `UnionStruct.slnx`, not built by CI) eval
 the native `[Union]` / `IUnion` feature in .NET 11 against this library's
 allocation-free goals.
 
-Currently validated against **SDK `11.0.100-rc.1.26425.128`** (RC 1, 2026-09-08,
-support phase `go-live`). Originally written against preview 4; see the
-"What changed since preview 4" section of `FINDINGS.md` for the delta.
+Currently validated against the GA SDK **`11.0.100`** (runtime `11.0.0`, 2026-11-10,
+STS). Originally written against preview 4 and re-verified on RC 1; see the "What
+changed since RC 1" and "What changed between preview 4 and RC 1" sections of
+`FINDINGS.md` for the deltas.
 
 ## Run it
 
@@ -20,21 +21,21 @@ dotnet run -c Release
 ```
 
 To move to a newer build, install it and bump the `version` in `global.json`, then
-re-run — `S08` is written so that RC-1 behaviour changes surface as build errors.
+re-run — `S08` is written so that behaviour changes surface as build errors.
 
 ## Contents
 
-- **`FINDINGS.md`** — the write-up: the preview 4 → RC 1 delta, what ships in RC 1, the
+- **`FINDINGS.md`** — the write-up: the preview 4 → RC 1 → GA deltas, what ships in GA, the
   boxing trap, the non-boxing access pattern (with measured allocation numbers), a
   feature-by-feature comparison against this generator, whether unions can replace
   enums, and the recommendation.
 - **`REWRITE-PLAN.md`** — design for a new, isolated .NET 11 library that emits the
-  native union pattern. Details that RC 1 changed are marked **[RC 1]**.
+  native union pattern. Details that RC 1 and GA changed are marked **[RC 1]** / **[GA]**.
 - **`Samples/`** — nine annotated, runnable samples:
   - `S01` boxing union (the trap) · `S02` non-boxing union · `S03` explicit overlap
   - `S04` `ref` payload access · `S05` generic union · `S06` allocation bench
   - `S07` golden emission (the generator's target output)
-  - `S08` preview 4 → RC 1 deltas (re-run this at RC 2 / GA)
+  - `S08` preview 4 → RC 1 → GA deltas (re-run this on new SDKs)
   - `S09` enum replacement — closed enums, members on the type, and what an enum
     still does that a union cannot
 
@@ -42,6 +43,6 @@ re-run — `S08` is written so that RC-1 behaviour changes surface as build erro
 
 Native unions can be **fully allocation-free** only via the opt-in non-boxing access
 pattern (`TryGetValue` per case) over typed-field storage — exactly the boilerplate a
-source generator should emit. RC 1 does not change that, and its new `CS8780`
-restriction on generic unions makes this library's public fields and `CaseIndex`
-switch *more* valuable, not less. See `REWRITE-PLAN.md`.
+source generator should emit. GA does not change that; this library's public fields
+(zero-copy, `ref` access) and `CaseIndex` switch (fastest match) remain the reasons to
+keep generating. See `REWRITE-PLAN.md`.

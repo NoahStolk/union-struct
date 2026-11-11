@@ -1,12 +1,14 @@
 # Plan: a new .NET 11-native union library (isolated from `UnionStruct`)
 
-Status: draft design. Depends on C# 15 / .NET 11 (GA ~Nov 2026). Prerequisite reading:
-`FINDINGS.md`.
+Status: draft design. Depends on C# 15 / .NET 11 (GA `11.0.100`, 2026-11-10, STS).
+Prerequisite reading: `FINDINGS.md`.
 
-Re-validated against **SDK `11.0.100-rc.1.26425.128`** (RC 1, 2026-09-08). The plan's
-shape survives RC 1 intact; three details changed and are marked **[RC 1]** below. The
-golden emission in `Samples/S07_GoldenEmission.cs` still builds, matches exhaustively,
-and allocates 0 B.
+Re-validated against the GA SDK **`11.0.100`**. The plan's shape survived RC 1 intact;
+the RC 1 details that still hold on GA are marked **[RC 1]** below. GA reverted one RC 1
+change — the `CS8780` restriction on generic unions — and the places that affects, plus
+other items GA settled, are marked **[GA]**. The golden
+emission in `Samples/S07_GoldenEmission.cs` still builds, matches exhaustively, and
+allocates 0 B.
 
 ## 0. Framing
 
@@ -83,12 +85,11 @@ Notes / consequences of this model:
   expressed by declaring two distinct marker types.
 - **Managed case types can't overlap.** `[FieldOffset]` overlap still applies only when
   every case type is unmanaged and the union is non-generic; otherwise sequential fields.
-- **[RC 1] Generic unions cannot bind pattern variables.** `CS8780` now rejects a
-  variable designation in a union match whenever the union type is still open at the
-  match site (the union being generic is the trigger — its case types need not be).
-  So for a generic union the ergonomic paths are a type-only pattern plus a **public
-  payload field** read, or the `CaseIndex` int-switch — both of which this design
-  already emits. Non-generic unions are unaffected. See `FINDINGS.md`, delta 1.
+- **[GA] Generic unions bind pattern variables like any other union.** RC 1 rejected a
+  variable designation in a union match with `CS8780` whenever the union type was still
+  open at the match site. GA lifted that, and the open-union match still allocates 0 B
+  (`S05`). Generic unions therefore need no special emission or match path. See
+  `FINDINGS.md`, "What changed since RC 1".
 
 > Input-surface sub-decision (default, revisit in the spike): drive case discovery from
 > repeated `[UnionCase<T>]` attributes on an otherwise empty `partial struct`. Alternative
@@ -116,7 +117,7 @@ implementing `IUnion`, with:
   gone. Emit non-nullable `object` anyway — it is tidier and costs nothing.
 - **Non-boxing access pattern**: one `bool TryGetValue(out <CaseType> value)` per case.
   **[RC 1]** `HasValue` is **not** required — `TryGetValue` alone already drives the
-  non-boxing lowering (0 B measured on RC 1 and on preview 4), and `HasValue` has no
+  non-boxing lowering (0 B measured on preview 4, RC 1 and GA), and `HasValue` has no
   effect on nullability either. The earlier claim that `HasValue => true` was load-bearing
   was wrong; see `FINDINGS.md`. Emitting it is optional and harmless.
 - **Equality / formatting** (language does not supply these): `IEquatable<Transform>`,
@@ -132,7 +133,7 @@ implementing `IUnion`, with:
 | `CS8509`/`CS8524` `DiagnosticSuppressor`               | **Drop** — no longer needed.                                                                                                                  |
 | `UnionStruct.CodeFixes` project                        | **Drop** entirely.                                                                                                                            |
 | `UnionStruct.Tests.Analyzers`                          | **Drop** entirely.                                                                                                                            |
-| `CaseTag` / `CaseIndex` int-switch                     | **Keep** — fast path, pre-C#-15 fallback, **and [RC 1] the only ergonomic match path for generic unions** (`CS8780`).                         |
+| `CaseTag` / `CaseIndex` int-switch                     | **Keep** — fast path and pre-C#-15 fallback.                                                                                                  |
 | `[FieldOffset]` overlap + `AllowMemoryOverlap` logic   | **Keep / port** — still the memory win.                                                                                                       |
 | Equality / ToString / UTF-8 helpers                    | **Keep** — language doesn't provide them.                                                                                                     |
 | `___factoryReturnValue` / `TMatchOut` naming hacks     | Mostly **gone** with delegate methods; keep the factory-local trick only where constructors need it.                                          |
@@ -183,19 +184,19 @@ Decisions:
 3. **Do we still want `Switch`/`Match` at all?** They're convenient but allocate delegates.
    Consider dropping entirely, or offering only where a caller explicitly wants callback
    style.
-4. **[RC 1] Is `CS8780` on generic unions intended for GA?** This is the one open
-   question that would reshape the plan if it changes. If the restriction is relaxed,
-   generic unions regain pattern-variable ergonomics and the `CaseIndex` fast path
-   becomes purely an optimization again rather than a necessity. Track upstream before
-   committing to the emission shape.
-5. **Preview churn.** The exact `TryGetValue` overload-resolution rules (conversions,
-   inheritance) are still marked open in the spec. `Samples/S08_Rc1Deltas.cs` is written
-   to be re-run at RC 2 and GA: regressions break the build, relaxations show up as
-   "this compiles now".
-6. **Union member providers.** **[RC 1]** No longer entirely absent — the provider
-   *validation* rules ship in the `CS9386` diagnostic wording — but no BCL authoring
-   surface appeared. If the authoring half lands before GA it may offer a simpler
-   emission target; re-check at RC 2.
+4. ~~**[RC 1] Is `CS8780` on generic unions intended for GA?**~~ **[GA] Resolved: no.**
+   GA lifted it, so generic unions regain pattern-variable ergonomics and the
+   `CaseIndex` fast path is purely an optimization rather than a necessity. The emission
+   shape needs no generic-specific path.
+5. **SDK churn.** ~~Preview churn~~ — GA shipped, and `Samples/S08_Rc1Deltas.cs` on GA
+   showed no regressions and one relaxation (`CS8780`). Not re-checked here: whether the
+   spec still marks the exact `TryGetValue` overload-resolution rules (conversions,
+   inheritance) as open. Keep re-running `S08` on new SDKs: regressions break the build,
+   relaxations show up as "this compiles now".
+6. ~~**Union member providers.**~~ **[GA] Resolved for .NET 11.** The provider
+   *validation* rules ship in the `CS9386` diagnostic wording, but GA ships no BCL
+   authoring surface (`IUnion` and `UnionAttribute` only, reflected over the `11.0.0`
+   runtime). Not an emission target for this release; re-check in a later one.
 7. **Zero-arity / enum-like cases.** The native feature keys the case set off constructor
    *parameter types*, so every payload-less member needs its own declared type — worse
    than the zero-arity `[UnionCase]` methods the current generator already supports.
@@ -217,8 +218,8 @@ Decisions:
 3. Emit: case types → storage/layout → constructors → `Value` + `TryGetValue` per case.
 4. Emit: equality + `ToString` + optional UTF-8/type-name helpers.
 5. Snapshot tests + allocation regression tests.
-6. Package, sample, docs; validate against the latest .NET 11 build (RC 1 validated;
-   re-check at RC 2 and GA).
+6. Package, sample, docs; validate against the latest .NET 11 build (GA `11.0.100`
+   validated).
 
 **Immediate next step (agreed): prototype the generator's target emission for one sample
 union by hand**, so we have the golden output before touching generator code.

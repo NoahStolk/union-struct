@@ -18,7 +18,8 @@ namespace Samples;
 //
 // Same doctrine as S08: everything here either compiles (so a regression breaks the
 // build) or is commented out with the exact diagnostic RC 1 raises (so a relaxation
-// shows up as "this compiles now"). Re-run at RC 2 / GA.
+// shows up as "this compiles now"). Re-verified on GA (11.0.100): every diagnostic and
+// result is unchanged.
 public static class S09_EnumReplacement
 {
     const int N = 1_000_000;
@@ -95,8 +96,8 @@ public static class S09_EnumReplacement
     // ---- (1) EXHAUSTIVENESS: the whole point -------------------------------------
     //
     // Covers every case, NO default arm, compiles clean. Type-only patterns; payload-less
-    // cases have nothing to bind anyway, so CS8780 (S05) never comes up for enum-like
-    // unions even when they are generic.
+    // cases have nothing to bind anyway, so RC 1's CS8780 (S05; lifted on GA) never came
+    // up for enum-like unions even when they were generic.
     static int Score(Color c) => c switch
     {
         Color.Red => 1,
@@ -152,8 +153,8 @@ public static class S09_EnumReplacement
 
     // Verified by adding a 4th case to `Color`: EVERY match site is flagged by name,
     // including `Color.Hex` and `Color.ToString` inside the declaration itself —
-    //   warning CS8509: ... For example, the pattern 'Color.Alpha' is not covered.
-    // at each of them. That is the "adding a case breaks the build" property.
+    //   warning CS8509: ... For example, the pattern 'Samples.Color.Alpha' is not covered.
+    // at each of the three (Score, Hex, ToString). That is the "adding a case breaks the build" property.
 
     // ---- (3) EXHAUSTIVENESS IS A SWITCH-*EXPRESSION* FEATURE ----------------------
     //
@@ -175,7 +176,7 @@ public static class S09_EnumReplacement
 
     // ---- (4) WHAT AN ENUM DOES THAT A UNION CANNOT --------------------------------
     //
-    // Every one of these was compiled; the diagnostic is the RC 1 text.
+    // Every one of these was compiled; the diagnostic is the RC 1 text, identical on GA.
     //
     //   const Color C = Color.RedValue;
     //     error CS0283: The type 'Color' cannot be declared const
