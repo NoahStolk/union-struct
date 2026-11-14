@@ -13,10 +13,9 @@ namespace Samples;
 // no box. Combined with storing the payload in typed fields (not `object`),
 // construction AND matching are both zero-allocation.
 //
-// CORRECTION vs. the preview 4 write-up: `HasValue` is NOT required for the
-// non-boxing lowering. A union carrying only TryGetValue allocates 0 B just the
-// same — measured on RC 1 and on preview 4 (see S08, delta 1). It is kept below
-// only because it is a cheap, harmless part of the documented pattern.
+// `HasValue` is optional: a union carrying only TryGetValue allocates 0 B just the
+// same (S08, delta 1). It is kept below only to show the full documented pattern; the
+// generator does not emit it.
 //
 // Measured: 0 B on construction, 0 B on the language `switch`, exhaustive with NO
 // default arm and no null warning.

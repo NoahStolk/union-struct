@@ -1,225 +1,227 @@
-# Plan: a new .NET 11-native union library (isolated from `UnionStruct`)
+# Plan: rewrite UnionStruct on top of .NET 11 native unions
 
-Status: draft design. Depends on C# 15 / .NET 11 (GA `11.0.100`, 2026-11-10, STS).
-Prerequisite reading: `FINDINGS.md`.
-
-Re-validated against the GA SDK **`11.0.100`**. The plan's shape survived RC 1 intact;
-the RC 1 details that still hold on GA are marked **[RC 1]** below. GA reverted one RC 1
-change — the `CS8780` restriction on generic unions — and the places that affects, plus
-other items GA settled, are marked **[GA]**. The golden
-emission in `Samples/S07_GoldenEmission.cs` still builds, matches exhaustively, and
-allocates 0 B.
+Status: design, ready to implement. Prerequisite reading: `FINDINGS.md`.
+Validated against the GA SDK `11.0.100`.
 
 ## 0. Framing
 
-Build a **second, standalone library** that emits types implementing the native
-`[Union]` / `IUnion` feature with the non-boxing access pattern. It shares neither code
-nor package identity with the existing `UnionStruct` generator; the old library stays
-as-is for anyone on ≤ C# 14. The new one targets the language feature directly, which
-lets us **delete a large fraction of what the current generator does** (pattern-match
-plumbing, exhaustiveness analyzer, code fixes) because the compiler now provides it.
+The next version of **`NoahStolk.UnionStruct`** is a rewrite **in place**:
+- same repository, package ID and project names;
+- it targets C# 15 / .NET 11 only;
+- it emits the native `[Union]` pattern instead of a custom matching API.
 
-Working name (bikeshed later): **`NoahStolk.Unions`** (namespace `NoahStolk.Unions`,
-attribute `[Union]`/`[UnionCase]` in that namespace to avoid clashing with the BCL
-`System.Runtime.CompilerServices.UnionAttribute`).
+This is a clean break, not a parallel library:
 
-## 1. Goals & non-goals
+- The package has no known external consumers, and it is a `DevelopmentDependency`, so it
+  never flows transitively.
+- **`0.4.0` stays on NuGet** (and tagged in git) for code that is not on C# 15. It gets no
+  further development.
+- Pre-1.0 semver allows the break. The next version is **`0.5.0`**.
+
+## 1. Goals and non-goals
 
 Goals:
-- Zero-allocation construction **and** matching for value-type cases (verified pattern:
-  typed-field storage + `TryGetValue` per case).
-- Native `switch`/`is` pattern matching and native exhaustiveness — no custom analyzer.
-- Preserve the library's differentiators: `ref` access to payloads (public fields) and
-  explicit `[FieldOffset]` overlap for unmanaged cases.
-- Keep generating what the language does *not*: `IEquatable<T>`, `==`/`!=`,
-  `GetHashCode`, `ToString`, and the UTF-8 / type-name helpers if still wanted.
+- Zero allocation on construction and matching. This is pinned by a regression test.
+- Native `switch`/`is` and native exhaustiveness, with no custom analyzer.
+- Keep the library's differentiators:
+  - public payload fields, for `ref` access;
+  - automatic `[FieldOffset]` overlap for unmanaged, non-generic unions.
+- Keep what the language does not provide:
+  - equality and `ToString`;
+  - the type-name / UTF-8 helpers and `DisplayName`.
 
 Non-goals:
-- Backward compatibility with the old generator's API. Clean break.
-- Supporting pre-C# 15 compilers. That's what the old library is for.
+- Source compatibility with 0.4. Every union declaration and every match site changes.
+- C# ≤ 14 support.
+- Synthesizing case types. Users declare them.
 
-## 2. Authoring model — pure type-union (chosen)
+## 2. Authoring model: pure type-union, declared with partial constructors
 
-Cases are **types the user declares** (their own top-level `record struct`s). The
-generator does **not** synthesize case types; it only fills in the union's storage,
-constructors, non-boxing access pattern, and equality. This matches the native feature
-one-to-one (a case *is* a type) and keeps the emission small.
-
-The union declares its case set with a repeated generic marker; the generator emits the
-constructors (so the compiler sees the case set), storage, and access members:
+Cases are **types the user declares**. The user writes the BCL `[Union]` and one **C# 14
+partial constructor** per case. The generator writes everything else.
 
 ```csharp
-public readonly record struct Angle(float Value);
-public readonly record struct Position(Vector3 Value);
-public readonly record struct Rotation(Quaternion Value);
+using System.Numerics;
+using System.Runtime.CompilerServices;   // BCL [Union]
+using UnionStruct;                       // [UnionCase], generated into the compilation
 
-[Union]                        // NoahStolk.Unions.UnionAttribute
-[UnionCase<Angle>]             // repeated, AllowMultiple generic marker
-[UnionCase<Position>]
-[UnionCase<Rotation>]
-public partial struct Transform;
-```
+public readonly record struct Circle<T>(T Radius);
+public readonly record struct Rectangle<T>(T Width, T Height);
 
-Consumers write native, exhaustive, zero-alloc matches directly on the case types:
-
-```csharp
-float scalarish = t switch
+[Union]
+public partial struct Shape<T> where T : INumber<T>
 {
-    Angle a    => a.Value,
-    Position p => p.Value.Length(),
-    Rotation r => r.Value.W,
-};   // no default arm; no US0001; no suppressor
+    public partial Shape(Circle<T> value);
+
+    [UnionCase(DisplayName = "Rect")]
+    public partial Shape(Rectangle<T> value);
+}
+
+// consumer
+T Area<T>(Shape<T> s) where T : INumber<T> => s switch
+{
+    Circle<T> c    => c.Radius * c.Radius,
+    Rectangle<T> r => r.Width * r.Height,
+};   // exhaustive, no default arm, 0 B
 ```
 
-Notes / consequences of this model:
-- Multi-field cases are just record structs with several members (`record struct
-  Segment(Vector3 Start, Vector3 End)`). Empty cases are `record struct None;`.
-- **[Enum-like unions regress under this model.]** The current generator expresses a
-  closed enum as zero-arity cases with no case types at all
-  (`[UnionCase] public static partial Medal Bronze();` — see
-  `UnionStruct.Tests.Integration/Unions/EnumLikeUnion.cs`). A pure type-union forces one
-  declared empty struct *per member*, which is a real ergonomic regression against what
-  ships today. `S09` measures the cost. See open question 7.
-- **Distinct types required.** Two cases may not be the same type (the compiler reports
-  semantic duplication). The old library's "two cases, same payload, different name" is
-  expressed by declaring two distinct marker types.
-- **Managed case types can't overlap.** `[FieldOffset]` overlap still applies only when
-  every case type is unmanaged and the union is non-generic; otherwise sequential fields.
-- **[GA] Generic unions bind pattern variables like any other union.** RC 1 rejected a
-  variable designation in a union match with `CS8780` whenever the union type was still
-  open at the match site. GA lifted that, and the open-union match still allocates 0 B
-  (`S05`). Generic unions therefore need no special emission or match path. See
-  `FINDINGS.md`, "What changed since RC 1".
+Why this surface (all verified in `S10`):
+- **Generic attribute markers can't express generic unions.** For example,
+  `[UnionCase<Circle<T>>]` fails with `CS8968`: an attribute type argument cannot use type
+  parameters.
+- **Partial constructors are the native case set.** Only constructors register cases
+  (`CS9385`). A partial constructor declaration is therefore the union declaration itself,
+  and it works for generic unions.
+- **The library ships no `[Union]` of its own.** A `UnionStruct.UnionAttribute` would be
+  ambiguous with the BCL type (`CS0104`) in every file that imports
+  `System.Runtime.CompilerServices`.
 
-> Input-surface sub-decision (default, revisit in the spike): drive case discovery from
-> repeated `[UnionCase<T>]` attributes on an otherwise empty `partial struct`. Alternative
-> considered: user hand-writes `public partial Transform(Angle a);` constructors and the
-> generator implements them — more explicit, more boilerplate. The attribute marker is
-> the leaner default.
+Consequences:
+- **Multi-field cases** are record structs with several members.
+- **Payload-less cases** are empty structs. Enum-like unions nest them:
+  `public readonly struct Bronze;` plus `public partial Medal(Bronze _);`. That is two
+  lines per member; the generator does the rest.
+- **Case types must be distinct.** The 0.4 pattern of two named cases sharing one payload
+  type (`Int(int)`, `Count(int)`) now needs a distinct type for each case.
+- **Case names** come from the case type's name, without type arguments, unless
+  `[UnionCase(DisplayName = …)]` overrides them. A name collision (`Foo.Circle` and
+  `Bar.Circle`) is a generator diagnostic that the user resolves with `DisplayName`.
 
-## 3. Generated union shape
+## 3. Generated shape
 
-For the `Transform` example, emit a `[System.Runtime.CompilerServices.Union]` struct
-implementing `IUnion`, with:
+The golden outputs are hand-written in `Samples/`:
+- **`S07`** covers the overlap branch (all cases unmanaged, union non-generic).
+- **`S10`** covers the sequential branch (generic union and/or managed case).
 
-- **Storage**: `[StructLayout(Explicit)]` + `[FieldOffset]` overlap **iff** all case
-  payloads are unmanaged and the union is non-generic (reuse the existing
-  `AllowMemoryOverlap` decision logic — it's the one piece of the old generator worth
-  porting closely). Otherwise sequential typed fields.
-- A `byte`/`int` tag field (keep `CaseIndex` + `CaseTag` — cheap, and the fastest
-  hot-path match is still a jump-table `switch (u.CaseIndex)`).
-- **Public payload fields** per case (enables `ref u.PositionData` mutation).
-- One **public constructor per case type** — this is what registers the case set for the
-  compiler. Optionally an `implicit operator` per case type for ergonomic construction.
-- **`object Value`** — implement the IUnion member (lazy-boxes only if explicitly
-  read). **[RC 1]** The nullable annotation is now a free choice: the `CS8655` null-arm
-  warning that `object?` used to trigger on an otherwise-exhaustive union switch is
-  gone. Emit non-nullable `object` anyway — it is tidier and costs nothing.
-- **Non-boxing access pattern**: one `bool TryGetValue(out <CaseType> value)` per case.
-  **[RC 1]** `HasValue` is **not** required — `TryGetValue` alone already drives the
-  non-boxing lowering (0 B measured on preview 4, RC 1 and GA), and `HasValue` has no
-  effect on nullability either. The earlier claim that `HasValue => true` was load-bearing
-  was wrong; see `FINDINGS.md`. Emitting it is optional and harmless.
-- **Equality / formatting** (language does not supply these): `IEquatable<Transform>`,
-  `==`/`!=`, `GetHashCode`, `ToString`, and — if still wanted — `GetTypeString` /
-  `GetTypeAsUtf8Span` / `NullTerminatedMemberNames`.
+For each union, the generator emits:
 
-## 4. What gets deleted vs. the current generator (the simplification win)
+- **Layout:** `[StructLayout(Explicit)]` with every payload at the same `[FieldOffset]`
+  **iff** all case types are unmanaged and the struct has no type parameters. Otherwise it
+  uses sequential layout. This is the existing `AllowMemoryOverlap` rule, carried over.
+- **`: IUnion, IEquatable<TSelf>`**. Do not repeat `[Union]`: the user's attribute is the
+  generator's trigger, and `UnionAttribute` is not `AllowMultiple`.
+- **`CaseCount` and `<Case>Index` constants, plus `public readonly int CaseIndex`.** These
+  feed the type-name helpers and index-based UI, and give the fastest match for large
+  payloads in hot loops (`S11`). There is no `CaseTag` enum.
+- **Public payload fields** named `<Case>Data`, one per case, for `ref` access.
+- **The implementing half of each partial constructor**: `this = default`, then set the
+  index and the field.
+- **An implicit conversion from each case type.** This is a convenience only; it does not
+  register a case.
+- **`readonly object Value`**, typed `object` (non-nullable).
+- **One `readonly bool TryGetValue(out TCase value)` per case.** No `HasValue`.
+- **Equality:** `Equals(TSelf)`, `Equals(object?)`, `GetHashCode`, `==`, `!=`. The
+  per-case comparison uses `EqualityComparer<TCase>.Default`, which is safe for generics
+  and does not box.
+- **`ToString`** (format: see open question 1).
+- **Type-name helpers:**
+  - `GetTypeString(int)` and `GetTypeString()`;
+  - `GetTypeAsUtf8Span(int)` and `GetTypeAsUtf8Span()`;
+  - `NullTerminatedMemberNames`.
+- **Conventions from 0.4 that stay:** `global::`-qualified names everywhere,
+  `#nullable enable`, `<auto-generated>`, and the hint name `{Struct}.g.cs` with `<>`
+  replaced by `()`.
 
-| Current concern                                        | Fate in the rewrite                                                                                                                           |
-|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `Switch(Action…)` / `Match<T>(Func…)` delegate methods | **Drop** (native `switch` replaces them; they also allocate delegates). Optionally keep an allocation-free `ref`-friendly overload if wanted. |
-| `US0001` "missing union cases" analyzer                | **Drop** — native exhaustiveness.                                                                                                             |
-| `CS8509`/`CS8524` `DiagnosticSuppressor`               | **Drop** — no longer needed.                                                                                                                  |
-| `UnionStruct.CodeFixes` project                        | **Drop** entirely.                                                                                                                            |
-| `UnionStruct.Tests.Analyzers`                          | **Drop** entirely.                                                                                                                            |
-| `CaseTag` / `CaseIndex` int-switch                     | **Keep** — fast path and pre-C#-15 fallback.                                                                                                  |
-| `[FieldOffset]` overlap + `AllowMemoryOverlap` logic   | **Keep / port** — still the memory win.                                                                                                       |
-| Equality / ToString / UTF-8 helpers                    | **Keep** — language doesn't provide them.                                                                                                     |
-| `___factoryReturnValue` / `TMatchOut` naming hacks     | Mostly **gone** with delegate methods; keep the factory-local trick only where constructors need it.                                          |
+Generator diagnostics (new):
+- the `[Union]` struct is not `partial`;
+- a partial constructor has anything other than exactly one parameter;
+- two cases have the same type;
+- two cases resolve to the same name;
+- the compilation is not C# 15, or `IUnion` is missing.
 
-Net: the generator shrinks to *storage + case types + access pattern + equality*, and
-two whole projects disappear.
+## 4. Keep / drop
 
-## 5. Isolated project layout
+| 0.4 concern | In 0.5 |
+|---|---|
+| `[Union]` (ours) + `[UnionCase] static partial` factory methods | **Replaced** by the BCL `[Union]` + partial constructors |
+| `[UnionCase(DisplayName)]` | **Kept**, now targets constructors |
+| `[GeneratedUnion]` marker | **Dropped**. Only the analyzer used it. |
+| `Switch(Action…)` / `Match<T>(Func…)` | **Dropped**. They allocate delegates; use the native `switch`. |
+| `Is<Case>` properties | **Dropped**: `u is Circle<T>` is native |
+| `CaseTag` enum | **Dropped**. Match on types; the int path is `CaseIndex`. |
+| `CaseIndex`, `<Case>Index`, `CaseCount` | **Kept**. Needed by the helpers and index-based UI. |
+| US0001 analyzer, `CS8509`/`CS8524` suppressor | **Dropped**. Native exhaustiveness replaces them. |
+| `UnionStruct.CodeFixes` project | **Dropped** |
+| `UnionStruct.Tests.Analyzers` project | **Dropped** |
+| Public payload fields | **Kept** |
+| `AllowMemoryOverlap` + `[FieldOffset]` emission | **Kept** |
+| Equality / `ToString` / type-name / UTF-8 helpers | **Kept** |
+| `___factoryReturnValue` / `TMatchOut` naming hacks | **Gone**, along with factories and `Match` |
+| Synthesized per-case `struct` for multi-parameter cases | **Gone**. The user's case type is the payload. |
 
-Add under `src/`, referencing none of the existing `UnionStruct*` projects:
+Some `S11` numbers show the cost of losing `CaseTag`. A native switch matches as fast as
+an int switch for small payloads. For 64 B payloads it is about 0.4 ns slower per match,
+because it copies the payload. Hot loops can still use `CaseIndex` or a type-only pattern
+plus a field read. The trade-off is that a `CaseIndex` switch is no longer checked for
+exhaustiveness.
+
+## 5. Project layout (in place, under `src/`)
 
 ```
-src/
-  NoahStolk.Unions/                 # the incremental generator (netstandard2.0)
-  NoahStolk.Unions.Attributes/      # [Union] / [UnionCase] marker attributes (netstandard2.0)
-  NoahStolk.Unions.Package/         # packaging-only; new PackageId
-  NoahStolk.Unions.Sample/          # net11.0 consumer
-  NoahStolk.Unions.Tests/           # Verify snapshot tests of emission
-  NoahStolk.Unions.Tests.Integration/  # net11.0 runtime tests (alloc asserts, ref, equality)
+UnionStruct/                        generator (netstandard2.0); Internals/Analyzers/ deleted
+UnionStruct.Package/                packs only UnionStruct.dll into analyzers/dotnet/cs
+UnionStruct.Sample/                 net11.0
+UnionStruct.Tests/                  net11.0, Verify snapshots
+UnionStruct.Tests.Integration/      net11.0, runtime tests + allocation regression test
+UnionStruct.Tests.NuGetIntegration/ net11.0, still outside the slnx, still glob-compiles Integration
 ```
 
-Decisions:
-- **Own solution file** (`src/NoahStolk.Unions.slnx`) or add to the existing one — either
-  is fine since code is isolated; a separate slnx keeps CI matrices clean.
-- Reuse the same Verify + snapshot workflow (it's independent of the emitted content).
-- Add an **allocation regression test** in the integration project asserting
-  `GC.GetAllocatedBytesForCurrentThread()` stays 0 across construct + match — the whole
-  point of the library, so pin it.
-- The generator still targets `netstandard2.0`; the sample/tests target `net11.0`.
+Deleted: `UnionStruct.CodeFixes/`, `UnionStruct.Tests.Analyzers/`.
 
-## 6. Coexistence & migration
+Unchanged constraints from CLAUDE.md:
+- The attributes are still **generated** through `RegisterPostInitializationOutput`. There
+  is no attributes assembly and no `lib/` folder, because the package is analyzer-only.
+- The generator still targets `netstandard2.0`.
 
-- Both packages can be installed side by side (different PackageId, different namespaces).
-- No auto-migration; the authoring surface is close enough that porting a union is a
-  mechanical rename (`UnionStruct.[Union]` → `NoahStolk.Unions.[Union]`, adjust
-  match sites from `.Match(...)` / `.Tag` switch to native type `switch`).
-- Old library keeps shipping for consumers not yet on C# 15.
+Tooling:
+- Root `global.json` → `11.0.100`. Choose `rollForward` deliberately: `latestMinor`
+  silently moves to newer feature bands.
+- `Microsoft.CodeAnalysis.CSharp` (currently `4.12.0`) must be raised for the **test**
+  projects, whose compilations have to parse C# 14 partial constructors and C# 15 unions.
+  The generator's own reference must not exceed the compiler in the oldest supported SDK
+  (`11.0.100`).
+- Snapshot workflow is unchanged (`./scripts/accept-all.sh src/UnionStruct.Tests/snapshots`).
 
-## 7. Open questions — resolve before implementing
+## 6. Migrating a 0.4 union
 
-1. **`ref` ergonomics.** `TryGetValue(out T)` yields a copy. Zero-copy mutation stays via
-   public field + `ref u.Field` at the call site (a struct member cannot `ref`-return its
-   own field — `CS8170`). Confirm this is acceptable, or whether an unsafe
-   `ref`-accessor helper is worth it.
-2. **Input surface (resolved: pure type-union, user-declared top-level types).** Remaining
-   sub-decision: repeated `[UnionCase<T>]` markers (leaner) vs. user-written `partial`
-   constructors (more explicit). Default to the markers; confirm in the spike.
-3. **Do we still want `Switch`/`Match` at all?** They're convenient but allocate delegates.
-   Consider dropping entirely, or offering only where a caller explicitly wants callback
-   style.
-4. ~~**[RC 1] Is `CS8780` on generic unions intended for GA?**~~ **[GA] Resolved: no.**
-   GA lifted it, so generic unions regain pattern-variable ergonomics and the
-   `CaseIndex` fast path is purely an optimization rather than a necessity. The emission
-   shape needs no generic-specific path.
-5. **SDK churn.** ~~Preview churn~~ — GA shipped, and `Samples/S08_Rc1Deltas.cs` on GA
-   showed no regressions and one relaxation (`CS8780`). Not re-checked here: whether the
-   spec still marks the exact `TryGetValue` overload-resolution rules (conversions,
-   inheritance) as open. Keep re-running `S08` on new SDKs: regressions break the build,
-   relaxations show up as "this compiles now".
-6. ~~**Union member providers.**~~ **[GA] Resolved for .NET 11.** The provider
-   *validation* rules ship in the `CS9386` diagnostic wording, but GA ships no BCL
-   authoring surface (`IUnion` and `UnionAttribute` only, reflected over the `11.0.0`
-   runtime). Not an emission target for this release; re-check in a later one.
-7. **Zero-arity / enum-like cases.** The native feature keys the case set off constructor
-   *parameter types*, so every payload-less member needs its own declared type — worse
-   than the zero-arity `[UnionCase]` methods the current generator already supports.
-   Decide whether the generator **synthesizes** the empty case types for zero-arity cases
-   (keeping today's declaration surface, at the cost of emitting types the user did not
-   write) or whether enum-like unions stay on the existing `Tag`/`CaseIndex` generator.
-   `FINDINGS.md` → "Can they replace enums?" and `Samples/S09_EnumReplacement.cs` have the
-   measurements this decision needs.
+1. Declare a case type for each case. Reuse existing payload records where possible:
+   - for a multi-parameter case, write a record struct;
+   - for a zero-arity case, write a nested empty struct.
+2. Replace `[UnionStruct.Union]` with `[System.Runtime.CompilerServices.Union]`.
+3. Replace each `[UnionCase] public static partial U Foo(T value);` with
+   `public partial U(FooType value);`. Keep `DisplayName` if you had one.
+4. Update construction: `U.Foo(x)` becomes `new U(new FooType(x))`, or rely on the
+   implicit conversion.
+5. Update matching: a `u.Tag switch { U.CaseTag.Foo => … }` or `Match(...)` becomes
+   `u switch { FooType f => … }`. A `ref u.FooData` keeps working as long as the field
+   name is unchanged.
+6. Add `<WarningsAsErrors>CS8509</WarningsAsErrors>` so exhaustiveness is enforced.
 
-## 8. Phased checklist
+## 7. Open questions
 
-1. ~~**Spike the target emission by hand**: hand-write the `Transform` union in the
-   desired final shape, prove zero-alloc + native exhaustive match + `ref` + equality.~~
-   **DONE — see `Samples/S07_GoldenEmission.cs`.** Validated: clean build (no `CS8509`,
-   no `CS8655`), `sizeof == 20`, 0 bytes over 1M construct+match, `ref` mutation and
-   value equality both work. This is the generator's golden output.
-2. Scaffold the six isolated projects; port `AllowMemoryOverlap` and the model builders,
-   stripping everything in §4's "Drop" rows.
-3. Emit: case types → storage/layout → constructors → `Value` + `TryGetValue` per case.
-4. Emit: equality + `ToString` + optional UTF-8/type-name helpers.
-5. Snapshot tests + allocation regression tests.
-6. Package, sample, docs; validate against the latest .NET 11 build (GA `11.0.100`
-   validated).
+1. **`ToString` format.** `"{Name} {{ Value = {payload} }}"` nests awkwardly when the
+   payload is a record: `Circle { Value = Circle { Radius = 2 } }`. Printing only the
+   payload loses the case name for primitive case types. Pick one in the snapshot-test
+   phase.
+2. **Same-name case types.** Should a collision be a hard error, or should the generator
+   use the fully qualified name? Default: error, with a hint to set `DisplayName`.
+3. **Struct-level `readonly`.** If the user declares `readonly partial struct`, `ref`
+   mutation of payloads is impossible. Should the generator allow it (enum-like unions
+   want it) or warn? Default: allow it, and make the fields `readonly`.
 
-**Immediate next step (agreed): prototype the generator's target emission for one sample
-union by hand**, so we have the golden output before touching generator code.
+## 8. Phases
+
+1. ✅ **Golden emission, hand-written and measured:** `S07` (overlap) and `S10` (sequential,
+   generic, input surface). `S11` covers match cost.
+2. Retarget to .NET 11, delete the two projects and `Internals/Analyzers/`, and strip the
+   CodeFixes DLL from `UnionStruct.Package.csproj`.
+3. Detection: `ForAttributeWithMetadataName("System.Runtime.CompilerServices.UnionAttribute")`,
+   filtered to `partial struct`s with partial constructor declarations. Then shrink
+   `AttributeSourceUtils` to `[UnionCase]`.
+4. Model builders: build cases from partial constructors (case type, name, unmanaged-ness),
+   keeping `AllowMemoryOverlap`.
+5. Emission matching `S07`/`S10`, plus the new diagnostics.
+6. Tests: rewritten snapshot tests, `Unions/` ported for integration, and the allocation
+   regression test. Keep NuGetIntegration compiling.
+7. Root README, CLAUDE.md, `Version` 0.5.0. Pack, and run the NuGetIntegration sequence
+   from `.github/workflows/push.yml`.

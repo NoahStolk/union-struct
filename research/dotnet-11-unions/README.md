@@ -1,48 +1,59 @@
 # Research: .NET 11 / C# 15 native unions
 
-Standalone research spike (not part of `UnionStruct.slnx`, not built by CI) evaluating
-the native `[Union]` / `IUnion` feature in .NET 11 against this library's
-allocation-free goals.
-
-Currently validated against the GA SDK **`11.0.100`** (runtime `11.0.0`, 2026-11-10,
-STS). Originally written against preview 4 and re-verified on RC 1; see the "What
-changed since RC 1" and "What changed between preview 4 and RC 1" sections of
-`FINDINGS.md` for the deltas.
+A standalone spike that evaluates C# 15's native unions (`[Union]` / `IUnion`) against
+UnionStruct's goals: no boxing, no heap allocation, and `ref` access to payloads. It also
+pins down what the rewritten generator should emit. It is not part of `UnionStruct.slnx`
+and not built by CI.
 
 ## Run it
-
-Requires that exact .NET 11 SDK (pinned in the local `global.json` with
-`rollForward: disable`, so a missing SDK fails loudly rather than silently floating
-onto another build):
 
 ```bash
 cd research/dotnet-11-unions
 dotnet run -c Release
 ```
 
-To move to a newer build, install it and bump the `version` in `global.json`, then
-re-run — `S08` is written so that behaviour changes surface as build errors.
+This needs SDK `11.0.100` exactly. The local `global.json` pins it with
+`rollForward: disable`, so a missing SDK fails loudly instead of silently building with a
+different one. To validate a newer SDK, install it, bump `version`, and re-run. `S08` is
+written so that behaviour changes surface as build errors.
 
-## Contents
+## Documents
 
-- **`FINDINGS.md`** — the write-up: the preview 4 → RC 1 → GA deltas, what ships in GA, the
-  boxing trap, the non-boxing access pattern (with measured allocation numbers), a
-  feature-by-feature comparison against this generator, whether unions can replace
-  enums, and the recommendation.
-- **`REWRITE-PLAN.md`** — design for a new, isolated .NET 11 library that emits the
-  native union pattern. Details that RC 1 and GA changed are marked **[RC 1]** / **[GA]**.
-- **`Samples/`** — nine annotated, runnable samples:
-  - `S01` boxing union (the trap) · `S02` non-boxing union · `S03` explicit overlap
-  - `S04` `ref` payload access · `S05` generic union · `S06` allocation bench
-  - `S07` golden emission (the generator's target output)
-  - `S08` preview 4 → RC 1 → GA deltas (re-run this on new SDKs)
-  - `S09` enum replacement — closed enums, members on the type, and what an enum
-    still does that a union cannot
+- **`FINDINGS.md`** covers:
+  - what .NET 11 ships;
+  - the boxing trap and the non-boxing pattern, with measured allocations;
+  - `ref` access and how cases are declared;
+  - match-path cost;
+  - a feature comparison with UnionStruct 0.4;
+  - whether unions can replace enums;
+  - the recommendation.
+- **`REWRITE-PLAN.md`** is the design for UnionStruct 0.5: an in-place, .NET 11-only
+  rewrite that emits native unions.
 
-## One-line conclusion
+## Samples
 
-Native unions can be **fully allocation-free** only via the opt-in non-boxing access
-pattern (`TryGetValue` per case) over typed-field storage — exactly the boilerplate a
-source generator should emit. GA does not change that; this library's public fields
-(zero-copy, `ref` access) and `CaseIndex` switch (fastest match) remain the reasons to
-keep generating. See `REWRITE-PLAN.md`.
+| | Shows |
+|---|---|
+| `S01_BoxingUnion` | The canonical `object`-backed union boxes every value-type case (24 B). |
+| `S02_NonBoxingUnion` | Typed fields + `TryGetValue` per case: 0 B construct + match. |
+| `S03_ExplicitOverlap` | `[FieldOffset]` overlap composes with the non-boxing pattern. |
+| `S04_RefAccess` | `ref` to a payload needs a public field (`CS8170` forbids `ref`-returning it). |
+| `S05_GenericUnion` | `Result<T,E>`: three ways to read a case from an open generic union, all 0 B. |
+| `S06_AllocationBench` | Boxing vs. non-boxing allocations, isolated. |
+| `S07_GoldenEmission` | **Generator target**, unmanaged cases with explicit overlap. |
+| `S08_Rc1Deltas` | Preview 4 → RC 1 → GA behaviour changes, as re-runnable compiled code. |
+| `S09_EnumReplacement` | What a union gains and loses as an enum replacement. |
+| `S10_InputSurface` | **Generator input surface**: partial constructors + BCL `[Union]`, plus the target for generic/managed unions. |
+| `S11_MatchPerf` | Native type switch vs. `CaseIndex` switch vs. type-only pattern + field read. |
+
+`GeneratedAttributes.cs` stands in for the `[UnionCase]` attribute that the generator
+emits.
+
+## Conclusion
+
+Native unions are allocation-free only with typed-field storage and a `TryGetValue` per
+case, and the compiler writes none of that. Generating it is exactly what this library is
+for. UnionStruct 0.5 therefore emits native unions, which gives users native, exhaustive
+`switch`. It keeps the public payload fields (for `ref` access), automatic memory overlap,
+equality and the type-name helpers. It drops the custom matching API and the analyzer that
+existed to make up for the missing language feature.

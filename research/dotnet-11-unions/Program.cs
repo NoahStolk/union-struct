@@ -18,3 +18,5 @@ Samples.S06_AllocationBench.Run();
 Samples.S07_GoldenEmission.Run();
 Samples.S08_Rc1Deltas.Run();
 Samples.S09_EnumReplacement.Run();
+Samples.S10_InputSurface.Run();
+Samples.S11_MatchPerf.Run();

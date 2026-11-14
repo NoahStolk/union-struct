@@ -16,13 +16,10 @@ namespace Samples;
 //   (b) type-only pattern + read the PUBLIC FIELD         <- see ShowViaField
 //   (c) call TryGetValue explicitly                        <- see ShowViaTryGet
 //
-// History: (a) compiled on preview 4, was rejected on RC 1 with CS8780 ("A variable may
-// not be declared within a 'not' or an 'or' pattern or a union matching involving matching
-// against either the instance, or its underlying value"), and compiles again on GA
-// (11.0.100). On RC 1, (b) and (c) were the only workarounds. On GA they are a choice:
-// (b) is the only one that does not copy the payload, which is why public payload fields
-// remain the generator's signature design decision (and the route to `ref` mutation, S04);
-// (c) suits code that wants no pattern syntax at all.
+// (a) is the natural choice. (b) is the only one that does not copy the payload, which is
+// why public payload fields remain the generator's signature design decision (and the
+// route to `ref` mutation, S04). (c) suits code that wants no pattern syntax at all.
+// (RC 1 briefly rejected (a) with CS8780; GA lifted that. See S08, delta 3.)
 public static class S05_GenericUnion
 {
     public static void Run()
@@ -31,7 +28,7 @@ public static class S05_GenericUnion
 
         Result<int, string> ok = new(new Ok<int>(42));
         Result<int, string> err = new(new Err<string>("boom"));
-        Console.WriteLine($"  via variables    : {Show(ok)} / {Show(err)}  (CS8780 on RC 1)");
+        Console.WriteLine($"  via variables    : {Show(ok)} / {Show(err)}");
         Console.WriteLine($"  via public field : {ShowViaField(ok)} / {ShowViaField(err)}");
         Console.WriteLine($"  via TryGetValue  : {ShowViaTryGet(ok)} / {ShowViaTryGet(err)}");
 
@@ -68,7 +65,7 @@ public static class S05_GenericUnion
         return acc;
     }
 
-    // (a): pattern variables on the open union. CS8780 on RC 1; legal on preview 4 and GA.
+    // (a): pattern variables on the open union.
     static string Show<T, E>(Result<T, E> r) => r switch
     {
         Ok<T> o  => $"Ok({o.Value})",
@@ -76,7 +73,7 @@ public static class S05_GenericUnion
     };
 
     // (b): the pattern carries no variable and the payload comes from the public field.
-    // Zero copy, zero alloc. (On RC 1 this was the CS8780 workaround.)
+    // Zero copy, zero alloc.
     static string ShowViaField<T, E>(Result<T, E> r) => r switch
     {
         Ok<T> => $"Ok({r.OkData.Value})",
