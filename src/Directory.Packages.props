@@ -5,13 +5,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0"/>
+		<PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.12.0"/>
 
 		<!--
 		Do not upgrade: this is the minimum Roslyn version every consumer of the generated package must have.
 		Building against a Roslyn newer than the host compiler makes csc skip the generator (CS9057).
 		-->
-		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0"/>
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0"/>
 	</ItemGroup>
 
