@@ -6,6 +6,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Set up dotnet
         uses: actions/setup-dotnet@v6
@@ -27,9 +30,16 @@ jobs:
         run: |
           cd src/
           dotnet pack -c Release -o .
-      - name: Push
+      - name: NuGet login
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish to NuGet
         run: |
           cd src/
-          dotnet nuget push *.nupkg -s nuget.org -k ${NUGET_SECRET} -n --skip-duplicate
-        env:
-          NUGET_SECRET: ${{ secrets.NUGET_SECRET }}
+          dotnet nuget push *.nupkg \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --source https://api.nuget.org/v3/index.json \
+            --no-symbols \
+            --skip-duplicate
