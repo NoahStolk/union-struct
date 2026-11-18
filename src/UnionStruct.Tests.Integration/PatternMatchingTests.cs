@@ -1,94 +1,126 @@
-﻿using System.Numerics;
+using System.Numerics;
 using UnionStruct.Tests.Integration.Unions;
 
 namespace UnionStruct.Tests.Integration;
 
+/// <summary>
+/// Every switch expression here covers each case and has no default arm. The project treats CS8509 as an error, so
+/// these only compile because the compiler sees the generated structs as closed unions.
+/// </summary>
 public sealed class PatternMatchingTests
 {
 	[Test]
-	public async Task MatchWorksCorrectly()
+	public async Task NativeSwitchMatchesCaseTypes()
 	{
-		await Assert.That(GetPoints(EnumLikeUnion.Bronze())).IsEqualTo(1);
-		await Assert.That(GetPoints(EnumLikeUnion.Silver())).IsEqualTo(2);
-		await Assert.That(GetPoints(EnumLikeUnion.Gold())).IsEqualTo(3);
+		await Assert.That(GetPoints(default(EnumLikeUnion.Bronze))).IsEqualTo(1);
+		await Assert.That(GetPoints(default(EnumLikeUnion.Silver))).IsEqualTo(2);
+		await Assert.That(GetPoints(default(EnumLikeUnion.Gold))).IsEqualTo(3);
 
-		await Assert.That(GetRotation(RotationType.None())).IsEqualTo(Quaternion.Identity);
-		await Assert.That(GetRotation(RotationType.RandomRotation())).IsEqualTo(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f));
-		await Assert.That(GetRotation(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX)))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f));
-		await Assert.That(GetRotation(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f));
-		await Assert.That(GetRotation(RotationType.CustomRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3))))).IsEqualTo(Quaternion.CreateFromYawPitchRoll(1, 2, 3));
+		await Assert.That(GetRotation(default(RotationType.None))).IsEqualTo(Quaternion.Identity);
+		await Assert.That(GetRotation(default(RotationType.RandomRotation))).IsEqualTo(Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f));
+		await Assert.That(GetRotation(new RandomRotationAroundAxis(Vector3.UnitX))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitX, 0.4f));
+		await Assert.That(GetRotation(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f))).IsEqualTo(Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.15f));
+		await Assert.That(GetRotation(new CustomRotation(Quaternion.CreateFromYawPitchRoll(1, 2, 3)))).IsEqualTo(Quaternion.CreateFromYawPitchRoll(1, 2, 3));
 
-		await Assert.That(GetNode(RootUnion.Empty())).IsEqualTo(0);
-		await Assert.That(GetNode(RootUnion.NestedCase(NestedUnion.Empty()))).IsEqualTo(0);
-		await Assert.That(GetNode(RootUnion.NestedCase(NestedUnion.Node(1)))).IsEqualTo(1);
+		await Assert.That(GetNode(default(Empty))).IsEqualTo(0);
+		await Assert.That(GetNode(new NestedUnion(default(Empty)))).IsEqualTo(0);
+		await Assert.That(GetNode(new NestedUnion(new Node(1)))).IsEqualTo(1);
 
-		static int GetPoints(EnumLikeUnion enumLikeUnion)
+		static int GetPoints(EnumLikeUnion enumLikeUnion) => enumLikeUnion switch
 		{
-			return enumLikeUnion.Match(() => 1, () => 2, () => 3);
-		}
+			EnumLikeUnion.Bronze => 1,
+			EnumLikeUnion.Silver => 2,
+			EnumLikeUnion.Gold => 3,
+		};
 
-		static Quaternion GetRotation(RotationType rotationType)
+		static Quaternion GetRotation(RotationType rotationType) => rotationType switch
 		{
-			return rotationType.Match(
-				() => Quaternion.Identity,
-				() => Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f), // Random rotation
-				randomRotationAroundAxis => Quaternion.CreateFromAxisAngle(randomRotationAroundAxis.Axis, 0.4f),
-				rotationRangeAroundAxis => Quaternion.CreateFromAxisAngle(rotationRangeAroundAxis.Axis, (rotationRangeAroundAxis.AngleMin + rotationRangeAroundAxis.AngleMax) / 2f),
-				customRotation => customRotation.Rotation);
-		}
+			RotationType.None => Quaternion.Identity,
+			RotationType.RandomRotation => Quaternion.CreateFromYawPitchRoll(0.1f, 0.2f, 0.3f),
+			RandomRotationAroundAxis r => Quaternion.CreateFromAxisAngle(r.Axis, 0.4f),
+			RotationRangeAroundAxis r => Quaternion.CreateFromAxisAngle(r.Axis, (r.AngleMin + r.AngleMax) / 2f),
+			CustomRotation r => r.Rotation,
+		};
 
-		static int GetNode(RootUnion rootUnion)
+		static int GetNode(RootUnion rootUnion) => rootUnion switch
 		{
-			return rootUnion.Match(
-				() => 0,
-				nestedUnion => nestedUnion.Match(
-					() => 0,
-					node => node));
-		}
+			Empty => 0,
+			NestedUnion nested => nested switch
+			{
+				Empty => 0,
+				Node node => node.Value,
+			},
+		};
 	}
 
 	[Test]
-	public async Task SwitchWorksCorrectly()
+	public async Task OpenGenericSwitchWithPatternVariables()
 	{
-		int bronzeCount = 0;
-		int silverCount = 0;
-		int goldCount = 0;
+		await Assert.That(Area<float>(new Circle<float>(2f))).IsEqualTo(4f);
+		await Assert.That(Area<int>(new Rectangle<int>(2, 3))).IsEqualTo(6);
 
-		foreach (EnumLikeUnion enumLikeUnion in new[] { EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Bronze(), EnumLikeUnion.Silver(), EnumLikeUnion.Silver(), EnumLikeUnion.Gold() })
-			enumLikeUnion.Switch(() => bronzeCount++, () => silverCount++, () => goldCount++);
+		static T Area<T>(Shape<T> shape)
+			where T : INumber<T> => shape switch
+		{
+			Circle<T> c => c.Radius * c.Radius,
+			Rectangle<T> r => r.Width * r.Height,
+		};
+	}
 
-		await Assert.That(bronzeCount).IsEqualTo(3);
-		await Assert.That(silverCount).IsEqualTo(2);
-		await Assert.That(goldCount).IsEqualTo(1);
+	[Test]
+	public async Task PropertyPatternsAndIs()
+	{
+		UnionWithReferenceType union = "hello";
+
+		await Assert.That(union is string { Length: 5 }).IsTrue();
+		await Assert.That(union is int).IsFalse();
+#pragma warning disable CA1508 // The dataflow analysis does not know that a union's type patterns test the active case.
+		await Assert.That(union is string s && s == "hello").IsTrue();
+#pragma warning restore CA1508
+	}
+
+	[Test]
+	public async Task TryGetValueReadsTheActiveCaseOnly()
+	{
+		CompressedIndex index = (ushort)300;
+
+		await Assert.That(index.TryGetValue(out ushort value)).IsTrue();
+		await Assert.That(value).IsEqualTo((ushort)300);
+		await Assert.That(index.TryGetValue(out byte _)).IsFalse();
+		await Assert.That(index.TryGetValue(out uint _)).IsFalse();
+	}
+
+	[Test]
+	public async Task ValueBoxesTheActivePayload()
+	{
+		CompressedIndex index = 7u;
+		UnionWithReferenceType text = "text";
+
+		await Assert.That(index.Value).IsEqualTo(7u);
+		await Assert.That(text.Value).IsEqualTo("text");
 	}
 
 	[Test]
 	public async Task CaseIndexSwitchWithoutDefaultWorks()
 	{
-		await Assert.That(PointName(EnumLikeUnion.Bronze())).IsEqualTo("Bronze");
-		await Assert.That(PointName(EnumLikeUnion.Silver())).IsEqualTo("Silver");
-		await Assert.That(PointName(EnumLikeUnion.Gold())).IsEqualTo("Gold");
+		await Assert.That(PointName(default(EnumLikeUnion.Bronze))).IsEqualTo("Bronze");
+		await Assert.That(PointName(default(EnumLikeUnion.Silver))).IsEqualTo("Silver");
+		await Assert.That(PointName(default(EnumLikeUnion.Gold))).IsEqualTo("Gold");
 
+		// Unlike the type switch, the compiler does not check this one for exhaustiveness; the discard is required.
 		static string PointName(EnumLikeUnion u) => u.CaseIndex switch
 		{
 			EnumLikeUnion.BronzeIndex => "Bronze",
 			EnumLikeUnion.SilverIndex => "Silver",
 			EnumLikeUnion.GoldIndex => "Gold",
+			_ => throw new InvalidOperationException(),
 		};
 	}
 
 	[Test]
-	public async Task TagSwitchWithoutDiscardArmWorks()
+	public async Task DefaultIsTheFirstCase()
 	{
-		await Assert.That(Rank(EnumLikeUnion.Bronze())).IsEqualTo(1);
-		await Assert.That(Rank(EnumLikeUnion.Silver())).IsEqualTo(2);
-		await Assert.That(Rank(EnumLikeUnion.Gold())).IsEqualTo(3);
-
-		static int Rank(EnumLikeUnion u) => u.Tag switch
-		{
-			EnumLikeUnion.CaseTag.Bronze => 1,
-			EnumLikeUnion.CaseTag.Silver => 2,
-			EnumLikeUnion.CaseTag.Gold => 3,
-		};
+		await Assert.That(default(EnumLikeUnion) is EnumLikeUnion.Bronze).IsTrue();
+		await Assert.That(new Circle<int>(0) == default(Shape<int>)).IsTrue();
 	}
 }

@@ -7,18 +7,8 @@
 
 namespace UnionStruct;
 
-[global::System.AttributeUsage(global::System.AttributeTargets.Struct)]
-internal sealed class UnionAttribute : global::System.Attribute
-{
-}
-
-[global::System.AttributeUsage(global::System.AttributeTargets.Method)]
+[global::System.AttributeUsage(global::System.AttributeTargets.Constructor)]
 internal sealed class UnionCaseAttribute : global::System.Attribute
 {
-	public string? DisplayName { get; set; }
-}
-
-[global::System.AttributeUsage(global::System.AttributeTargets.Struct, Inherited = false)]
-internal sealed class GeneratedUnionAttribute : global::System.Attribute
-{
+	public string? DisplayName { get; init; }
 }

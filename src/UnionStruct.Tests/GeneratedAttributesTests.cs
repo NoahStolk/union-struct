@@ -14,12 +14,14 @@ public sealed class GeneratedAttributesTests
 	{
 		const string code =
 			"""
+			using System.Runtime.CompilerServices;
 			using UnionStruct;
 			namespace Tests;
+			public readonly record struct Circle(float Radius);
 			[Union]
 			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial TestUnion Empty();
+				[UnionCase(DisplayName = "Round")] public partial TestUnion(Circle value);
 			}
 			""";
 

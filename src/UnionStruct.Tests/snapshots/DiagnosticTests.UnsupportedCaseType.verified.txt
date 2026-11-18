@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (5,16)-(5,25),
+      Message: Case type '(int, int)' of union 'Tests.TestUnion' is not supported; use a named type, a type parameter, or an array of one,
+      Severity: Error,
+      Descriptor: {
+        Id: US0007,
+        Title: Union case type is not supported,
+        MessageFormat: Case type '{0}' of union '{1}' is not supported; use a named type, a type parameter, or an array of one,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

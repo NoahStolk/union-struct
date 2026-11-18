@@ -1,14 +1,19 @@
-﻿namespace UnionStruct.Tests.Integration.Unions;
+using System.Runtime.CompilerServices;
+
+namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
 internal readonly partial struct EnumLikeUnion
 {
-	[UnionCase]
-	public static partial EnumLikeUnion Bronze();
+	public partial EnumLikeUnion(Bronze _);
 
-	[UnionCase]
-	public static partial EnumLikeUnion Silver();
+	public partial EnumLikeUnion(Silver _);
 
-	[UnionCase]
-	public static partial EnumLikeUnion Gold();
+	public partial EnumLikeUnion(Gold _);
+
+	public readonly record struct Bronze;
+
+	public readonly record struct Silver;
+
+	public readonly record struct Gold;
 }

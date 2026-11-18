@@ -213,15 +213,20 @@ Tooling:
 
 1. ✅ **Golden emission, hand-written and measured:** `S07` (overlap) and `S10` (sequential,
    generic, input surface). `S11` covers match cost.
-2. Retarget to .NET 11, delete the two projects and `Internals/Analyzers/`, and strip the
+2. ✅ Retarget to .NET 11, delete the two projects and `Internals/Analyzers/`, and strip the
    CodeFixes DLL from `UnionStruct.Package.csproj`.
-3. Detection: `ForAttributeWithMetadataName("System.Runtime.CompilerServices.UnionAttribute")`,
+3. ✅ Detection: `ForAttributeWithMetadataName("System.Runtime.CompilerServices.UnionAttribute")`,
    filtered to `partial struct`s with partial constructor declarations. Then shrink
    `AttributeSourceUtils` to `[UnionCase]`.
-4. Model builders: build cases from partial constructors (case type, name, unmanaged-ness),
+4. ✅ Model builders: build cases from partial constructors (case type, name, unmanaged-ness),
    keeping `AllowMemoryOverlap`.
-5. Emission matching `S07`/`S10`, plus the new diagnostics.
-6. Tests: rewritten snapshot tests, `Unions/` ported for integration, and the allocation
+5. ✅ Emission matching `S07`/`S10`, plus the new diagnostics (US0002–US0009).
+6. ✅ Tests: rewritten snapshot tests, `Unions/` ported for integration, and the allocation
    regression test. Keep NuGetIntegration compiling.
-7. Root README, CLAUDE.md, `Version` 0.5.0. Pack, and run the NuGetIntegration sequence
-   from `.github/workflows/push.yml`.
+7. ✅ Root README, CLAUDE.md, `Version` 0.5.0. Pack, and run the NuGetIntegration sequence
+   from `.github/workflows/push.yml` (run locally; not yet tagged or published).
+
+Phases 2–7 were implemented on branch `rewrite/dotnet-11-unions`. Open questions 1–3 were
+implemented with their defaults (golden `ToString` format, collision is an error, `readonly`
+structs get `readonly` fields); question 1 and the collision fix for question 2 still need a
+decision before release.

@@ -1,24 +1,24 @@
-﻿using System.Numerics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
 internal partial struct RotationType
 {
-	[UnionCase]
-	public static partial RotationType None();
+	public partial RotationType(None value);
 
-	[UnionCase]
-	public static partial RotationType RandomRotation();
+	public partial RotationType(RandomRotation value);
 
-	[UnionCase]
-	public static partial RotationType RandomRotationAroundAxis(RandomRotationAroundAxis value);
+	public partial RotationType(RandomRotationAroundAxis value);
 
-	[UnionCase]
-	public static partial RotationType RotationRangeAroundAxis(RotationRangeAroundAxis value);
+	public partial RotationType(RotationRangeAroundAxis value);
 
-	[UnionCase]
-	public static partial RotationType CustomRotation(CustomRotation value);
+	public partial RotationType(CustomRotation value);
+
+	public readonly record struct None;
+
+	public readonly record struct RandomRotation;
 }
 
 internal record struct RandomRotationAroundAxis(Vector3 Axis)

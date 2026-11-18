@@ -1,11 +1,11 @@
-﻿namespace UnionStruct.Tests.Integration.Unions;
+using System.Runtime.CompilerServices;
+
+namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
 internal partial struct UnionWithReferenceType
 {
-	[UnionCase]
-	public static partial UnionWithReferenceType Int(int value);
+	public partial UnionWithReferenceType(int value);
 
-	[UnionCase]
-	public static partial UnionWithReferenceType String(string value);
+	public partial UnionWithReferenceType(string value);
 }

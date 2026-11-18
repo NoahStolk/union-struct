@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (3,16)-(3,25),
+      Message: Union struct 'Tests.TestUnion' and all of its containing types must be declared partial,
+      Severity: Error,
+      Descriptor: {
+        Id: US0002,
+        Title: Union struct must be partial,
+        MessageFormat: Union struct '{0}' and all of its containing types must be declared partial,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

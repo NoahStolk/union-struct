@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (3,24)-(3,33),
+      Message: Union 'Tests.TestUnion' requires C# 15 or later, but the project uses C# 14,
+      Severity: Error,
+      Descriptor: {
+        Id: US0008,
+        Title: UnionStruct requires C# 15,
+        MessageFormat: Union '{0}' requires C# 15 or later, but the project uses C# {1},
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

@@ -1,381 +1,221 @@
-﻿using Microsoft.CodeAnalysis;
-using UnionStruct.Internals.Model;
+﻿using UnionStruct.Internals.Model;
 using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Internals;
 
-internal sealed class UnionGenerator(Compilation compilation, UnionModel unionModel)
+/// <summary>
+/// Emits the generated half of a union. The shape is pinned by the hand-written golden samples in
+/// <c>research/dotnet-11-unions/Samples</c>: <c>S07</c> for the explicit-overlap branch and <c>S10</c> for the
+/// sequential branch.
+/// </summary>
+internal sealed class UnionGenerator(UnionModel unionModel)
 {
-	private readonly INamedTypeSymbol? _nullableOfTTypeSymbol = compilation.GetTypeByMetadataName("System.Nullable`1");
+	private const string _int32 = "global::System.Int32";
+	private const string _boolean = "global::System.Boolean";
+	private const string _string = "global::System.String";
+	private const string _utf8Span = "global::System.ReadOnlySpan<global::System.Byte>";
+	private const string _unreachable = "throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\")";
+	private const string _fieldOffsetAttribute = "global::System.Runtime.InteropServices.FieldOffset";
+
+	/// <summary>Payloads start after the 4-byte <c>CaseIndex</c>.</summary>
+	private const int _payloadOffset = 4;
+
+	private readonly string _self = unionModel.StructIdentifier;
 
 	public string Generate()
 	{
 		CodeWriter writer = new();
-		writer.WriteLine($"namespace {unionModel.NamespaceName};");
-		writer.WriteLine();
+		if (unionModel.NamespaceName != null)
+		{
+			writer.WriteLine($"namespace {unionModel.NamespaceName};");
+			writer.WriteLine();
+		}
+
+		foreach (ContainingTypeModel containingType in unionModel.ContainingTypes)
+		{
+			writer.WriteLine($"partial {containingType.Keyword} {containingType.Identifier}");
+			writer.StartBlock();
+		}
+
 		if (unionModel.AllowMemoryOverlap)
 			writer.WriteLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
-		writer.WriteLine($"[global::{GeneratorConstants.RootNamespace}.{GeneratorConstants.MarkerAttributeName}]");
-		writer.WriteLine($"{unionModel.Accessibility} partial struct {unionModel.StructIdentifier} : global::System.IEquatable<{unionModel.StructIdentifier}>");
+
+		writer.WriteLine($"partial struct {_self} : global::System.Runtime.CompilerServices.IUnion, global::System.IEquatable<{_self}>");
 		writer.StartBlock();
-		writer.WriteLine($"public const global::System.Int32 CaseCount = {unionModel.Cases.Count};");
-		writer.WriteLine();
-		GenerateUnionCaseConstants(writer);
-		if (unionModel.AllowMemoryOverlap)
-			writer.WriteLine("[global::System.Runtime.InteropServices.FieldOffset(0)]");
-		writer.WriteLine("public readonly global::System.Int32 CaseIndex;");
-		writer.WriteLine();
-		GenerateTagEnum(writer);
-		GenerateTagProperty(writer);
-		GenerateUnionCaseDataFields(writer);
-		GeneratePrivateConstructor(writer);
-		GenerateIsProperties(writer);
-		GenerateNullTerminatedMemberNames(writer);
-		GenerateFactoryMethods(writer);
-		GenerateSwitchMethod(writer);
-		GenerateMatchMethod(writer);
-		GenerateToStringMethod(writer);
-		GenerateTypeStringMethods(writer);
-		GenerateEqualityOperators(writer);
-		GenerateGetHashCodeMethod(writer);
-		GenerateEqualsMethods(writer);
-		GenerateNestedTypes(writer);
+		GenerateConstants(writer);
+		GenerateFields(writer);
+		GenerateConstructors(writer);
+		GenerateImplicitConversions(writer);
+		GenerateValueProperty(writer);
+		GenerateTryGetValueMethods(writer);
+		GenerateEqualityMembers(writer);
+		GenerateToString(writer);
+		GenerateTypeStringMembers(writer);
 		writer.EndBlock();
+
+		for (int i = 0; i < unionModel.ContainingTypes.Count; i++)
+			writer.EndBlock();
 
 		return writer.ToString();
 	}
 
-	private void GenerateTagEnum(CodeWriter writer)
+	private void GenerateConstants(CodeWriter writer)
 	{
-		if (unionModel.Cases.Count == 0)
-			return;
+		writer.WriteLine($"public const {_int32} CaseCount = {unionModel.Cases.Count};");
+		for (int i = 0; i < unionModel.Cases.Count; i++)
+			writer.WriteLine($"public const {_int32} {unionModel.Cases[i].IndexName} = {i};");
 
-		writer.WriteLine($"public enum {GeneratorConstants.TagEnumName} : global::System.Int32");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseName} = {unionCaseModel.CaseIndexFieldName},");
-		writer.EndBlock();
 		writer.WriteLine();
 	}
 
-	private void GenerateTagProperty(CodeWriter writer)
+	private void GenerateFields(CodeWriter writer)
 	{
-		if (unionModel.Cases.Count == 0)
-			return;
+		// Public so callers can take `ref` to a payload. When overlapped, writing the wrong case's field corrupts the
+		// active one: that is the library's deliberate memory-unsafety.
+		string readOnly = unionModel.IsReadOnly ? "readonly " : string.Empty;
+		writer.WriteLine($"{FieldOffset(0)}public readonly {_int32} {GeneratorConstants.CaseIndexFieldName};");
+		writer.WriteLine();
 
-		writer.WriteLine($"public readonly {GeneratorConstants.TagEnumName} {GeneratorConstants.TagPropertyName} => ({GeneratorConstants.TagEnumName})CaseIndex;");
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{FieldOffset(_payloadOffset)}public {readOnly}{unionCase.TypeName} {unionCase.FieldName};");
+
 		writer.WriteLine();
 	}
 
-	private void GenerateUnionCaseConstants(CodeWriter writer)
+	private string FieldOffset(int offset)
 	{
-		int index = 0;
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"public const global::System.Int32 {unionCaseModel.CaseIndexFieldName} = {index++};");
+		return unionModel.AllowMemoryOverlap ? $"[{_fieldOffsetAttribute}({offset})] " : string.Empty;
+	}
+
+	private void GenerateConstructors(CodeWriter writer)
+	{
+		// `this = default` leaves every other case's reference-typed payload null, which is what it has always been.
+		if (unionModel.HasNonNullableReferenceField)
+			writer.WriteLine("#pragma warning disable CS8618 // The inactive cases' payload fields are default.");
+
+		// `this = default` first, because overlapped fields cannot each be definitely assigned. Fields are qualified with
+		// `this.` in case the user named the parameter after one of them.
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.ConstructorModifiers}partial {unionModel.StructName}({unionCase.TypeName} {unionCase.ParameterName}) {{ this = default; this.{GeneratorConstants.CaseIndexFieldName} = {unionCase.IndexName}; this.{unionCase.FieldName} = {unionCase.ParameterName}; }}");
+
+		if (unionModel.HasNonNullableReferenceField)
+			writer.WriteLine("#pragma warning restore CS8618");
+
 		writer.WriteLine();
 	}
 
-	private void GenerateUnionCaseDataFields(CodeWriter writer)
+	private void GenerateImplicitConversions(CodeWriter writer)
 	{
-		const int fieldOffset = 4;
-
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+		// A convenience only: conversions do not register cases, constructors do.
+		bool any = false;
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
 		{
-			if (unionCaseModel.DataTypes.Count == 0)
+			if (!unionCase.EmitImplicitConversion)
 				continue;
 
-			if (unionModel.AllowMemoryOverlap)
-				writer.WriteLine($"[global::System.Runtime.InteropServices.FieldOffset({fieldOffset})]");
+			writer.WriteLine($"public static implicit operator {_self}({unionCase.TypeName} value) => new(value);");
+			any = true;
+		}
 
-			if (unionCaseModel.DataTypes.Count == 1 && unionCaseModel.DataTypes[0].TypeSymbol.IsReferenceType && !unionCaseModel.DataTypes[0].IsNullableTypeSyntax && unionCaseModel.DataTypes[0].TypeSymbol.NullableAnnotation != NullableAnnotation.Annotated)
-				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = null!;");
-			else if (unionCaseModel.DataTypes.Count == 1 && !unionCaseModel.DataTypes[0].IsNullableTypeSyntax && unionCaseModel.DataTypes[0].TypeParameterAllowsNullability)
-				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName} = default!;");
-			else
-				writer.WriteLine($"public {unionCaseModel.CaseFieldTypeName} {unionCaseModel.CaseFieldName};");
-
+		if (any)
 			writer.WriteLine();
-		}
 	}
 
-	private void GeneratePrivateConstructor(CodeWriter writer)
+	private void GenerateValueProperty(CodeWriter writer)
 	{
-		writer.WriteLine($"private {unionModel.StructName}(global::System.Int32 caseIndex)");
+		// The IUnion contract. It boxes, so pattern matching goes through TryGetValue instead and never reads it.
+		string type = unionModel.ValueIsNullable ? "global::System.Object?" : "global::System.Object";
+		writer.WriteLine($"public readonly {type} Value => {GeneratorConstants.CaseIndexFieldName} switch");
 		writer.StartBlock();
-		writer.WriteLine("CaseIndex = caseIndex;");
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateIsProperties(CodeWriter writer)
-	{
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"public readonly bool Is{unionCaseModel.CaseName} => CaseIndex == {unionCaseModel.CaseIndexFieldName};");
-		writer.WriteLine();
-	}
-
-	private void GenerateNullTerminatedMemberNames(CodeWriter writer)
-	{
-		if (unionModel.Cases.Count == 0)
-			return;
-
-		string nullTerminatedMemberNames = string.Concat(unionModel.Cases.Select(kvp => $"{kvp.GetDisplayName()}\\0"));
-		writer.WriteLine($"public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => \"{nullTerminatedMemberNames}\"u8;");
-		writer.WriteLine();
-	}
-
-	private void GenerateFactoryMethods(CodeWriter writer)
-	{
-		const string localName = "___factoryReturnValue"; // TODO: Find a better way to avoid naming conflicts with parameter names.
-
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
+		for (int i = 0; i < unionModel.Cases.Count; i++)
 		{
-			List<string> parameterDeclarations = unionCaseModel.DataTypes.Select(dt => $"{dt.FullyQualifiedTypeName} {dt.FactoryParameterName}").ToList();
-
-			writer.WriteLine($"public static partial {unionModel.StructIdentifier} {unionCaseModel.CaseName}(");
-
-			writer.StartIndent();
-			for (int i = 0; i < parameterDeclarations.Count; i++)
-				writer.WriteLine($"{parameterDeclarations[i]}{(i < parameterDeclarations.Count - 1 ? "," : string.Empty)}");
-			writer.EndIndent();
-			writer.WriteLine(")");
-
-			writer.StartBlock();
-			writer.WriteLine($"{unionModel.StructIdentifier} {localName} = new({unionCaseModel.CaseIndexFieldName});");
-
-			if (parameterDeclarations.Count == 1)
-				writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName} = {unionCaseModel.DataTypes[0].FactoryParameterName};");
-			else if (parameterDeclarations.Count > 1)
-				writer.WriteLine($"{localName}.{unionCaseModel.CaseFieldName} = new({string.Join(", ", unionCaseModel.DataTypes.Select(dt => dt.FactoryParameterName))});");
-
-			writer.WriteLine($"return {localName};");
-
-			writer.EndBlock();
-			writer.WriteLine();
-		}
-	}
-
-	private void GenerateSwitchMethod(CodeWriter writer)
-	{
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.ActionTypeName} {ucm.ParameterName}").ToList();
-
-		writer.WriteLine("public void Switch(");
-
-		writer.StartIndent();
-		for (int i = 0; i < parameters.Count; i++)
-			writer.WriteLine($"{parameters[i]}{(i < parameters.Count - 1 ? "," : string.Empty)}");
-		writer.EndIndent();
-		writer.WriteLine(")");
-
-		writer.StartBlock();
-		writer.WriteLine("switch (CaseIndex)");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"case {unionCaseModel.CaseIndexFieldName}: {unionCaseModel.ParameterName}.Invoke({unionCaseModel.InvocationParameters}); break;");
-		writer.WriteLine("default: throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\");");
-		writer.EndBlock();
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateMatchMethod(CodeWriter writer)
-	{
-		List<string> parameters = unionModel.Cases.Select(ucm => $"{ucm.FuncTypeName} {ucm.ParameterName}").ToList();
-
-		writer.WriteLine($"public {unionModel.FuncOutTypeParameterName} Match<{unionModel.FuncOutTypeParameterName}>(");
-
-		writer.StartIndent();
-		for (int i = 0; i < parameters.Count; i++)
-			writer.WriteLine($"{parameters[i]}{(i < parameters.Count - 1 ? "," : string.Empty)}");
-		writer.EndIndent();
-		writer.WriteLine(")");
-
-		writer.StartBlock();
-		writer.WriteLine("return CaseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ParameterName}.Invoke({unionCaseModel.InvocationParameters}),");
-		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\"),");
-		writer.EndBlockWithSemicolon();
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateToStringMethod(CodeWriter writer)
-	{
-		writer.WriteLine("public override readonly global::System.String ToString()");
-		writer.StartBlock();
-		writer.WriteLine("return CaseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {unionCaseModel.ToStringReturnValue},");
-
-		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {CaseIndex}.\"),");
-		writer.EndBlockWithSemicolon();
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateTypeStringMethods(CodeWriter writer)
-	{
-		writer.WriteLine("public static global::System.String GetTypeString(global::System.Int32 caseIndex)");
-		writer.StartBlock();
-		writer.WriteLine("return caseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.GetDisplayName()}\",");
-
-		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
-		writer.EndBlockWithSemicolon();
-		writer.EndBlock();
-		writer.WriteLine();
-
-		writer.WriteLine("public readonly global::System.String GetTypeString()");
-		writer.StartBlock();
-		writer.WriteLine("return GetTypeString(CaseIndex);");
-		writer.EndBlock();
-		writer.WriteLine();
-
-		writer.WriteLine("public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)");
-		writer.StartBlock();
-		writer.WriteLine("return caseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-			writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => \"{unionCaseModel.GetDisplayName()}\"u8,");
-
-		writer.WriteLine("_ => throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\"),");
-		writer.EndBlockWithSemicolon();
-		writer.EndBlock();
-		writer.WriteLine();
-
-		writer.WriteLine("public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()");
-		writer.StartBlock();
-		writer.WriteLine("return GetTypeAsUtf8Span(CaseIndex);");
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateEqualityOperators(CodeWriter writer)
-	{
-		writer.WriteLine($"public static bool operator !=({unionModel.StructIdentifier} left, {unionModel.StructIdentifier} right)");
-		writer.StartBlock();
-		writer.WriteLine("return !(left == right);");
-		writer.EndBlock();
-		writer.WriteLine();
-
-		writer.WriteLine($"public static bool operator ==({unionModel.StructIdentifier} left, {unionModel.StructIdentifier} right)");
-		writer.StartBlock();
-		writer.WriteLine("return left.Equals(right);");
-		writer.EndBlock();
-		writer.WriteLine();
-	}
-
-	private void GenerateGetHashCodeMethod(CodeWriter writer)
-	{
-		const int prime = -1521134295;
-
-		writer.WriteLine("public override readonly global::System.Int32 GetHashCode()");
-		writer.StartBlock();
-
-		writer.WriteLine("return CaseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-		{
-			if (unionCaseModel.DataTypes.Count == 0)
-			{
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} ),");
-			}
-			else
-			{
-				string fields = string.Join($" * {prime} + ", unionCaseModel.DataTypes.Select(dt =>
-				{
-					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
-					string equalityComparer = $"global::System.Collections.Generic.EqualityComparer<{dt.FullyQualifiedTypeName}>.Default";
-
-					bool isNullableOfT = SymbolEqualityComparer.IncludeNullability.Equals(dt.TypeSymbol.OriginalDefinition, _nullableOfTTypeSymbol);
-					if (isNullableOfT)
-						return $"({fieldName}.HasValue ? {equalityComparer}.GetHashCode({fieldName}.Value) : 0)";
-
-					string getHashCodeCall = $"{equalityComparer}.GetHashCode({fieldName})";
-					return dt.IsNullableReferenceType || dt.TypeParameterAllowsNullability ? $"({fieldName} == null ? 0 : {getHashCodeCall})" : getHashCodeCall;
-				}));
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => unchecked ( {unionCaseModel.CaseIndexFieldName} * {prime} + {fields} ),");
-			}
+			UnionCaseModel unionCase = unionModel.Cases[i];
+			string pattern = i == unionModel.Cases.Count - 1 ? "_" : unionCase.IndexName;
+			writer.WriteLine($"{pattern} => {unionCase.FieldName},");
 		}
 
-		writer.WriteLine($"_ => {unionModel.Cases.Count},");
 		writer.EndBlockWithSemicolon();
-
-		writer.EndBlock();
 		writer.WriteLine();
 	}
 
-	private void GenerateEqualsMethods(CodeWriter writer)
+	private void GenerateTryGetValueMethods(CodeWriter writer)
 	{
-		writer.WriteLine("public override readonly global::System.Boolean Equals(global::System.Object? obj)");
-		writer.StartBlock();
-		writer.WriteLine($"return obj is {unionModel.StructIdentifier} && Equals(({unionModel.StructIdentifier})obj);");
-		writer.EndBlock();
-		writer.WriteLine();
+		// The non-boxing access pattern: the compiler lowers pattern matching through these. `readonly` so a
+		// `ref readonly` / `in` receiver never needs a defensive copy.
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"public readonly {_boolean} TryGetValue(out {unionCase.TypeName} value) {{ value = {unionCase.FieldName}; return {GeneratorConstants.CaseIndexFieldName} == {unionCase.IndexName}; }}");
 
-		writer.WriteLine($"public readonly global::System.Boolean Equals({unionModel.StructIdentifier} other)");
+		writer.WriteLine();
+	}
+
+	private void GenerateEqualityMembers(CodeWriter writer)
+	{
+		writer.WriteLine($"public readonly {_boolean} Equals({_self} other) => {GeneratorConstants.CaseIndexFieldName} == other.{GeneratorConstants.CaseIndexFieldName} && {GeneratorConstants.CaseIndexFieldName} switch");
 		writer.StartBlock();
-		writer.WriteLine("return CaseIndex == other.CaseIndex && CaseIndex switch");
-		writer.StartBlock();
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-		{
-			if (unionCaseModel.DataTypes.Count == 0)
-			{
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => true,");
-			}
-			else
-			{
-				string fields = string.Join(" && ", unionCaseModel.DataTypes.Select(dt =>
-				{
-					string fieldName = unionCaseModel.DataTypes.Count == 1 ? unionCaseModel.CaseFieldName : $"{unionCaseModel.CaseFieldName}.{dt.FieldName}";
-					return $"global::System.Collections.Generic.EqualityComparer<{dt.FullyQualifiedTypeName}>.Default.Equals({fieldName}, other.{fieldName})";
-				}));
-				writer.WriteLine($"{unionCaseModel.CaseIndexFieldName} => {fields},");
-			}
-		}
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.IndexName} => global::System.Collections.Generic.EqualityComparer<{unionCase.TypeName}>.Default.Equals({unionCase.FieldName}, other.{unionCase.FieldName}),");
 
 		writer.WriteLine("_ => true,");
 		writer.EndBlockWithSemicolon();
+		writer.WriteLine();
 
-		writer.EndBlock();
+		writer.WriteLine($"public override readonly {_boolean} Equals(global::System.Object? obj) => obj is {_self} other && Equals(other);");
+		writer.WriteLine();
+
+		writer.WriteLine($"public override readonly {_int32} GetHashCode() => {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.IndexName} => global::System.HashCode.Combine({GeneratorConstants.CaseIndexFieldName}, {unionCase.FieldName}),");
+
+		writer.WriteLine($"_ => {GeneratorConstants.CaseIndexFieldName},");
+		writer.EndBlockWithSemicolon();
+		writer.WriteLine();
+
+		writer.WriteLine($"public static {_boolean} operator ==({_self} left, {_self} right) => left.Equals(right);");
+		writer.WriteLine($"public static {_boolean} operator !=({_self} left, {_self} right) => !left.Equals(right);");
 		writer.WriteLine();
 	}
 
-	private void GenerateNestedTypes(CodeWriter writer)
+	private void GenerateToString(CodeWriter writer)
 	{
-		foreach (UnionCaseModel unionCaseModel in unionModel.Cases)
-		{
-			if (unionCaseModel.DataTypes.Count <= 1)
-				continue;
+		writer.WriteLine($"public override readonly {_string} ToString() => {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.IndexName} => $\"{SourceBuilderUtils.EscapeInterpolatedStringLiteral(unionCase.DisplayName)} {{{{ Value = {{{unionCase.FieldName}}} }}}}\",");
 
-			writer.WriteLine($"public struct {unionCaseModel.CaseStructTypeIdentifier}");
-			writer.StartBlock();
-			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
-			{
-				writer.WriteLine($"public {dataType.FullyQualifiedTypeName} {dataType.FieldName};");
-				writer.WriteLine();
-			}
+		writer.WriteLine("_ => \"<invalid>\",");
+		writer.EndBlockWithSemicolon();
+		writer.WriteLine();
+	}
 
-			writer.WriteLine($"public {unionCaseModel.CaseStructTypeIdentifier}(");
-			writer.StartIndent();
-			for (int i = 0; i < unionCaseModel.DataTypes.Count; i++)
-				writer.WriteLine($"{unionCaseModel.DataTypes[i].FullyQualifiedTypeName} {unionCaseModel.DataTypes[i].FactoryParameterName}{(i < unionCaseModel.DataTypes.Count - 1 ? "," : string.Empty)}");
-			writer.EndIndent();
-			writer.WriteLine(")");
+	private void GenerateTypeStringMembers(CodeWriter writer)
+	{
+		// The case type's name, or its DisplayName.
+		writer.WriteLine($"public static {_string} GetTypeString({_int32} caseIndex) => caseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.IndexName} => \"{SourceBuilderUtils.EscapeStringLiteral(unionCase.DisplayName)}\",");
 
-			writer.StartBlock();
-			foreach (UnionCaseDataTypeModel dataType in unionCaseModel.DataTypes)
-				writer.WriteLine($"{dataType.FieldName} = {dataType.FactoryParameterName};");
+		writer.WriteLine($"_ => {_unreachable},");
+		writer.EndBlockWithSemicolon();
+		writer.WriteLine();
 
-			writer.EndBlock();
+		writer.WriteLine($"public readonly {_string} GetTypeString() => GetTypeString({GeneratorConstants.CaseIndexFieldName});");
+		writer.WriteLine();
 
-			writer.EndBlock();
-			writer.WriteLine();
-		}
+		writer.WriteLine($"public static {_utf8Span} GetTypeAsUtf8Span({_int32} caseIndex) => caseIndex switch");
+		writer.StartBlock();
+		foreach (UnionCaseModel unionCase in unionModel.Cases)
+			writer.WriteLine($"{unionCase.IndexName} => \"{SourceBuilderUtils.EscapeStringLiteral(unionCase.DisplayName)}\"u8,");
+
+		writer.WriteLine($"_ => {_unreachable},");
+		writer.EndBlockWithSemicolon();
+		writer.WriteLine();
+
+		writer.WriteLine($"public readonly {_utf8Span} GetTypeAsUtf8Span() => GetTypeAsUtf8Span({GeneratorConstants.CaseIndexFieldName});");
+		writer.WriteLine();
+
+		string names = string.Concat(unionModel.Cases.Select(c => $"{SourceBuilderUtils.EscapeStringLiteral(c.DisplayName)}\\0"));
+		writer.WriteLine($"public static {_utf8Span} NullTerminatedMemberNames => \"{names}\"u8;");
 	}
 }

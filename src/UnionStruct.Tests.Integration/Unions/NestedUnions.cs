@@ -1,23 +1,24 @@
-﻿namespace UnionStruct.Tests.Integration.Unions;
+using System.Runtime.CompilerServices;
 
-using UnionStruct;
+namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
 internal partial struct RootUnion
 {
-	[UnionCase]
-	public static partial RootUnion Empty();
+	public partial RootUnion(Empty value);
 
 	[UnionCase(DisplayName = "Nested")]
-	public static partial RootUnion NestedCase(NestedUnion value);
+	public partial RootUnion(NestedUnion value);
 }
 
 [Union]
 internal partial struct NestedUnion
 {
-	[UnionCase]
-	public static partial NestedUnion Empty();
+	public partial NestedUnion(Empty value);
 
-	[UnionCase]
-	public static partial NestedUnion Node(int value);
+	public partial NestedUnion(Node value);
 }
+
+internal readonly record struct Empty;
+
+internal readonly record struct Node(int Value);

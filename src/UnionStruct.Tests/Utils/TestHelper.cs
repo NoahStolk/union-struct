@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Collections.Immutable;
-using System.Reflection;
 using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Tests.Utils;
@@ -15,46 +14,62 @@ internal static class TestHelper
 		nullableContextOptions: NullableContextOptions.Enable);
 
 	/// <summary>
-	/// Verifies the union generated for <paramref name="source"/>. The attributes the generator adds during
-	/// post-initialization are excluded, since they are identical for every compilation;
-	/// <see cref="VerifyIncludingAttributes"/> covers those.
+	/// Verifies the union generated for <paramref name="source"/>, and that the result compiles without a single
+	/// diagnostic. The attributes the generator adds during post-initialization are excluded, since they are identical
+	/// for every compilation; <see cref="VerifyIncludingAttributes"/> covers those.
 	/// </summary>
 	public static Task Verify(string source)
 	{
-		return Verify(source, includeAttributes: false);
+		return Verify(source, LanguageVersion.CSharp15, includeAttributes: false, requireCleanCompilation: true);
 	}
 
 	/// <summary>Verifies the attributes the generator emits into the consuming compilation.</summary>
 	public static Task VerifyIncludingAttributes(string source)
 	{
-		return Verify(source, includeAttributes: true);
+		return Verify(source, LanguageVersion.CSharp15, includeAttributes: true, requireCleanCompilation: true);
 	}
 
-	private static Task Verify(string source, bool includeAttributes)
+	/// <summary>
+	/// Verifies the generator's output and diagnostics for <paramref name="source"/> without requiring the result to
+	/// compile. Used for the generator's own diagnostics, which usually come with compiler errors of their own.
+	/// </summary>
+	public static Task VerifyDiagnostics(string source, LanguageVersion languageVersion = LanguageVersion.CSharp15)
 	{
-		Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-		Assembly netstandard = assemblies.Single(a => a.GetName().Name == "netstandard");
-		Assembly systemRuntime = assemblies.Single(a => a.GetName().Name == "System.Runtime");
+		return Verify(source, languageVersion, includeAttributes: false, requireCleanCompilation: false);
+	}
 
-		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+	private static Task Verify(string source, LanguageVersion languageVersion, bool includeAttributes, bool requireCleanCompilation)
+	{
+		// The test host runs on net11.0, so its own System.Private.CoreLib carries the BCL [Union] and IUnion.
+		// ! The location of a loaded framework assembly always has a directory.
+		string runtimeDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+		MetadataReference[] references =
+		[
+			MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+			MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "netstandard.dll")),
+			MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
+			MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Numerics.Vectors.dll")),
+			MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Collections.dll")),
+		];
+
+		CSharpParseOptions parseOptions = new(languageVersion);
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "UnionStruct.Tests",
 			syntaxTrees: [syntaxTree],
-			references:
-			[
-				MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-				MetadataReference.CreateFromFile(netstandard.Location),
-				MetadataReference.CreateFromFile(systemRuntime.Location),
-			],
+			references: references,
 			options: _compilationOptions);
 
 		UnionStructIncrementalGenerator generator = new();
-		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
 		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out Compilation outputCompilation, out _);
 
-		ImmutableArray<Diagnostic> diagnostics = outputCompilation.GetDiagnostics();
-		if (diagnostics.Length > 0)
-			return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({diagnostics.Length} errors):\n{string.Join(Environment.NewLine, diagnostics)}"));
+		if (requireCleanCompilation)
+		{
+			ImmutableArray<Diagnostic> diagnostics = outputCompilation.GetDiagnostics();
+			if (diagnostics.Length > 0)
+				return Task.FromException(new InvalidOperationException($"Post-generator compilation failed ({diagnostics.Length} diagnostics):\n{string.Join(Environment.NewLine, diagnostics)}"));
+		}
 
 		SettingsTask settingsTask = Verifier.Verify(driver).UseDirectory(Path.Combine("..", "snapshots"));
 		if (!includeAttributes)

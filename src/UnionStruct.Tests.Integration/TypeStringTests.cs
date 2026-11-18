@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using TUnit.Assertions.Enums;
 using UnionStruct.Tests.Integration.Unions;
 
@@ -6,65 +6,58 @@ namespace UnionStruct.Tests.Integration;
 
 public sealed class TypeStringTests
 {
-	[Test]
-	public async Task GetTypeStringReturnsCorrectResult()
+	public static IEnumerable<Func<(string Expected, string Actual, byte[] ActualUtf8)>> Cases()
 	{
-		await Assert.That(EnumLikeUnion.Bronze().GetTypeString()).IsEqualTo("Bronze");
-		await Assert.That(EnumLikeUnion.Silver().GetTypeString()).IsEqualTo("Silver");
-		await Assert.That(EnumLikeUnion.Gold().GetTypeString()).IsEqualTo("Gold");
+		yield return () => Case("Bronze", new EnumLikeUnion(default(EnumLikeUnion.Bronze)));
+		yield return () => Case("Silver", new EnumLikeUnion(default(EnumLikeUnion.Silver)));
+		yield return () => Case("Gold", new EnumLikeUnion(default(EnumLikeUnion.Gold)));
 
-		await Assert.That(RotationType.None().GetTypeString()).IsEqualTo("None");
-		await Assert.That(RotationType.RandomRotation().GetTypeString()).IsEqualTo("RandomRotation");
-		await Assert.That(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX)).GetTypeString()).IsEqualTo("RandomRotationAroundAxis");
-		await Assert.That(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).GetTypeString()).IsEqualTo("RotationRangeAroundAxis");
-		await Assert.That(RotationType.CustomRotation(new CustomRotation(Quaternion.Identity)).GetTypeString()).IsEqualTo("CustomRotation");
+		yield return () => Case("None", new RotationType(default(RotationType.None)));
+		yield return () => Case("RandomRotation", new RotationType(default(RotationType.RandomRotation)));
+		yield return () => Case("RandomRotationAroundAxis", new RotationType(new RandomRotationAroundAxis(Vector3.UnitX)));
+		yield return () => Case("RotationRangeAroundAxis", new RotationType(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)));
+		yield return () => Case("CustomRotation", new RotationType(new CustomRotation(Quaternion.Identity)));
 
-		await Assert.That(CompressedIndex.Unsigned8(1).GetTypeString()).IsEqualTo("8-bit");
-		await Assert.That(CompressedIndex.Unsigned16(2).GetTypeString()).IsEqualTo("16-bit");
-		await Assert.That(CompressedIndex.Unsigned32(3).GetTypeString()).IsEqualTo("32-bit");
+		yield return () => Case("8-bit", new CompressedIndex((byte)1));
+		yield return () => Case("16-bit", new CompressedIndex((ushort)2));
+		yield return () => Case("32-bit", new CompressedIndex(3u));
 
-		await Assert.That(Shape<float>.Circle(1.5f).GetTypeString()).IsEqualTo("Circle");
-		await Assert.That(Shape<float>.Rectangle(2.5f, 3.5f).GetTypeString()).IsEqualTo("Rectangle");
+		yield return () => Case("Circle", new Shape<float>(new Circle<float>(1.5f)));
+		yield return () => Case("Rectangle", new Shape<int>(new Rectangle<int>(2, 3)));
 
-		await Assert.That(Shape<int>.Circle(1).GetTypeString()).IsEqualTo("Circle");
-		await Assert.That(Shape<int>.Rectangle(2, 3).GetTypeString()).IsEqualTo("Rectangle");
+		yield return () => Case("Int32", new UnionWithReferenceType(1));
+		yield return () => Case("String", new UnionWithReferenceType("1"));
 
-		await Assert.That(UnionWithReferenceType.Int(1).GetTypeString()).IsEqualTo("Int");
-		await Assert.That(UnionWithReferenceType.String("1").GetTypeString()).IsEqualTo("String");
-
-		await Assert.That(RootUnion.Empty().GetTypeString()).IsEqualTo("Empty");
-		await Assert.That(RootUnion.NestedCase(NestedUnion.Empty()).GetTypeString()).IsEqualTo("Nested");
-		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeString()).IsEqualTo("Nested");
+		yield return () => Case("Empty", new RootUnion(default(Empty)));
+		yield return () => Case("Nested", new RootUnion(new NestedUnion(new Node(1))));
 	}
 
 	[Test]
-	public async Task GetTypeAsUtf8SpanReturnsCorrectResult()
+	[MethodDataSource(nameof(Cases))]
+	public async Task GetTypeStringReturnsCorrectResult(string expected, string actual, byte[] actualUtf8)
 	{
-		await Assert.That(EnumLikeUnion.Bronze().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Bronze"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(EnumLikeUnion.Silver().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Silver"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(EnumLikeUnion.Gold().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Gold"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(RotationType.None().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("None"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RotationType.RandomRotation().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("RandomRotation"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RotationType.RandomRotationAroundAxis(new RandomRotationAroundAxis(Vector3.UnitX)).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("RandomRotationAroundAxis"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RotationType.RotationRangeAroundAxis(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("RotationRangeAroundAxis"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RotationType.CustomRotation(new CustomRotation(Quaternion.Identity)).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("CustomRotation"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(CompressedIndex.Unsigned8(1).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("8-bit"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(CompressedIndex.Unsigned16(2).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("16-bit"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(CompressedIndex.Unsigned32(3).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("32-bit"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(Shape<float>.Circle(1.5f).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Circle"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(Shape<float>.Rectangle(2.5f, 3.5f).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Rectangle"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(Shape<int>.Circle(1).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Circle"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(Shape<int>.Rectangle(2, 3).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Rectangle"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(UnionWithReferenceType.Int(1).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Int"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(UnionWithReferenceType.String("1").GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("String"u8.ToArray(), CollectionOrdering.Matching);
-
-		await Assert.That(RootUnion.Empty().GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Empty"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RootUnion.NestedCase(NestedUnion.Empty()).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Nested"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(RootUnion.NestedCase(NestedUnion.Node(1)).GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Nested"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That(actual).IsEqualTo(expected);
+		await Assert.That(actualUtf8).IsEquivalentTo(System.Text.Encoding.UTF8.GetBytes(expected), CollectionOrdering.Matching);
 	}
+
+	[Test]
+	public async Task StaticOverloadsTakeACaseIndex()
+	{
+		await Assert.That(CompressedIndex.GetTypeString(CompressedIndex.UInt16Index)).IsEqualTo("16-bit");
+		await Assert.That(CompressedIndex.GetTypeAsUtf8Span(CompressedIndex.UInt32Index).ToArray()).IsEquivalentTo("32-bit"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That(() => CompressedIndex.GetTypeString(CompressedIndex.CaseCount)).Throws<System.Diagnostics.UnreachableException>();
+	}
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, EnumLikeUnion u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RotationType u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, CompressedIndex u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case<T>(string expected, Shape<T> u)
+		where T : INumber<T> => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, UnionWithReferenceType u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RootUnion u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
 }

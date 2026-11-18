@@ -4,19 +4,80 @@ namespace UnionStruct.Tests;
 
 public sealed class UnionStructIncrementalGeneratorTests
 {
+	/// <summary>
+	/// The user half of the golden sample <c>research/dotnet-11-unions/Samples/S07_GoldenEmission.cs</c>: every case
+	/// type is unmanaged and the union is not generic, so the payloads overlap.
+	/// </summary>
 	[Test]
-	public async Task EmptySingleMulti()
+	public async Task GoldenOverlap()
 	{
 		const string code =
 			"""
+			using System.Numerics;
+			using System.Runtime.CompilerServices;
+			namespace Samples;
+			public readonly record struct Angle(float Value);
+			public readonly record struct Position(Vector3 Value);
+			public readonly record struct Rotation(Quaternion Value);
+			[Union]
+			public partial struct Transform
+			{
+				public partial Transform(Angle value);
+
+				public partial Transform(Position value);
+
+				[UnionStruct.UnionCase(DisplayName = "Quaternion rotation")]
+				public partial Transform(Rotation value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	/// <summary>
+	/// The user half of the golden sample <c>research/dotnet-11-unions/Samples/S10_InputSurface.cs</c>: a generic union
+	/// with a managed case, so the layout is sequential.
+	/// </summary>
+	[Test]
+	public async Task GoldenSequential()
+	{
+		const string code =
+			"""
+			using System.Numerics;
+			using System.Runtime.CompilerServices;
 			using UnionStruct;
+			namespace Samples;
+			public readonly record struct Circle<T>(T Radius);
+			public readonly record struct Rectangle<T>(T Width, T Height);
+			public readonly record struct Label(string Text);
+			[Union]
+			public partial struct Shape<T> where T : INumber<T>
+			{
+				public partial Shape(Circle<T> value);
+
+				public partial Shape(Rectangle<T> value);
+
+				[UnionCase(DisplayName = "Text label")]
+				public partial Shape(Label value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Test]
+	public async Task ManagedNonGenericUnion()
+	{
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
 			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial TestUnion Empty();
-				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
-				[UnionCase] public static partial TestUnion MultiCase(System.Numerics.Vector3 position, System.Numerics.Vector3 velocity);
+				public partial TestUnion(int value);
+				public partial TestUnion(long value);
+				public partial TestUnion(string value);
 			}
 			""";
 
@@ -24,18 +85,17 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task SingleCases()
+	public async Task NullableReferenceCase()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
 			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial TestUnion AngleCase(float angle);
-				[UnionCase] public static partial TestUnion PositionCase(System.Numerics.Vector3 position);
-				[UnionCase] public static partial TestUnion RotationCase(System.Numerics.Quaternion rotation);
+				public partial TestUnion(int value);
+				public partial TestUnion(string? value);
 			}
 			""";
 
@@ -43,209 +103,83 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task EmptyUnion()
+	public async Task GenericTypeParameterCases()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
-			internal partial struct TestUnion;
+			internal partial struct Result<TValue, TError>
+				where TError : notnull
+			{
+				public partial Result(TValue value);
+				public partial Result(TError error);
+			}
 			""";
 
 		await TestHelper.Verify(code);
 	}
 
 	[Test]
-	public async Task MultipleEmptyCases()
+	public async Task EnumLikeReadOnlyUnion()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
+			[Union]
+			internal readonly partial struct Medal
+			{
+				public readonly struct Bronze;
+				public readonly struct Silver;
+				public readonly struct Gold;
+
+				public partial Medal(Bronze _);
+				public partial Medal(Silver _);
+				public partial Medal(Gold _);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Test]
+	public async Task NestedInPartialTypes()
+	{
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
+			namespace Tests;
+			internal static partial class Outer
+			{
+				internal partial record struct Middle<T>
+				{
+					[Union]
+					internal partial struct Inner
+					{
+						public partial Inner(int value);
+						public partial Inner(T value);
+					}
+				}
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Test]
+	public async Task GlobalNamespace()
+	{
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
 			[Union]
 			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial TestUnion Empty1();
-				[UnionCase] public static partial TestUnion Empty2();
+				public partial TestUnion(int value);
+				public partial TestUnion(float value);
 			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task PublicUnion()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			public partial struct TestUnion
-			{
-				[UnionCase] public static partial TestUnion Empty();
-				[UnionCase] public static partial TestUnion CaseA(int A);
-				[UnionCase] public static partial TestUnion CaseB(long B);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task UnionWithoutAccessibility()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			partial struct TestUnion
-			{
-				[UnionCase] public static partial TestUnion Empty();
-				[UnionCase] public static partial TestUnion CaseA(int A);
-				[UnionCase] public static partial TestUnion CaseB(long B);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task CasesWithSameName()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct TestUnion
-			{
-				[UnionCase] public static partial TestUnion Int(int value);
-				[UnionCase] public static partial TestUnion Long(long value);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task GenericUnion()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct Shape<T>
-				where T : System.Numerics.INumber<T>
-			{
-				[UnionCase] public static partial Shape<T> Circle(T radius);
-				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task GenericUnionWithStructTypeConstraint()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct Shape<T>
-				where T : struct, System.Numerics.INumber<T>
-			{
-				[UnionCase] public static partial Shape<T> Circle(T radius);
-				[UnionCase] public static partial Shape<T> Rectangle(T width, T height);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task UnionWithGenericData()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct TestUnion
-			{
-				[UnionCase] public static partial TestUnion Int(System.Nullable<int> value);
-				[UnionCase] public static partial TestUnion Long(System.Nullable<long> value);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task GenericUnionWithGenericData()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct TestUnion<T>
-			{
-				[UnionCase] public static partial TestUnion<T> Int(System.Nullable<int> value);
-				[UnionCase] public static partial TestUnion<T> Long(System.Nullable<long> value);
-				[UnionCase] public static partial TestUnion<T> TCase(T value);
-				[UnionCase] public static partial TestUnion<T> UCase(System.Nullable<TestGeneric<byte, short>> value);
-
-				internal record struct TestGeneric<T1, T2>(T1 A, T2 B);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task GenericUnionWithNullableOfT()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct TestUnion<T> where T : struct
-			{
-				[UnionCase] public static partial TestUnion<T> Empty();
-				[UnionCase] public static partial TestUnion<T> Nullable(System.Nullable<T> value);
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task ComplexUnion()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct ComplexUnion<T1, T2>
-			{
-				[UnionCase] public static partial ComplexUnion<T1, T2> Int(int? value);
-				[UnionCase] public static partial ComplexUnion<T1, T2> Long(long? value);
-				[UnionCase] public static partial ComplexUnion<T1, T2> TCase(T1? value);
-				[UnionCase] public static partial ComplexUnion<T1, T2> UCase(TestGeneric<byte, short>? value, T1 a, T2 b);
-				[UnionCase] public static partial ComplexUnion<T1, T2> UCaseNested(TestGenericNested<byte, short>? value, T1 a, T2 b);
-
-				internal record struct TestGenericNested<T3, T4>(T3 A, T4 B);
-			}
-
-			internal record struct TestGeneric<T3, T4>(T3 A, T4 B);
 			""";
 
 		await TestHelper.Verify(code);
@@ -256,20 +190,21 @@ public sealed class UnionStructIncrementalGeneratorTests
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
+			public readonly record struct Empty;
 			[Union]
 			internal partial struct RootUnion
 			{
-				[UnionCase] public static partial RootUnion Empty();
-				[UnionCase] public static partial RootUnion NestedCase(NestedUnion value);
+				public partial RootUnion(Empty value);
+				public partial RootUnion(NestedUnion value);
 			}
 
 			[Union]
 			internal partial struct NestedUnion
 			{
-				[UnionCase] public static partial NestedUnion Empty();
-				[UnionCase] public static partial NestedUnion Node(int value);
+				public partial NestedUnion(Empty value);
+				public partial NestedUnion(int value);
 			}
 			""";
 
@@ -277,17 +212,18 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task UnionWithReferenceType()
+	public async Task ArrayAndNullableValueTypeCases()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
-			internal partial struct UnionWithReferenceType
+			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial UnionWithReferenceType Int(int value);
-				[UnionCase] public static partial UnionWithReferenceType String(string value);
+				public partial TestUnion(int[] value);
+				public partial TestUnion(int? value);
+				public partial TestUnion(System.Collections.Generic.List<int> value);
 			}
 			""";
 
@@ -295,17 +231,18 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task UnionWithNullableReferenceType()
+	public async Task InterfaceAndObjectCasesGetNoImplicitConversion()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
-			internal partial struct UnionWithNullableReferenceType
+			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial UnionWithNullableReferenceType Int(int value);
-				[UnionCase] public static partial UnionWithNullableReferenceType String(string? nullableString);
+				public partial TestUnion(System.IDisposable value);
+				public partial TestUnion(object value);
+				public partial TestUnion(int value);
 			}
 			""";
 
@@ -313,17 +250,17 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task UnionWithStructContainingReferenceType()
+	public async Task ConstructorModifiersAndParameterNamesArePreserved()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
-			internal partial struct UnionWithStructContainingReferenceType
+			public partial struct TestUnion
 			{
-				[UnionCase] public static partial UnionWithStructContainingReferenceType Int(int value);
-				[UnionCase] public static partial UnionWithStructContainingReferenceType Text(char a, string b);
+				public partial TestUnion(int @class);
+				internal partial TestUnion(long Int64Data);
 			}
 			""";
 
@@ -331,82 +268,42 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
-	public async Task UnionWithStructContainingNullableReferenceType()
+	public async Task DisplayNamesAreEscaped()
 	{
 		const string code =
 			"""
+			using System.Runtime.CompilerServices;
 			using UnionStruct;
 			namespace Tests;
 			[Union]
-			internal partial struct UnionWithStructContainingNullableReferenceType
+			internal partial struct TestUnion
 			{
-				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Int(int value);
-				[UnionCase] public static partial UnionWithStructContainingNullableReferenceType Text(char a, string? b);
+				[UnionCase(DisplayName = "Quoted \"name\"")] public partial TestUnion(int value);
+				[UnionCase(DisplayName = @"Braces {} and \backslash")] public partial TestUnion(long value);
 			}
 			""";
 
 		await TestHelper.Verify(code);
 	}
 
+	/// <summary>
+	/// The generator triggers on the BCL <c>[Union]</c>, which hand-written unions carry too. Without partial
+	/// constructors there is nothing to complete, so it must stay silent.
+	/// </summary>
 	[Test]
-	public async Task UnionWithExplicitStructContainingReferenceType()
+	public async Task HandWrittenUnionIsIgnored()
 	{
 		const string code =
 			"""
-			using UnionStruct;
+			using System.Runtime.CompilerServices;
 			namespace Tests;
 			[Union]
-			internal partial struct UnionWithExplicitStructContainingReferenceType
+			internal struct HandWritten : IUnion
 			{
-				[UnionCase] public static partial UnionWithExplicitStructContainingReferenceType Int(int value);
-				[UnionCase] public static partial UnionWithExplicitStructContainingReferenceType Text(ExplicitStruct @struct);
-			}
-
-			internal record struct ExplicitStruct(char A, string? B);
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task UnionWithOptionalParameters()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct UnionWithOptionalParameters
-			{
-				[UnionCase] public static partial UnionWithOptionalParameters Int(int value = 16);
-				[UnionCase] public static partial UnionWithOptionalParameters Text(string b = "default");
-			}
-			""";
-
-		await TestHelper.Verify(code);
-	}
-
-	[Test]
-	public async Task UnionWithDisplayNames()
-	{
-		const string code =
-			"""
-			using UnionStruct;
-			namespace Tests;
-			[Union]
-			internal partial struct UnionWithDisplayNames
-			{
-				[UnionCase] public static partial UnionWithDisplayNames None();
-
-				[UnionCase(DisplayName = "Unsigned 8-bit")] public static partial UnionWithDisplayNames Unsigned8(byte value);
-				[UnionCase(DisplayName = "Unsigned 16-bit")] public static partial UnionWithDisplayNames Unsigned16(ushort value);
-				[UnionCase(DisplayName = "Unsigned 32-bit")] public static partial UnionWithDisplayNames Unsigned32(uint value);
-				[UnionCase(DisplayName = "Unsigned 64-bit")] public static partial UnionWithDisplayNames Unsigned64(ulong value);
-
-				[UnionCase(DisplayName = "Signed 8-bit")] public static partial UnionWithDisplayNames Signed8(sbyte value);
-				[UnionCase(DisplayName = "Signed 16-bit")] public static partial UnionWithDisplayNames Signed16(short value);
-				[UnionCase(DisplayName = "Signed 32-bit")] public static partial UnionWithDisplayNames Signed32(int value);
-				[UnionCase(DisplayName = "Signed 64-bit")] public static partial UnionWithDisplayNames Signed64(long value);
+				private readonly object? _value;
+				public HandWritten(int value) => _value = value;
+				public HandWritten(string value) => _value = value;
+				public object? Value => _value;
 			}
 			""";
 

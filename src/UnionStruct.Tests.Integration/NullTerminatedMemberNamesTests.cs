@@ -1,4 +1,4 @@
-﻿using TUnit.Assertions.Enums;
+using TUnit.Assertions.Enums;
 using UnionStruct.Tests.Integration.Unions;
 
 namespace UnionStruct.Tests.Integration;
@@ -17,7 +17,7 @@ public sealed class NullTerminatedMemberNamesTests
 		await Assert.That(Shape<float>.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Circle\0Rectangle\0"u8.ToArray(), CollectionOrdering.Matching);
 		await Assert.That(Shape<int>.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Circle\0Rectangle\0"u8.ToArray(), CollectionOrdering.Matching);
 
-		await Assert.That(UnionWithReferenceType.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Int\0String\0"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That(UnionWithReferenceType.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Int32\0String\0"u8.ToArray(), CollectionOrdering.Matching);
 
 		await Assert.That(RootUnion.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Empty\0Nested\0"u8.ToArray(), CollectionOrdering.Matching);
 		await Assert.That(NestedUnion.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Empty\0Node\0"u8.ToArray(), CollectionOrdering.Matching);
