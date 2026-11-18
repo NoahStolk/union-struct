@@ -62,8 +62,6 @@ dotnet_naming_style.type_parameter_style.required_prefix                      = 
 # Symbols #
 ###########
 
-# TODO: Add event, delegate.
-
 dotnet_naming_symbols.namespace_symbol.applicable_kinds                       = namespace
 
 dotnet_naming_symbols.type_parameter_symbol.applicable_kinds                  = type_parameter
@@ -81,6 +79,10 @@ dotnet_naming_symbols.method_symbol.applicable_kinds                          = 
 dotnet_naming_symbols.local_function_symbol.applicable_kinds                  = local_function
 
 dotnet_naming_symbols.property_symbol.applicable_kinds                        = property
+
+dotnet_naming_symbols.event_symbol.applicable_kinds                           = event
+
+dotnet_naming_symbols.delegate_symbol.applicable_kinds                        = delegate
 
 dotnet_naming_symbols.parameter_symbol.applicable_kinds                       = parameter
 
@@ -131,6 +133,14 @@ dotnet_naming_rule.local_function_rule.style                                  = 
 dotnet_naming_rule.property_rule.severity                                     = warning
 dotnet_naming_rule.property_rule.symbols                                      = property_symbol
 dotnet_naming_rule.property_rule.style                                        = pascal_case_style
+
+dotnet_naming_rule.event_rule.severity                                        = warning
+dotnet_naming_rule.event_rule.symbols                                         = event_symbol
+dotnet_naming_rule.event_rule.style                                           = pascal_case_style
+
+dotnet_naming_rule.delegate_rule.severity                                     = warning
+dotnet_naming_rule.delegate_rule.symbols                                      = delegate_symbol
+dotnet_naming_rule.delegate_rule.style                                        = pascal_case_style
 
 dotnet_naming_rule.parameter_rule.severity                                    = warning
 dotnet_naming_rule.parameter_rule.symbols                                     = parameter_symbol
@@ -217,14 +227,29 @@ csharp_preserve_single_line_statements                                        = 
 # Diagnostics: Error #
 ######################
 
-# Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-dotnet_diagnostic.CS4014.severity                                             = error
+# A member was declared with the same name as a member in a base class. However, the new modifier was not used.
+dotnet_diagnostic.CS0108.severity                                             = error
+
+# A declaration in a class conflicts with a declaration in a base class such that the base class member will be hidden.
+dotnet_diagnostic.CS0114.severity                                             = error
+
+# The switch expression does not handle all possible values of its input type (it is not exhaustive).
+dotnet_diagnostic.CS8509.severity                                             = error
+
+# Positional parameter is never used.
+dotnet_diagnostic.CS8907.severity                                             = error
 
 # Null-forgiving operator without justification
 dotnet_diagnostic.NX0001.severity                                             = error
 
 # Null-forgiving operator without justification
+dotnet_diagnostic.NX0002.severity                                             = error
+
+# Null-forgiving operator without justification
 dotnet_diagnostic.NX0003.severity                                             = error
+
+# Do not pass non-read-only struct by read-only reference.
+dotnet_diagnostic.RCS1242.severity                                            = error
 
 # The symbol is banned in this project.
 dotnet_diagnostic.RS0030.severity                                             = error
@@ -232,11 +257,21 @@ dotnet_diagnostic.RS0030.severity                                             = 
 # Add a way to break out of this method/property's recursion.
 dotnet_diagnostic.S2190.severity                                              = error
 
+########################
+# Diagnostics: Warning #
+########################
+
+# Members attributed with RequiresUnreferencedCode may break when trimming.
+dotnet_diagnostic.IL2026.severity                                             = warning
+
+# Lines should not be too long. (Default maximumLineLength is 200.)
+dotnet_diagnostic.S103.severity                                               = warning
+
 ###########################
 # Diagnostics: Suggestion #
 ###########################
 
-# Complete the task associated to this 'TODO' comment.
+# Complete the task associated to this to-do comment.
 dotnet_diagnostic.S1135.severity                                              = suggestion
 
 #####################
@@ -249,6 +284,9 @@ dotnet_diagnostic.CA1000.severity                                             = 
 # Change 'List<T>' into 'Collection<T>', 'ReadOnlyCollection<T>' or 'KeyedCollection<K,V>'.
 dotnet_diagnostic.CA1002.severity                                             = none
 
+# Enum storage should be Int32.
+dotnet_diagnostic.CA1028.severity                                             = none
+
 # Do not declare visible instance fields.
 dotnet_diagnostic.CA1051.severity                                             = none
 
@@ -258,11 +296,17 @@ dotnet_diagnostic.CA1062.severity                                             = 
 # Do not raise exceptions in unexpected locations.
 dotnet_diagnostic.CA1065.severity                                             = none
 
+# Do not pass literals as localized parameters.
+dotnet_diagnostic.CA1303.severity                                             = none
+
 # Normalize strings to uppercase.
 dotnet_diagnostic.CA1308.severity                                             = none
 
 # Identifiers should not match keywords.
 dotnet_diagnostic.CA1716.severity                                             = none
+
+Prefer jagged arrays over multidimensional.
+dotnet_diagnostic.CA1814.severity                                             = none
 
 # Do not raise reserved exception types.
 dotnet_diagnostic.CA2201.severity                                             = none
@@ -276,7 +320,7 @@ dotnet_diagnostic.CA2225.severity                                             = 
 # Do not use broken cryptographic algorithms.
 dotnet_diagnostic.CA5351.severity                                             = none
 
-# Do not use insecure randomness.
+# Random is an insecure random number generator. Use cryptographically secure random number generators when randomness is required for security.
 dotnet_diagnostic.CA5394.severity                                             = none
 
 # Missing XML comment for publicly visible type or member.
@@ -326,6 +370,15 @@ dotnet_diagnostic.S3453.severity                                              = 
 
 # Move class into a named namespace. (C# 10)
 dotnet_diagnostic.S3903.severity                                              = none
+
+# Use a stronger hashing algorithm.
+dotnet_diagnostic.S4790.severity                                              = none
+
+# Cipher algorithms should be robust. (This analyzer is taking 20s to complete according to MSBuild Structured Log Viewer.)
+dotnet_diagnostic.S5547.severity                                              = none
+
+# Allowing unsafe code is security-sensitive.
+dotnet_diagnostic.S6640.severity                                              = none
 
 # Enable XML documentation output.
 dotnet_diagnostic.SA0001.severity                                             = none
