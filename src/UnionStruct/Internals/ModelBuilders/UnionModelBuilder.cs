@@ -116,6 +116,7 @@ internal static class UnionModelBuilder
 				ConstructorModifiers = GetAccessibilityModifiers(syntax),
 				ParameterName = SourceBuilderUtils.EscapeIdentifier(parameter.Name),
 				EmitImplicitConversion = CanConvertFrom(caseType),
+				IsFieldless = IsFieldless(caseType),
 			});
 		}
 
@@ -276,6 +277,23 @@ internal static class UnionModelBuilder
 
 		// Oblivious reference types (declared in a #nullable disable context) may be null as well.
 		return type.IsReferenceType && type.NullableAnnotation == NullableAnnotation.None;
+	}
+
+	/// <summary>
+	/// A struct without instance fields has exactly one value. Excluded, because their fields may not be visible here:
+	/// <list type="bullet">
+	/// <item>partial structs, which source generators may add fields to (every union is one, so a union nested as a case
+	/// would otherwise look empty: the generator sees it before its own output exists);</item>
+	/// <item>special types, since a primitive's only field may be hidden in a reference assembly.</item>
+	/// </list>
+	/// Instance events count as storage, because a source type does not list the backing field of a field-like event
+	/// among its members (it does list those of auto-properties and captured primary constructor parameters).
+	/// </summary>
+	private static bool IsFieldless(ITypeSymbol type)
+	{
+		return type is INamedTypeSymbol { TypeKind: TypeKind.Struct, SpecialType: SpecialType.None } named
+			&& !named.DeclaringSyntaxReferences.Any(r => r.GetSyntax() is TypeDeclarationSyntax syntax && syntax.Modifiers.Any(SyntaxKind.PartialKeyword))
+			&& !named.GetMembers().Any(m => !m.IsStatic && m is IFieldSymbol or IEventSymbol);
 	}
 
 	private static bool CanConvertFrom(ITypeSymbol type)

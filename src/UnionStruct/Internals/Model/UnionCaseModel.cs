@@ -28,6 +28,12 @@ internal sealed record UnionCaseModel
 	/// </summary>
 	public required bool EmitImplicitConversion { get; init; }
 
+	/// <summary>
+	/// <see langword="true"/> when the case type is a struct without instance fields. It has a single value, so
+	/// <c>ToString</c> prints only the case's name instead of the payload.
+	/// </summary>
+	public required bool IsFieldless { get; init; }
+
 	public string IndexName => $"{Name}Index";
 
 	public string FieldName => $"{Name}Data";

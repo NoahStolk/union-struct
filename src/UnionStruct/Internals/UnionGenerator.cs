@@ -181,7 +181,13 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		writer.WriteLine($"public override readonly {_string} ToString() => {GeneratorConstants.CaseIndexFieldName} switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
-			writer.WriteLine($"{unionCase.IndexName} => $\"{SourceBuilderUtils.EscapeInterpolatedStringLiteral(unionCase.DisplayName)} {{{{ Value = {{{unionCase.FieldName}}} }}}}\",");
+		{
+			// A field-less payload has a single value, so the case's name says it all.
+			if (unionCase.IsFieldless)
+				writer.WriteLine($"{unionCase.IndexName} => \"{SourceBuilderUtils.EscapeStringLiteral(unionCase.DisplayName)}\",");
+			else
+				writer.WriteLine($"{unionCase.IndexName} => $\"{SourceBuilderUtils.EscapeInterpolatedStringLiteral(unionCase.DisplayName)} {{{{ Value = {{{unionCase.FieldName}}} }}}}\",");
+		}
 
 		writer.WriteLine("_ => \"<invalid>\",");
 		writer.EndBlockWithSemicolon();

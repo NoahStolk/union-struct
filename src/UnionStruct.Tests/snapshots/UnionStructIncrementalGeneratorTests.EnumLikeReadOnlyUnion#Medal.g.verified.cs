@@ -63,9 +63,9 @@ partial struct Medal : global::System.Runtime.CompilerServices.IUnion, global::S
 
 	public override readonly global::System.String ToString() => CaseIndex switch
 	{
-		BronzeIndex => $"Bronze {{ Value = {BronzeData} }}",
-		SilverIndex => $"Silver {{ Value = {SilverData} }}",
-		GoldIndex => $"Gold {{ Value = {GoldData} }}",
+		BronzeIndex => "Bronze",
+		SilverIndex => "Silver",
+		GoldIndex => "Gold",
 		_ => "<invalid>",
 	};
 

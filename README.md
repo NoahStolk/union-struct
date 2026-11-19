@@ -113,7 +113,7 @@ For each union, the generator emits:
 - the implementing half of each partial constructor, and an implicit conversion from each case type;
 - `Value` (the `IUnion` contract; it boxes, so pattern matching never uses it) and a non-boxing `TryGetValue(out TCase)` per case;
 - `IEquatable<T>`, `Equals`, `GetHashCode`, `==` and `!=`;
-- `ToString`, formatted as `<Name> { Value = <payload> }`;
+- `ToString`, formatted as `<Name> { Value = <payload> }`, or just `<Name>` when the case type is a struct without fields (it has only one value);
 - `GetTypeString`, `GetTypeAsUtf8Span` (static by case index, or for the current case) and `NullTerminatedMemberNames`, which use the case's name or its `DisplayName`.
 
 ### Case names

@@ -55,7 +55,7 @@ partial struct RootUnion : global::System.Runtime.CompilerServices.IUnion, globa
 
 	public override readonly global::System.String ToString() => CaseIndex switch
 	{
-		EmptyIndex => $"Empty {{ Value = {EmptyData} }}",
+		EmptyIndex => "Empty",
 		NestedUnionIndex => $"NestedUnion {{ Value = {NestedUnionData} }}",
 		_ => "<invalid>",
 	};

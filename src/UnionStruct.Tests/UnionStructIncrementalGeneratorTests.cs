@@ -291,6 +291,42 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
+	public async Task FieldlessCasesPrintOnlyTheirName()
+	{
+		// Marker, Tag and OnlyStatic have no instance fields, so ToString prints just the (escaped) name. An auto-property,
+		// a field-like event and a captured primary constructor parameter all hide a field. A partial struct may get
+		// fields from a generator (a nested union does), and primitives and type parameters always print their payload.
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
+			using UnionStruct;
+			namespace Tests;
+			public struct Marker;
+			public readonly record struct Tag;
+			public struct OnlyStatic { public static int Count; }
+			public struct WithAutoProperty { public int X { get; set; } }
+			public struct WithEvent { public event System.Action? Changed; public readonly void Raise() => Changed?.Invoke(); }
+			public struct WithCapturedParameter(int x) { public readonly int X => x; }
+			public partial struct PartialEmpty;
+			[Union]
+			internal partial struct TestUnion<T>
+			{
+				public partial TestUnion(Marker value);
+				[UnionCase(DisplayName = "Quoted \"tag\" {}")] public partial TestUnion(Tag value);
+				public partial TestUnion(OnlyStatic value);
+				public partial TestUnion(WithAutoProperty value);
+				public partial TestUnion(WithEvent value);
+				public partial TestUnion(WithCapturedParameter value);
+				public partial TestUnion(PartialEmpty value);
+				public partial TestUnion(int value);
+				public partial TestUnion(T value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Test]
 	public async Task DisplayNamesAreEscaped()
 	{
 		const string code =

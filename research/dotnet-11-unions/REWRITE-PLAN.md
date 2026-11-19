@@ -200,10 +200,13 @@ Tooling:
 
 ## 7. Open questions
 
-1. **`ToString` format.** `"{Name} {{ Value = {payload} }}"` nests awkwardly when the
-   payload is a record: `Circle { Value = Circle { Radius = 2 } }`. Printing only the
-   payload loses the case name for primitive case types. Pick one in the snapshot-test
-   phase.
+1. ✅ **`ToString` format.** `"{Name} {{ Value = {payload} }}"` is kept for every case
+   whose type has fields. A case whose type is a non-partial struct without instance
+   fields prints just `"{Name}"`: it has only one value, and a plain empty struct's own
+   `ToString` prints its full type name (`Bronze { Value = Tests.Medal+Bronze }`). Printing
+   a record payload alone was rejected: `Name`/`DisplayName` can differ from the type name
+   (`IntCircle` and `FloatCircle` would both print `Circle { … }`), and primitives would
+   lose their case name (`String`/`Int32` both printing `1`).
 2. ✅ **Same-name case types.** A collision is an error (US0005) that points to
    `[UnionCase(Name = …)]`, which overrides the stem of the generated members.
    Disambiguating automatically was rejected: adding a second `Circle<T>` case would
@@ -236,4 +239,4 @@ Tooling:
 Phases 2–7 were implemented on branch `rewrite/dotnet-11-unions`. Open questions 1–3 were
 implemented with their defaults (golden `ToString` format, collision is an error, `readonly`
 structs get `readonly` fields); question 2 was later resolved with `[UnionCase(Name)]`
-(US0010/US0011). Question 1 still needs a decision before release.
+(US0010/US0011), and question 1 with the field-less special case.
