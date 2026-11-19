@@ -2,7 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!--
+    No GeneratePackageOnBuild: with it, the Pack target skips Build (it assumes the build already packed), so `dotnet pack`
+    would ship whatever UnionStruct.dll an earlier build left in $(OutputPath), or fail with NU5019 on a clean tree.
+    -->
 
     <!-- This project exists only to produce the NuGet; its own (empty) assembly must not end up in lib/. -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
