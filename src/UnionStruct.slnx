@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Project Path="UnionStruct.Package\UnionStruct.Package.csproj" Type="Classic C#" />
   <Project Path="UnionStruct.Sample\UnionStruct.Sample.csproj" Type="Classic C#" />
   <Project Path="UnionStruct.Tests.Integration\UnionStruct.Tests.Integration.csproj" Type="Classic C#" />

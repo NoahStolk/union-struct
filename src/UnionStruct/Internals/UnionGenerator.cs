@@ -1,4 +1,4 @@
-﻿using UnionStruct.Internals.Model;
+using UnionStruct.Internals.Model;
 using UnionStruct.Internals.Utils;
 
 namespace UnionStruct.Internals;
@@ -16,6 +16,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 	private const string _utf8Span = "global::System.ReadOnlySpan<global::System.Byte>";
 	private const string _unreachable = "throw new global::System.Diagnostics.UnreachableException($\"Invalid case index: {caseIndex}.\")";
 	private const string _fieldOffsetAttribute = "global::System.Runtime.InteropServices.FieldOffset";
+	private const string _caseIndex = GeneratorConstants.CaseIndexFieldName;
 
 	/// <summary>Payloads start after the 4-byte <c>CaseIndex</c>.</summary>
 	private const int _payloadOffset = 4;
@@ -73,7 +74,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		// Public so callers can take `ref` to a payload. When overlapped, writing the wrong case's field corrupts the
 		// active one: that is the library's deliberate memory-unsafety.
 		string readOnly = unionModel.IsReadOnly ? "readonly " : string.Empty;
-		writer.WriteLine($"{FieldOffset(0)}public readonly {_int32} {GeneratorConstants.CaseIndexFieldName};");
+		writer.WriteLine($"{FieldOffset(0)}public readonly {_int32} {_caseIndex};");
 		writer.WriteLine();
 
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
@@ -96,7 +97,10 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		// `this = default` first, because overlapped fields cannot each be definitely assigned. Fields are qualified with
 		// `this.` in case the user named the parameter after one of them.
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
-			writer.WriteLine($"{unionCase.ConstructorModifiers}partial {unionModel.StructName}({unionCase.TypeName} {unionCase.ParameterName}) {{ this = default; this.{GeneratorConstants.CaseIndexFieldName} = {unionCase.IndexName}; this.{unionCase.FieldName} = {unionCase.ParameterName}; }}");
+		{
+			string signature = $"{unionCase.ConstructorModifiers}partial {unionModel.StructName}({unionCase.TypeName} {unionCase.ParameterName})";
+			writer.WriteLine($"{signature} {{ this = default; this.{_caseIndex} = {unionCase.IndexName}; this.{unionCase.FieldName} = {unionCase.ParameterName}; }}");
+		}
 
 		if (unionModel.HasNonNullableReferenceField)
 			writer.WriteLine("#pragma warning restore CS8618");
@@ -125,7 +129,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 	{
 		// The IUnion contract. It boxes, so pattern matching goes through TryGetValue instead and never reads it.
 		string type = unionModel.ValueIsNullable ? "global::System.Object?" : "global::System.Object";
-		writer.WriteLine($"public readonly {type} Value => {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.WriteLine($"public readonly {type} Value => {_caseIndex} switch");
 		writer.StartBlock();
 		for (int i = 0; i < unionModel.Cases.Count; i++)
 		{
@@ -143,14 +147,14 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		// The non-boxing access pattern: the compiler lowers pattern matching through these. `readonly` so a
 		// `ref readonly` / `in` receiver never needs a defensive copy.
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
-			writer.WriteLine($"public readonly {_boolean} TryGetValue(out {unionCase.TypeName} value) {{ value = {unionCase.FieldName}; return {GeneratorConstants.CaseIndexFieldName} == {unionCase.IndexName}; }}");
+			writer.WriteLine($"public readonly {_boolean} TryGetValue(out {unionCase.TypeName} value) {{ value = {unionCase.FieldName}; return {_caseIndex} == {unionCase.IndexName}; }}");
 
 		writer.WriteLine();
 	}
 
 	private void GenerateEqualityMembers(CodeWriter writer)
 	{
-		writer.WriteLine($"public readonly {_boolean} Equals({_self} other) => {GeneratorConstants.CaseIndexFieldName} == other.{GeneratorConstants.CaseIndexFieldName} && {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.WriteLine($"public readonly {_boolean} Equals({_self} other) => {_caseIndex} == other.{_caseIndex} && {_caseIndex} switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
 			writer.WriteLine($"{unionCase.IndexName} => global::System.Collections.Generic.EqualityComparer<{unionCase.TypeName}>.Default.Equals({unionCase.FieldName}, other.{unionCase.FieldName}),");
@@ -162,12 +166,12 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		writer.WriteLine($"public override readonly {_boolean} Equals(global::System.Object? obj) => obj is {_self} other && Equals(other);");
 		writer.WriteLine();
 
-		writer.WriteLine($"public override readonly {_int32} GetHashCode() => {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.WriteLine($"public override readonly {_int32} GetHashCode() => {_caseIndex} switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
-			writer.WriteLine($"{unionCase.IndexName} => global::System.HashCode.Combine({GeneratorConstants.CaseIndexFieldName}, {unionCase.FieldName}),");
+			writer.WriteLine($"{unionCase.IndexName} => global::System.HashCode.Combine({_caseIndex}, {unionCase.FieldName}),");
 
-		writer.WriteLine($"_ => {GeneratorConstants.CaseIndexFieldName},");
+		writer.WriteLine($"_ => {_caseIndex},");
 		writer.EndBlockWithSemicolon();
 		writer.WriteLine();
 
@@ -178,7 +182,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 
 	private void GenerateToString(CodeWriter writer)
 	{
-		writer.WriteLine($"public override readonly {_string} ToString() => {GeneratorConstants.CaseIndexFieldName} switch");
+		writer.WriteLine($"public override readonly {_string} ToString() => {_caseIndex} switch");
 		writer.StartBlock();
 		foreach (UnionCaseModel unionCase in unionModel.Cases)
 		{
@@ -206,7 +210,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		writer.EndBlockWithSemicolon();
 		writer.WriteLine();
 
-		writer.WriteLine($"public readonly {_string} GetTypeString() => GetTypeString({GeneratorConstants.CaseIndexFieldName});");
+		writer.WriteLine($"public readonly {_string} GetTypeString() => GetTypeString({_caseIndex});");
 		writer.WriteLine();
 
 		writer.WriteLine($"public static {_utf8Span} GetTypeAsUtf8Span({_int32} caseIndex) => caseIndex switch");
@@ -218,7 +222,7 @@ internal sealed class UnionGenerator(UnionModel unionModel)
 		writer.EndBlockWithSemicolon();
 		writer.WriteLine();
 
-		writer.WriteLine($"public readonly {_utf8Span} GetTypeAsUtf8Span() => GetTypeAsUtf8Span({GeneratorConstants.CaseIndexFieldName});");
+		writer.WriteLine($"public readonly {_utf8Span} GetTypeAsUtf8Span() => GetTypeAsUtf8Span({_caseIndex});");
 		writer.WriteLine();
 
 		string names = string.Concat(unionModel.Cases.Select(c => $"{SourceBuilderUtils.EscapeStringLiteral(c.DisplayName)}\\0"));

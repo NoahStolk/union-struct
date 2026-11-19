@@ -13,7 +13,8 @@ public sealed class ToStringTests
 
 		await Assert.That(new RotationType(default(RotationType.None)).ToString()).IsEqualTo("None");
 		await Assert.That(new RotationType(new RandomRotationAroundAxis(Vector3.UnitX)).ToString()).IsEqualTo("RandomRotationAroundAxis { Value = RandomRotationAroundAxis { Axis = <1, 0, 0> } }");
-		await Assert.That(new RotationType(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).ToString()).IsEqualTo("RotationRangeAroundAxis { Value = RotationRangeAroundAxis { Axis = <0, 1, 0>, AngleMin = 0.1, AngleMax = 0.2 } }");
+		await Assert.That(new RotationType(new RotationRangeAroundAxis(Vector3.UnitY, 0.1f, 0.2f)).ToString())
+			.IsEqualTo("RotationRangeAroundAxis { Value = RotationRangeAroundAxis { Axis = <0, 1, 0>, AngleMin = 0.1, AngleMax = 0.2 } }");
 		await Assert.That(new RotationType(new CustomRotation(Quaternion.Identity)).ToString()).IsEqualTo("CustomRotation { Value = CustomRotation { Rotation = {X:0 Y:0 Z:0 W:1} } }");
 
 		await Assert.That(new CompressedIndex((byte)1).ToString()).IsEqualTo("8-bit { Value = 1 }");

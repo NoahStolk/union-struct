@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Verify snapshots must keep LF even where Git would check text out as CRLF (Windows with core.autocrlf).
+*.verified.* text eol=lf working-tree-encoding=UTF-8
+*.verified.bin binary

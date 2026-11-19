@@ -10,7 +10,8 @@ public sealed class NullTerminatedMemberNamesTests
 	{
 		await Assert.That(EnumLikeUnion.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("Bronze\0Silver\0Gold\0"u8.ToArray(), CollectionOrdering.Matching);
 
-		await Assert.That(RotationType.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("None\0RandomRotation\0RandomRotationAroundAxis\0RotationRangeAroundAxis\0CustomRotation\0"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That(RotationType.NullTerminatedMemberNames.ToArray())
+			.IsEquivalentTo("None\0RandomRotation\0RandomRotationAroundAxis\0RotationRangeAroundAxis\0CustomRotation\0"u8.ToArray(), CollectionOrdering.Matching);
 
 		await Assert.That(CompressedIndex.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("8-bit\016-bit\032-bit\0"u8.ToArray(), CollectionOrdering.Matching);
 

@@ -58,6 +58,7 @@ Generator output is verified via Verify. On mismatch, Verify writes `*.received.
 
 - Accept all pending diffs in bulk (both `.cs` sources and `.txt` diagnostics): `./scripts/accept-all.sh src/UnionStruct.Tests/snapshots` from the repo root.
 - Disable the auto-diff popup: `DiffEngine_Disable=true`.
+- Encoding: the repo is UTF-8 **without** BOM (`.editorconfig` `charset = utf-8`), except snapshots. Verify always writes `*.verified.*` as UTF-8 **with** BOM and LF, so `.editorconfig` has a final `[*.{received,verified}.*]` section (Verify's recommended settings) and `.gitattributes` pins them to LF. Don't strip their BOMs or reformat them.
 - Pick a different diff tool: `DiffEngine_ToolOrder=<tool>` (configurable in Rider under Build, Execution, Deployment → Unit Testing → Test Runner → Environment variables).
 
 When you add a generator feature, add a new `[Test]` in `UnionStructIncrementalGeneratorTests` and a matching integration test in `UnionStruct.Tests.Integration` if it has runtime behavior worth pinning down.

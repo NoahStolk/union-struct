@@ -1,4 +1,4 @@
-﻿// ReSharper disable once CheckNamespace
+// ReSharper disable once CheckNamespace
 namespace System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once UnusedType.Global
