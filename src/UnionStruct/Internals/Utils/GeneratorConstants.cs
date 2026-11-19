@@ -10,6 +10,8 @@ internal static class GeneratorConstants
 
 	public const string UnionCaseAttributeFullName = $"{RootNamespace}.{UnionCaseAttributeName}";
 
+	public const string NamePropertyName = "Name";
+
 	public const string DisplayNamePropertyName = "DisplayName";
 
 	/// <summary>

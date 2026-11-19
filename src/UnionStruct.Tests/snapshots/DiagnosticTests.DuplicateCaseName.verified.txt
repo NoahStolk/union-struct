@@ -2,12 +2,25 @@
   Diagnostics: [
     {
       Location: : (7,16)-(7,25),
-      Message: Union 'Tests.TestUnion' has more than one case named 'Circle'; generated member names come from the case type's name without type arguments, so the case types need distinct names,
+      Message: Union 'Tests.TestUnion' has more than one case named 'Circle'; a case is named after its type without type arguments, so give one a distinct name with [UnionCase(Name = ...)],
       Severity: Error,
       Descriptor: {
         Id: US0005,
         Title: Union case names must be unique,
-        MessageFormat: Union '{0}' has more than one case named '{1}'; generated member names come from the case type's name without type arguments, so the case types need distinct names,
+        MessageFormat: Union '{0}' has more than one case named '{1}'; a case is named after its type without type arguments, so give one a distinct name with [UnionCase(Name = ...)],
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (9,56)-(9,65),
+      Message: Union 'Tests.TestUnion' has more than one case named 'Int32'; a case is named after its type without type arguments, so give one a distinct name with [UnionCase(Name = ...)],
+      Severity: Error,
+      Descriptor: {
+        Id: US0005,
+        Title: Union case names must be unique,
+        MessageFormat: Union '{0}' has more than one case named '{1}'; a case is named after its type without type arguments, so give one a distinct name with [UnionCase(Name = ...)],
         Category: UnionStruct,
         DefaultSeverity: Error,
         IsEnabledByDefault: true

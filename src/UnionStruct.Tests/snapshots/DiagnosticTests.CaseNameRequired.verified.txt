@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (5,16)-(5,25),
+      Message: Case type '(int, int)' of union 'Tests.TestUnion' has no name to derive the case's generated members from; name the case with [UnionCase(Name = ...)],
+      Severity: Error,
+      Descriptor: {
+        Id: US0011,
+        Title: Union case needs an explicit name,
+        MessageFormat: Case type '{0}' of union '{1}' has no name to derive the case's generated members from; name the case with [UnionCase(Name = ...)],
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (6,16)-(6,25),
+      Message: Case type '(int, int)[]' of union 'Tests.TestUnion' has no name to derive the case's generated members from; name the case with [UnionCase(Name = ...)],
+      Severity: Error,
+      Descriptor: {
+        Id: US0011,
+        Title: Union case needs an explicit name,
+        MessageFormat: Case type '{0}' of union '{1}' has no name to derive the case's generated members from; name the case with [UnionCase(Name = ...)],
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

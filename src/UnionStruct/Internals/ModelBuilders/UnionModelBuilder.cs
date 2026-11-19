@@ -71,10 +71,23 @@ internal static class UnionModelBuilder
 
 			caseTypes.Add(caseType);
 
-			string? name = GetCaseName(caseType);
-			if (name is null)
+			if (!IsSupportedCaseType(caseType))
 			{
 				diagnostics.Add(DiagnosticInfo.Create(Diagnostics.UnsupportedCaseType, constructorLocation, caseType.ToDisplayString(), structDisplayName));
+				continue;
+			}
+
+			string? explicitName = GetUnionCaseArgument(constructor, GeneratorConstants.NamePropertyName);
+			if (explicitName != null && !SyntaxFacts.IsValidIdentifier(explicitName))
+			{
+				diagnostics.Add(DiagnosticInfo.Create(Diagnostics.InvalidCaseName, constructorLocation, explicitName, structDisplayName));
+				continue;
+			}
+
+			string? name = explicitName ?? GetCaseName(caseType);
+			if (name is null)
+			{
+				diagnostics.Add(DiagnosticInfo.Create(Diagnostics.CaseNameRequired, constructorLocation, caseType.ToDisplayString(), structDisplayName));
 				continue;
 			}
 
@@ -98,7 +111,7 @@ internal static class UnionModelBuilder
 			cases.Add(new UnionCaseModel
 			{
 				Name = name,
-				DisplayName = GetDisplayName(constructor) ?? name,
+				DisplayName = GetUnionCaseArgument(constructor, GeneratorConstants.DisplayNamePropertyName) ?? name,
 				TypeName = caseType.ToDisplayString(_typeFormat),
 				ConstructorModifiers = GetAccessibilityModifiers(syntax),
 				ParameterName = SourceBuilderUtils.EscapeIdentifier(parameter.Name),
@@ -184,8 +197,23 @@ internal static class UnionModelBuilder
 	}
 
 	/// <summary>
-	/// The case type's name without type arguments. It becomes the stem of the generated <c>{Name}Index</c> and
-	/// <c>{Name}Data</c> members, so it must be a valid identifier.
+	/// Pointers and function pointers cannot be boxed into <c>Value</c> or used as type arguments, and <c>dynamic</c>
+	/// cannot be matched by type.
+	/// </summary>
+	private static bool IsSupportedCaseType(ITypeSymbol type)
+	{
+		return type switch
+		{
+			IPointerTypeSymbol or IFunctionPointerTypeSymbol or IDynamicTypeSymbol => false,
+			IArrayTypeSymbol array => IsSupportedCaseType(array.ElementType),
+			_ => true,
+		};
+	}
+
+	/// <summary>
+	/// The case type's name without type arguments, or <see langword="null"/> when it has none (tuples), in which case
+	/// the user has to name the case. It becomes the stem of the generated <c>{Name}Index</c> and <c>{Name}Data</c>
+	/// members, so it must be a valid identifier.
 	/// </summary>
 	private static string? GetCaseName(ITypeSymbol type)
 	{
@@ -200,7 +228,8 @@ internal static class UnionModelBuilder
 		};
 	}
 
-	private static string? GetDisplayName(IMethodSymbol constructor)
+	/// <summary>Reads a string property of the constructor's <c>[UnionCase]</c>.</summary>
+	private static string? GetUnionCaseArgument(IMethodSymbol constructor, string propertyName)
 	{
 		foreach (AttributeData attribute in constructor.GetAttributes())
 		{
@@ -209,8 +238,8 @@ internal static class UnionModelBuilder
 
 			foreach (KeyValuePair<string, TypedConstant> argument in attribute.NamedArguments)
 			{
-				if (argument.Key == GeneratorConstants.DisplayNamePropertyName && argument.Value.Value is string displayName)
-					return displayName;
+				if (argument.Key == propertyName && argument.Value.Value is string value)
+					return value;
 			}
 		}
 

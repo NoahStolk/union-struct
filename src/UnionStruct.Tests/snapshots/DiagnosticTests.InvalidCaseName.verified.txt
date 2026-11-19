@@ -1,0 +1,43 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (6,44)-(6,53),
+      Message: Case name '8-bit' of union 'Tests.TestUnion' is not a valid C# identifier; it is the stem of the case's generated members,
+      Severity: Error,
+      Descriptor: {
+        Id: US0010,
+        Title: Union case name must be a valid identifier,
+        MessageFormat: Case name '{0}' of union '{1}' is not a valid C# identifier; it is the stem of the case's generated members,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (7,39)-(7,48),
+      Message: Case name '' of union 'Tests.TestUnion' is not a valid C# identifier; it is the stem of the case's generated members,
+      Severity: Error,
+      Descriptor: {
+        Id: US0010,
+        Title: Union case name must be a valid identifier,
+        MessageFormat: Case name '{0}' of union '{1}' is not a valid C# identifier; it is the stem of the case's generated members,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (8,47)-(8,56),
+      Message: Case name '@Escaped' of union 'Tests.TestUnion' is not a valid C# identifier; it is the stem of the case's generated members,
+      Severity: Error,
+      Descriptor: {
+        Id: US0010,
+        Title: Union case name must be a valid identifier,
+        MessageFormat: Case name '{0}' of union '{1}' is not a valid C# identifier; it is the stem of the case's generated members,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

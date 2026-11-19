@@ -84,8 +84,9 @@ Consequences:
 - **Case types must be distinct.** The 0.4 pattern of two named cases sharing one payload
   type (`Int(int)`, `Count(int)`) now needs a distinct type for each case.
 - **Case names** come from the case type's name, without type arguments, unless
-  `[UnionCase(DisplayName = …)]` overrides them. A name collision (`Foo.Circle` and
-  `Bar.Circle`) is a generator diagnostic that the user resolves with `DisplayName`.
+  `[UnionCase(Name = …)]` overrides them. A name collision (`Foo.Circle` and
+  `Bar.Circle`) is a generator diagnostic that the user resolves with `Name`.
+  (`DisplayName` only changes strings, so it cannot resolve a collision.)
 
 ## 3. Generated shape
 
@@ -203,8 +204,14 @@ Tooling:
    payload is a record: `Circle { Value = Circle { Radius = 2 } }`. Printing only the
    payload loses the case name for primitive case types. Pick one in the snapshot-test
    phase.
-2. **Same-name case types.** Should a collision be a hard error, or should the generator
-   use the fully qualified name? Default: error, with a hint to set `DisplayName`.
+2. ✅ **Same-name case types.** A collision is an error (US0005) that points to
+   `[UnionCase(Name = …)]`, which overrides the stem of the generated members.
+   Disambiguating automatically was rejected: adding a second `Circle<T>` case would
+   silently rename the first case's public fields and break `ref` call sites. Static
+   factory methods (method name = case name, as in 0.4) were reconsidered and rejected:
+   they don't register cases (`CS9385`), so the generator would have to emit the
+   constructors, adding a second construction path and suggesting named cases where
+   matching is by type.
 3. **Struct-level `readonly`.** If the user declares `readonly partial struct`, `ref`
    mutation of payloads is impossible. Should the generator allow it (enum-like unions
    want it) or warn? Default: allow it, and make the fields `readonly`.
@@ -228,5 +235,5 @@ Tooling:
 
 Phases 2–7 were implemented on branch `rewrite/dotnet-11-unions`. Open questions 1–3 were
 implemented with their defaults (golden `ToString` format, collision is an error, `readonly`
-structs get `readonly` fields); question 1 and the collision fix for question 2 still need a
-decision before release.
+structs get `readonly` fields); question 2 was later resolved with `[UnionCase(Name)]`
+(US0010/US0011). Question 1 still needs a decision before release.

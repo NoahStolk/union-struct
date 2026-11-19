@@ -92,6 +92,8 @@ public sealed class DiagnosticTests
 			{
 				public partial TestUnion(Circle<int> value);
 				public partial TestUnion(Circle<float> value);
+				public partial TestUnion(int value);
+				[UnionStruct.UnionCase(Name = "Int32")] public partial TestUnion(long value);
 			}
 			""";
 
@@ -126,7 +128,46 @@ public sealed class DiagnosticTests
 			[Union]
 			internal partial struct TestUnion
 			{
+				public unsafe partial TestUnion(int* value);
+				public partial TestUnion(dynamic value);
+			}
+			""";
+
+		await TestHelper.VerifyDiagnostics(code);
+	}
+
+	[Test]
+	public async Task InvalidCaseName()
+	{
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
+			using UnionStruct;
+			namespace Tests;
+			[Union]
+			internal partial struct TestUnion
+			{
+				[UnionCase(Name = "8-bit")] public partial TestUnion(byte value);
+				[UnionCase(Name = "")] public partial TestUnion(ushort value);
+				[UnionCase(Name = "@Escaped")] public partial TestUnion(uint value);
+			}
+			""";
+
+		await TestHelper.VerifyDiagnostics(code);
+	}
+
+	[Test]
+	public async Task CaseNameRequired()
+	{
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
+			namespace Tests;
+			[Union]
+			internal partial struct TestUnion
+			{
 				public partial TestUnion((int, int) value);
+				public partial TestUnion((int, int)[] value);
 			}
 			""";
 

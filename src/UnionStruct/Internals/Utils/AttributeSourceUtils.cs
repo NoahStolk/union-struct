@@ -27,6 +27,16 @@ internal static class AttributeSourceUtils
 		  [global::System.AttributeUsage(global::System.AttributeTargets.Constructor)]
 		  internal sealed class {{GeneratorConstants.UnionCaseAttributeName}} : global::System.Attribute
 		  {
+		  	/// <summary>
+		  	/// The case's name: the stem of its generated members (<c>{Name}Index</c>, <c>{Name}Data</c>). Defaults to the
+		  	/// case type's name without type arguments. Must be a valid C# identifier.
+		  	/// </summary>
+		  	public string? {{GeneratorConstants.NamePropertyName}} { get; init; }
+
+		  	/// <summary>
+		  	/// The case's name in strings (<c>ToString</c>, <c>GetTypeString</c>, the UTF-8 names). Defaults to the case's
+		  	/// name. Never affects generated identifiers.
+		  	/// </summary>
 		  	public string? {{GeneratorConstants.DisplayNamePropertyName}} { get; init; }
 		  }
 		  """;

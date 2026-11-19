@@ -2,10 +2,13 @@ namespace UnionStruct.Internals.Model;
 
 internal sealed record UnionCaseModel
 {
-	/// <summary>The case type's name without type arguments. The source of every generated identifier for the case.</summary>
+	/// <summary>
+	/// The <c>[UnionCase(Name = ...)]</c> override, or else the case type's name without type arguments. The source of
+	/// every generated identifier for the case.
+	/// </summary>
 	public required string Name { get; init; }
 
-	/// <summary><see cref="Name"/>, or the <c>[UnionCase(DisplayName = ...)]</c> override.</summary>
+	/// <summary>The <c>[UnionCase(DisplayName = ...)]</c> override, or else <see cref="Name"/>.</summary>
 	public required string DisplayName { get; init; }
 
 	/// <summary>The fully qualified case type, including nullable annotations.</summary>

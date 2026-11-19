@@ -13,6 +13,8 @@ US0006  | UnionStruct | Error    | Diagnostics
 US0007  | UnionStruct | Error    | Diagnostics
 US0008  | UnionStruct | Error    | Diagnostics
 US0009  | UnionStruct | Error    | Diagnostics
+US0010  | UnionStruct | Error    | Diagnostics
+US0011  | UnionStruct | Error    | Diagnostics
 
 ### Removed Rules
 

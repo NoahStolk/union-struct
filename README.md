@@ -114,18 +114,34 @@ For each union, the generator emits:
 - `Value` (the `IUnion` contract; it boxes, so pattern matching never uses it) and a non-boxing `TryGetValue(out TCase)` per case;
 - `IEquatable<T>`, `Equals`, `GetHashCode`, `==` and `!=`;
 - `ToString`, formatted as `<Name> { Value = <payload> }`;
-- `GetTypeString`, `GetTypeAsUtf8Span` (static by case index, or for the current case) and `NullTerminatedMemberNames`, which use the case type's name or its `DisplayName`.
+- `GetTypeString`, `GetTypeAsUtf8Span` (static by case index, or for the current case) and `NullTerminatedMemberNames`, which use the case's name or its `DisplayName`.
 
-Generated member names come from the case type's name, so two cases whose types share a name (`Foo.Circle` and `Bar.Circle`, or `Circle<int>` and `Circle<float>`) are an error.
+### Case names
+
+A case is named after its type, without type arguments: `Circle<T>` gives `CircleIndex` and `CircleData`, `int?` gives `NullableInt32…` and `int[]` gives `Int32Array…`. `[UnionCase(Name = "…")]` overrides it. You need that when two case types share a name (`Foo.Circle` and `Bar.Circle`, or `Circle<int>` and `Circle<float>`), which is otherwise an error, and for tuple case types, which have no name of their own:
+
+```csharp
+[Union]
+public partial struct Radius
+{
+	[UnionCase(Name = "IntCircle")]
+	public partial Radius(Circle<int> value);     // IntCircleIndex, IntCircleData
+
+	[UnionCase(Name = "FloatCircle", DisplayName = "Circle (float)")]
+	public partial Radius(Circle<float> value);   // FloatCircleIndex, FloatCircleData
+}
+```
+
+`Name` must be a valid identifier, because it is the stem of the generated members. `DisplayName` only changes strings and defaults to the name. Matching never uses either: cases are matched by type, as in `case Circle<int> c`.
 
 ## Migrating from 0.4
 
 1. Declare a case type for each case. Use a record struct for a multi-parameter case and an empty struct for a case without data.
 2. Replace `[UnionStruct.Union]` with `[System.Runtime.CompilerServices.Union]`.
-3. Replace each `[UnionCase] public static partial U Foo(T value);` with `public partial U(FooType value);`. Keep `DisplayName` if you had one.
+3. Replace each `[UnionCase] public static partial U Foo(T value);` with `public partial U(FooType value);`. Keep `DisplayName` if you had one, and add `Name = "Foo"` when the case type isn't named `Foo`.
 4. Construction: `U.Foo(x)` becomes `new U(new FooType(x))`, or relies on the implicit conversion.
 5. Matching: `Switch`, `Match`, `Is<Case>`, `Tag` and `CaseTag` are gone. Use `u switch { FooType f => … }` and `u is FooType`.
-6. `ref u.FooData` keeps working as long as the case type is named `Foo`.
+6. `ref u.FooData` keeps working as long as the case is named `Foo`, either through its type name or `Name`.
 7. Add `<WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>`. It replaces the `US0001` analyzer.
 
 ## Benchmarks

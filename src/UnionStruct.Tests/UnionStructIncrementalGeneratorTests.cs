@@ -268,6 +268,29 @@ public sealed class UnionStructIncrementalGeneratorTests
 	}
 
 	[Test]
+	public async Task NamedCases()
+	{
+		// Name tells apart cases whose types share a name, and names tuples, which have none of their own. DisplayName
+		// defaults to Name and only changes strings.
+		const string code =
+			"""
+			using System.Runtime.CompilerServices;
+			using UnionStruct;
+			namespace Tests;
+			public readonly record struct Circle<T>(T Radius);
+			[Union]
+			internal partial struct TestUnion
+			{
+				[UnionCase(Name = "IntCircle")] public partial TestUnion(Circle<int> value);
+				[UnionCase(Name = "FloatCircle", DisplayName = "Circle (float)")] public partial TestUnion(Circle<float> value);
+				[UnionCase(Name = "Point")] public partial TestUnion((int X, int Y) value);
+			}
+			""";
+
+		await TestHelper.Verify(code);
+	}
+
+	[Test]
 	public async Task DisplayNamesAreEscaped()
 	{
 		const string code =

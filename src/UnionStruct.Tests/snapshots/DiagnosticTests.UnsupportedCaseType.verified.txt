@@ -1,13 +1,26 @@
 ﻿{
   Diagnostics: [
     {
-      Location: : (5,16)-(5,25),
-      Message: Case type '(int, int)' of union 'Tests.TestUnion' is not supported; use a named type, a type parameter, or an array of one,
+      Location: : (5,23)-(5,32),
+      Message: Case type 'int*' of union 'Tests.TestUnion' is not supported; pointer, function pointer and dynamic case types cannot be stored in a union,
       Severity: Error,
       Descriptor: {
         Id: US0007,
         Title: Union case type is not supported,
-        MessageFormat: Case type '{0}' of union '{1}' is not supported; use a named type, a type parameter, or an array of one,
+        MessageFormat: Case type '{0}' of union '{1}' is not supported; pointer, function pointer and dynamic case types cannot be stored in a union,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (6,16)-(6,25),
+      Message: Case type 'dynamic' of union 'Tests.TestUnion' is not supported; pointer, function pointer and dynamic case types cannot be stored in a union,
+      Severity: Error,
+      Descriptor: {
+        Id: US0007,
+        Title: Union case type is not supported,
+        MessageFormat: Case type '{0}' of union '{1}' is not supported; pointer, function pointer and dynamic case types cannot be stored in a union,
         Category: UnionStruct,
         DefaultSeverity: Error,
         IsEnabledByDefault: true

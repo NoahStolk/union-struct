@@ -23,7 +23,7 @@ Console.WriteLine("\n=== CaseIndex and member names ===");
 for (int i = 0; i < TestUnion.CaseCount; i++)
 	Console.WriteLine($"{i}: {TestUnion.GetTypeString(i)}");
 
-void WriteShape<T>(Shape<T> shape)
+static void WriteShape<T>(Shape<T> shape)
 	where T : INumber<T>
 {
 	// Native, exhaustive switch: no default arm, no delegates, no allocation.
@@ -38,7 +38,7 @@ void WriteShape<T>(Shape<T> shape)
 	Console.WriteLine($"  ToString: {shape}");
 }
 
-void WriteUnion(TestUnion testUnion)
+static void WriteUnion(TestUnion testUnion)
 {
 	Console.WriteLine(testUnion);
 	foreach (byte b in Marshal(testUnion))

@@ -33,7 +33,7 @@ internal static class Diagnostics
 	public static readonly DiagnosticDescriptor DuplicateCaseName = new(
 		id: "US0005",
 		title: "Union case names must be unique",
-		messageFormat: "Union '{0}' has more than one case named '{1}'; generated member names come from the case type's name without type arguments, so the case types need distinct names",
+		messageFormat: "Union '{0}' has more than one case named '{1}'; a case is named after its type without type arguments, so give one a distinct name with [UnionCase(Name = ...)]",
 		category: _category,
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true);
@@ -49,7 +49,7 @@ internal static class Diagnostics
 	public static readonly DiagnosticDescriptor UnsupportedCaseType = new(
 		id: "US0007",
 		title: "Union case type is not supported",
-		messageFormat: "Case type '{0}' of union '{1}' is not supported; use a named type, a type parameter, or an array of one",
+		messageFormat: "Case type '{0}' of union '{1}' is not supported; pointer, function pointer and dynamic case types cannot be stored in a union",
 		category: _category,
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true);
@@ -66,6 +66,22 @@ internal static class Diagnostics
 		id: "US0009",
 		title: "UnionStruct requires .NET 11",
 		messageFormat: "Union '{0}' requires System.Runtime.CompilerServices.IUnion, which ships with .NET 11",
+		category: _category,
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
+
+	public static readonly DiagnosticDescriptor InvalidCaseName = new(
+		id: "US0010",
+		title: "Union case name must be a valid identifier",
+		messageFormat: "Case name '{0}' of union '{1}' is not a valid C# identifier; it is the stem of the case's generated members",
+		category: _category,
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
+
+	public static readonly DiagnosticDescriptor CaseNameRequired = new(
+		id: "US0011",
+		title: "Union case needs an explicit name",
+		messageFormat: "Case type '{0}' of union '{1}' has no name to derive the case's generated members from; name the case with [UnionCase(Name = ...)]",
 		category: _category,
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true);
