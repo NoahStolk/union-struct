@@ -15,6 +15,6 @@ internal sealed record LocationInfo(string FilePath, TextSpan TextSpan, LinePosi
 
 	public Location ToLocation()
 	{
-		return Microsoft.CodeAnalysis.Location.Create(FilePath, TextSpan, LineSpan);
+		return Location.Create(FilePath, TextSpan, LineSpan);
 	}
 }

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 namespace UnionStruct.Tests.Integration.Unions;
 
 /// <summary>Generic, so the layout is sequential even though every case is unmanaged once closed.</summary>
+/// <typeparam name="T">The numeric type of the shapes' dimensions.</typeparam>
 [Union]
 internal partial struct Shape<T>
 	where T : INumber<T>

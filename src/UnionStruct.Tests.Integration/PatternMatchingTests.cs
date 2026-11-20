@@ -74,9 +74,7 @@ public sealed class PatternMatchingTests
 
 		await Assert.That(union is string { Length: 5 }).IsTrue();
 		await Assert.That(union is int).IsFalse();
-#pragma warning disable CA1508 // The dataflow analysis does not know that a union's type patterns test the active case.
-		await Assert.That(union is string s && s == "hello").IsTrue();
-#pragma warning restore CA1508
+		await Assert.That(union is "hello").IsTrue();
 	}
 
 	[Test]

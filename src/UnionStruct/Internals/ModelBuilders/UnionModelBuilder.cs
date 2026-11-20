@@ -270,15 +270,14 @@ internal static class UnionModelBuilder
 
 		if (type is ITypeParameterSymbol typeParameter)
 		{
-			return !typeParameter.HasValueTypeConstraint
-				&& !typeParameter.HasUnmanagedTypeConstraint
-				&& !typeParameter.HasNotNullConstraint
-				&& !(typeParameter.HasReferenceTypeConstraint && typeParameter.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.NotAnnotated)
-				&& !typeParameter.ConstraintTypes.Any(c => c.NullableAnnotation == NullableAnnotation.NotAnnotated);
+			return
+				typeParameter is { HasValueTypeConstraint: false, HasUnmanagedTypeConstraint: false, HasNotNullConstraint: false }
+					and not { HasReferenceTypeConstraint: true, ReferenceTypeConstraintNullableAnnotation: NullableAnnotation.NotAnnotated } &&
+				!typeParameter.ConstraintTypes.Any(c => c.NullableAnnotation == NullableAnnotation.NotAnnotated);
 		}
 
 		// Oblivious reference types (declared in a #nullable disable context) may be null as well.
-		return type.IsReferenceType && type.NullableAnnotation == NullableAnnotation.None;
+		return type is { IsReferenceType: true, NullableAnnotation: NullableAnnotation.None };
 	}
 
 	/// <summary>

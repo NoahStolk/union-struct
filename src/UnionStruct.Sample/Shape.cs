@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 namespace UnionStruct.Sample;
 
 /// <summary>Generic, and one case holds a string: the payloads are laid out sequentially.</summary>
+/// <typeparam name="T">The numeric type of the shapes' dimensions.</typeparam>
 [Union]
 internal partial struct Shape<T>
 	where T : INumber<T>

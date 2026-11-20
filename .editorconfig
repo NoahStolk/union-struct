@@ -13,6 +13,11 @@ indent_size = 2
 indent_size = 4
 trim_trailing_whitespace = true
 
+# ReSharper reports the parameters of partial constructor definitions as unused even though the implementing
+# half uses them, so every union declaration would warn on every case. Remove once JetBrains fixes it.
+[src/{UnionStruct.Tests.Integration/Unions/*.cs,UnionStruct.Sample/Shape.cs,UnionStruct.Sample/TestUnion.cs}]
+resharper_unused_parameter_local_highlighting = none
+
 # Verify snapshots. Verify always writes UTF-8 with a BOM and LF, and compares the text exactly, so these files must not
 # be reformatted. These are Verify's recommended settings; the section must stay last to override [*] and [*.cs].
 [*.{received,verified}.*]
