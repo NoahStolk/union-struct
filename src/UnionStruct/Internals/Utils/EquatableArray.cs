@@ -7,15 +7,11 @@ namespace UnionStruct.Internals.Utils;
 /// An immutable array with value equality, so that models containing collections still compare equal across generator
 /// runs and the incremental pipeline can cache them.
 /// </summary>
-internal readonly struct EquatableArray<T> : IEquatable<EquatableArray<T>>, IReadOnlyList<T>
+/// <typeparam name="T">The type of elements in the array.</typeparam>
+internal readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<EquatableArray<T>>, IReadOnlyList<T>
 	where T : IEquatable<T>
 {
-	private readonly ImmutableArray<T> _array;
-
-	public EquatableArray(ImmutableArray<T> array)
-	{
-		_array = array;
-	}
+	private readonly ImmutableArray<T> _array = array;
 
 	public static EquatableArray<T> Empty => new(ImmutableArray<T>.Empty);
 
