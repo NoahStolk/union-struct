@@ -1,4 +1,8 @@
-﻿namespace UnionStruct.Internals.Utils;
+using Microsoft.CodeAnalysis.CSharp;
+using System.Globalization;
+using System.Text;
+
+namespace UnionStruct.Internals.Utils;
 
 internal static class SourceBuilderUtils
 {
@@ -23,20 +27,41 @@ internal static class SourceBuilderUtils
 		return template.Replace("\r", string.Empty);
 	}
 
-	public static string ToEscapedLocal(string name)
+	public static string EscapeIdentifier(string identifier)
 	{
-		name = name.RemovePrefix("@").RemovePrefix("_");
-		return $"@{name.FirstCharToLowerCase()}";
+		return SyntaxFacts.GetKeywordKind(identifier) == SyntaxKind.None ? identifier : $"@{identifier}";
 	}
 
-	private static string RemovePrefix(this string name, string prefix)
+	/// <summary>Returns the contents of a regular (non-verbatim) string literal, without the surrounding quotes.</summary>
+	public static string EscapeStringLiteral(string value)
 	{
-		if (!name.StartsWith(prefix, StringComparison.Ordinal))
-			return name;
+		StringBuilder sb = new(value.Length);
+		foreach (char c in value)
+		{
+			switch (c)
+			{
+				case '\\': sb.Append(@"\\"); break;
+				case '"': sb.Append("\\\""); break;
+				case '\0': sb.Append(@"\0"); break;
+				case '\n': sb.Append(@"\n"); break;
+				case '\r': sb.Append(@"\r"); break;
+				case '\t': sb.Append(@"\t"); break;
+				default:
+					if (char.IsControl(c))
+						sb.Append(@"\u").Append(((int)c).ToString("X4", CultureInfo.InvariantCulture));
+					else
+						sb.Append(c);
 
-		if (name.Length == prefix.Length)
-			throw new InvalidOperationException($"Invalid identifier '{name}'.");
+					break;
+			}
+		}
 
-		return name.Substring(prefix.Length);
+		return sb.ToString();
+	}
+
+	/// <summary>Like <see cref="EscapeStringLiteral"/>, for the literal part of an interpolated string.</summary>
+	public static string EscapeInterpolatedStringLiteral(string value)
+	{
+		return EscapeStringLiteral(value).Replace("{", "{{").Replace("}", "}}");
 	}
 }

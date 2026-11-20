@@ -4,7 +4,9 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/NoahStolk.UnionStruct.svg)](https://www.nuget.org/packages/NoahStolk.UnionStruct/)
 
-Union-struct is an opinionated zero-dependency library containing a source generator that generates memory-efficient union structs in C#. Union structs are value types that can store multiple types in the same memory location.
+Union-struct is an opinionated zero-dependency source generator that completes C# 15 [union types](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/unions) as memory-efficient, allocation-free structs. You declare the case types and the union; the generator writes the storage, the non-boxing pattern-matching support, equality, `ToString`, and a few helpers.
+
+**Requires C# 15 / .NET 11.** Version 0.5 is a rewrite on top of the native union feature and is not source compatible with 0.4. For older language versions, stay on [0.4.0](https://www.nuget.org/packages/NoahStolk.UnionStruct/0.4.0); see [Migrating from 0.4](#migrating-from-04).
 
 ## Installation
 
@@ -21,13 +23,17 @@ This is an analyzer-only package, so the `PackageReference` it writes needs no f
 </PackageReference>
 ```
 
-The `[Union]`, `[UnionCase]` and `[GeneratedUnion]` attributes are generated into your compilation as `internal` types in the `UnionStruct` namespace — there is no assembly to reference, and the package leaves no trace in your build output or in the dependencies of any package you publish.
+The optional `[UnionCase]` attribute is generated into your compilation as an `internal` type in the `UnionStruct` namespace — there is no assembly to reference, and the package leaves no trace in your build output or in the dependencies of any package you publish. The `[Union]` attribute is the BCL's own `System.Runtime.CompilerServices.UnionAttribute`.
 
 ## Motivation
 
-This library is inspired by the [Type Unions for C# proposal](https://github.com/dotnet/csharplang/blob/main/proposals/TypeUnions.md). At the time of writing, the prototype, implementation, and specification for this proposal have not been started.
+C# 15 unions give native `switch`/`is` and compile-time exhaustiveness, but the compiler synthesizes no bodies. A union that just stores its payload in an `object` boxes every value-type case. Avoiding that means hand-writing typed storage and a `TryGetValue` overload per case, plus equality and `ToString`. This library generates all of that.
 
-It also takes inspiration from:
+It also keeps the reason the library exists: **case data lives in public fields**, so you can pass a payload by `ref` and mutate it in place. When every case type is unmanaged (and the union is not generic), the payloads also overlap in memory, like a C union.
+
+This comes at the cost of memory-safety. Writing to a field that is not the active case's can corrupt the active one.
+
+It takes inspiration from:
 - [OneOf](https://github.com/mcintyre321/OneOf)
 - [Dunet](https://github.com/domn1995/dunet)
 - [Dusharp](https://github.com/kolebynov/Dusharp)
@@ -35,76 +41,108 @@ It also takes inspiration from:
 
 These are all great libraries. If this library doesn't suit your needs, I recommend checking them out.
 
-I have not found a library that supports generating union structs with data that can be passed to `ref` parameters. This was the main motivation for creating this library.
-
-This comes at the cost of memory-safety, as public fields need to be generated to allow this. Changing the data of a union struct can lead to memory corruption if not done correctly.
-
 ## Examples
 
-### Basic Usage
+### Declaring a union
+
+Declare the case types, then a `partial struct` with the BCL `[Union]` attribute and one `partial` constructor per case. The constructor's parameter type is the case type.
 
 ```csharp
-using UnionStruct;
+using System.Numerics;
+using System.Runtime.CompilerServices;   // [Union]
+using UnionStruct;                       // [UnionCase]
+
+public readonly record struct Circle<T>(T Radius);
+public readonly record struct Rectangle<T>(T Width, T Height);
 
 [Union]
-internal partial struct VarIndex
+public partial struct Shape<T> where T : INumber<T>
 {
-	[UnionCase]
-	public static partial VarIndex Unsigned8(byte index);
+	public partial Shape(Circle<T> value);
 
-	[UnionCase]
-	public static partial VarIndex Unsigned16(ushort index);
-
-	[UnionCase]
-	public static partial VarIndex Unsigned32(uint index);
+	[UnionCase(DisplayName = "Rect")]
+	public partial Shape(Rectangle<T> value);
 }
 ```
 
-### Matching
-
-Union structs can be matched using the `Switch` and `Match` methods.
+Case types must be distinct. A case without data is an empty struct, so enum-like unions nest them:
 
 ```csharp
-VarIndex index = VarIndex.Unsigned8(123);
-index.Switch(
-	(u8) => Console.WriteLine($"Unsigned 8-bit index: {u8}"),
-	(u16) => Console.WriteLine($"Unsigned 16-bit index: {u16}"),
-	(u32) => Console.WriteLine($"Unsigned 32-bit index: {u32}"));
+[Union]
+public readonly partial struct Medal
+{
+	public readonly record struct Bronze;
+	public readonly record struct Silver;
+	public readonly record struct Gold;
 
-int size = index.Match(
-	(u8) => sizeof(byte),
-	(u16) => sizeof(ushort),
-	(u32) => sizeof(uint));
+	public partial Medal(Bronze _);
+	public partial Medal(Silver _);
+	public partial Medal(Gold _);
+}
 ```
 
-### Exhaustive switching (zero-allocation)
-
-`Switch` and `Match` allocate a delegate per call. For hot paths, you can switch directly on the generated `<Case>Index` constants or the nested `CaseTag` enum — both compile to a plain integer switch with no allocation.
+### Constructing and matching
 
 ```csharp
-// Switch on the public CaseIndex field against per-case constants.
-int size = index.CaseIndex switch
-{
-	VarIndex.Unsigned8Index => sizeof(byte),
-	VarIndex.Unsigned16Index => sizeof(ushort),
-	VarIndex.Unsigned32Index => sizeof(uint),
-};
+Shape<float> shape = new Circle<float>(2f);   // implicit conversion, or new Shape<float>(new Circle<float>(2f))
 
-// Or switch on the generated CaseTag enum.
-int size2 = index.Tag switch
+float area = shape switch
 {
-	VarIndex.CaseTag.Unsigned8 => sizeof(byte),
-	VarIndex.CaseTag.Unsigned16 => sizeof(ushort),
-	VarIndex.CaseTag.Unsigned32 => sizeof(uint),
-};
+	Circle<float> c => c.Radius * c.Radius,
+	Rectangle<float> r => r.Width * r.Height,
+};   // exhaustive: no default arm, no allocation
 ```
 
-Because the compiler can't prove an `int`-switch is exhaustive, the library ships an analyzer and a diagnostic suppressor:
+Adding a case later turns every switch expression that misses it into warning `CS8509`. Add `<WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>` to your project to enforce it.
 
-- `US0001` warns when a switch on `.CaseIndex` or `.Tag` is missing one or more cases. A code fix (`Add missing union cases`) inserts the missing arms.
-- A `DiagnosticSuppressor` silences `CS8509`/`CS8524` ("switch expression isn't exhaustive") on these switches once every case is covered, so you can omit the `_ =>` default arm entirely.
+### `ref` access to the payload
 
-Adding a new `[UnionCase]` later therefore turns into a build-time warning at every call site that still needs to handle it.
+Each case's payload is a public field named `<Case>Data`, where `<Case>` is the case type's name without type arguments:
+
+```csharp
+ref Circle<float> slot = ref shape.CircleData;
+slot = slot with { Radius = 9f };
+```
+
+### What is generated
+
+For each union, the generator emits:
+
+- `CaseCount`, a `<Case>Index` constant per case, and a `public readonly int CaseIndex` field;
+- a public `<Case>Data` field per case, overlapped with `[FieldOffset]` when every case type is unmanaged and the union is not generic;
+- the implementing half of each partial constructor, and an implicit conversion from each case type;
+- `Value` (the `IUnion` contract; it boxes, so pattern matching never uses it) and a non-boxing `TryGetValue(out TCase)` per case;
+- `IEquatable<T>`, `Equals`, `GetHashCode`, `==` and `!=`;
+- `ToString`, formatted as `<Name> { Value = <payload> }`, or just `<Name>` when the case type is a struct without fields (it has only one value);
+- `GetTypeString`, `GetTypeAsUtf8Span` (static by case index, or for the current case) and `NullTerminatedMemberNames`, which use the case's name or its `DisplayName`.
+
+### Case names
+
+A case is named after its type, without type arguments: `Circle<T>` gives `CircleIndex` and `CircleData`, `int?` gives `NullableInt32…` and `int[]` gives `Int32Array…`. `[UnionCase(Name = "…")]` overrides it. You need that when two case types share a name (`Foo.Circle` and `Bar.Circle`, or `Circle<int>` and `Circle<float>`), which is otherwise an error, and for tuple case types, which have no name of their own:
+
+```csharp
+[Union]
+public partial struct Radius
+{
+	[UnionCase(Name = "IntCircle")]
+	public partial Radius(Circle<int> value);     // IntCircleIndex, IntCircleData
+
+	[UnionCase(Name = "FloatCircle", DisplayName = "Circle (float)")]
+	public partial Radius(Circle<float> value);   // FloatCircleIndex, FloatCircleData
+}
+```
+
+`Name` must be a valid identifier, because it is the stem of the generated members. `DisplayName` only changes strings and defaults to the name. Matching never uses either: cases are matched by type, as in `case Circle<int> c`.
+
+## Migrating from 0.4
+
+1. Declare a case type for each case. Use a record struct for a multi-parameter case and an empty struct for a case without data.
+2. Replace `[UnionStruct.Union]` with `[System.Runtime.CompilerServices.Union]`.
+3. Replace each `[UnionCase] public static partial U Foo(T value);` with `public partial U(FooType value);`. Keep `DisplayName` if you had one, and add `Name = "Foo"` when the case type isn't named `Foo`.
+4. Construction: `U.Foo(x)` becomes `new U(new FooType(x))`, or relies on the implicit conversion.
+5. Matching: `Switch`, `Match`, `Is<Case>`, `Tag` and `CaseTag` are gone. Use `u switch { FooType f => … }` and `u is FooType`.
+6. `ref u.FooData` keeps working as long as the case is named `Foo`, either through its type name or `Name`.
+7. Add `<WarningsAsErrors>$(WarningsAsErrors);CS8509</WarningsAsErrors>`. It replaces the `US0001` analyzer.
 
 ## Benchmarks
 

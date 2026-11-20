@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (6,16)-(6,25),
+      Message: Union 'Tests.TestUnion' declares more than one case of type 'string?',
+      Severity: Error,
+      Descriptor: {
+        Id: US0004,
+        Title: Union cases must have distinct types,
+        MessageFormat: Union '{0}' declares more than one case of type '{1}',
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

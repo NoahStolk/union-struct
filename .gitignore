@@ -400,3 +400,4 @@ FodyWeavers.xsd
 
 # Verify snapshot testing: pending snapshots, never committed
 *.received.*
+*.received/

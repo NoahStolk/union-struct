@@ -1,13 +1,13 @@
-﻿namespace UnionStruct.Tests.Integration.Unions;
+using System.Runtime.CompilerServices;
+
+namespace UnionStruct.Tests.Integration.Unions;
 
 [Union]
 internal partial struct UnionWithStructContainingReferenceType
 {
-	[UnionCase]
-	public static partial UnionWithStructContainingReferenceType Int(int value);
+	public partial UnionWithStructContainingReferenceType(int value);
 
-	[UnionCase]
-	public static partial UnionWithStructContainingReferenceType String(StringStruct value);
+	public partial UnionWithStructContainingReferenceType(StringStruct value);
 }
 
-internal record struct StringStruct(string Value);
+internal readonly record struct StringStruct(string Value);

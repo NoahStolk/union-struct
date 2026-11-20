@@ -7,18 +7,18 @@
 
 namespace UnionStruct;
 
-[global::System.AttributeUsage(global::System.AttributeTargets.Struct)]
-internal sealed class UnionAttribute : global::System.Attribute
-{
-}
-
-[global::System.AttributeUsage(global::System.AttributeTargets.Method)]
+[global::System.AttributeUsage(global::System.AttributeTargets.Constructor)]
 internal sealed class UnionCaseAttribute : global::System.Attribute
 {
-	public string? DisplayName { get; set; }
-}
+	/// <summary>
+	/// The case's name: the stem of its generated members (<c>{Name}Index</c>, <c>{Name}Data</c>). Defaults to the
+	/// case type's name without type arguments. Must be a valid C# identifier.
+	/// </summary>
+	public string? Name { get; init; }
 
-[global::System.AttributeUsage(global::System.AttributeTargets.Struct, Inherited = false)]
-internal sealed class GeneratedUnionAttribute : global::System.Attribute
-{
+	/// <summary>
+	/// The case's name in strings (<c>ToString</c>, <c>GetTypeString</c>, the UTF-8 names). Defaults to the case's
+	/// name. Never affects generated identifiers.
+	/// </summary>
+	public string? DisplayName { get; init; }
 }

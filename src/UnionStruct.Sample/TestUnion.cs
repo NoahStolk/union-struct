@@ -1,23 +1,25 @@
-﻿using System.Numerics;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using UnionStruct.Sample.Cases;
 
 namespace UnionStruct.Sample;
 
+/// <summary>Every case is unmanaged and the union is not generic: the payloads overlap in memory.</summary>
 [Union]
 internal partial struct TestUnion
 {
-	[UnionCase]
-	public static partial TestUnion Empty();
+	public partial TestUnion(Empty value);
 
-	[UnionCase]
-	public static partial TestUnion PositionCase(Position position);
+	public partial TestUnion(Position value);
 
-	[UnionCase]
-	public static partial TestUnion PositionRangeCase(PositionRange positionRange);
+	public partial TestUnion(PositionRange value);
 
-	[UnionCase]
-	public static partial TestUnion MultiCase(Vector3 position, Vector3 velocity);
+	[UnionCase(DisplayName = "Position and velocity")]
+	public partial TestUnion(Motion value);
 
-	[UnionCase]
-	public static partial TestUnion Value(int value);
+	public partial TestUnion(int value);
+
+	internal readonly record struct Empty;
+
+	internal readonly record struct Motion(Vector3 Position, Vector3 Velocity);
 }

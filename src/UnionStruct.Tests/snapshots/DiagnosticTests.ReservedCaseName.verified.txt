@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (6,16)-(6,25),
+      Message: Union 'Tests.TestUnion' cannot have a case named 'Case', because its generated constant 'CaseIndex' would collide with the generated CaseIndex field,
+      Severity: Error,
+      Descriptor: {
+        Id: US0006,
+        Title: Union case name is reserved,
+        MessageFormat: Union '{0}' cannot have a case named '{1}', because its generated constant '{1}Index' would collide with the generated CaseIndex field,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

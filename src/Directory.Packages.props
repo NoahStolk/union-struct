@@ -8,11 +8,17 @@
 		<PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="5.9.0"/>
 
 		<!--
-		Do not upgrade: this is the minimum Roslyn version every consumer of the generated package must have.
-		Building against a Roslyn newer than the host compiler makes csc skip the generator (CS9057).
+		The generator's own reference. Do not raise it past the compiler of the oldest supported SDK (11.0.100 ships
+		Roslyn 5.12): building against a Roslyn newer than the host compiler makes csc skip the generator (CS9057).
+		Keeping it low also keeps older IDE-hosted compilers able to load the generator.
 		-->
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
-		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.12.0"/>
+
+		<!--
+		Test-only. The snapshot tests build their own compilations, which must parse C# 14 partial constructors and
+		C# 15 unions, so this has to be at least the Roslyn that ships with SDK 11.0.100.
+		-->
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.12.0"/>
 	</ItemGroup>
 
 	<ItemGroup Label="Test dependencies">

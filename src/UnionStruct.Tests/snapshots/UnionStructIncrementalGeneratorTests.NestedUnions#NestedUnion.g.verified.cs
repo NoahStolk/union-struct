@@ -8,153 +8,75 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-[global::UnionStruct.GeneratedUnionAttribute]
-internal partial struct NestedUnion : global::System.IEquatable<NestedUnion>
+partial struct NestedUnion : global::System.Runtime.CompilerServices.IUnion, global::System.IEquatable<NestedUnion>
 {
 	public const global::System.Int32 CaseCount = 2;
-
 	public const global::System.Int32 EmptyIndex = 0;
-	public const global::System.Int32 NodeIndex = 1;
+	public const global::System.Int32 Int32Index = 1;
 
-	[global::System.Runtime.InteropServices.FieldOffset(0)]
-	public readonly global::System.Int32 CaseIndex;
+	[global::System.Runtime.InteropServices.FieldOffset(0)] public readonly global::System.Int32 CaseIndex;
 
-	public enum CaseTag : global::System.Int32
+	[global::System.Runtime.InteropServices.FieldOffset(4)] public global::Tests.Empty EmptyData;
+	[global::System.Runtime.InteropServices.FieldOffset(4)] public global::System.Int32 Int32Data;
+
+	public partial NestedUnion(global::Tests.Empty value) { this = default; this.CaseIndex = EmptyIndex; this.EmptyData = value; }
+	public partial NestedUnion(global::System.Int32 value) { this = default; this.CaseIndex = Int32Index; this.Int32Data = value; }
+
+	public static implicit operator NestedUnion(global::Tests.Empty value) => new(value);
+	public static implicit operator NestedUnion(global::System.Int32 value) => new(value);
+
+	public readonly global::System.Object Value => CaseIndex switch
 	{
-		Empty = EmptyIndex,
-		Node = NodeIndex,
-	}
+		EmptyIndex => EmptyData,
+		_ => Int32Data,
+	};
 
-	public readonly CaseTag Tag => (CaseTag)CaseIndex;
+	public readonly global::System.Boolean TryGetValue(out global::Tests.Empty value) { value = EmptyData; return CaseIndex == EmptyIndex; }
+	public readonly global::System.Boolean TryGetValue(out global::System.Int32 value) { value = Int32Data; return CaseIndex == Int32Index; }
 
-	[global::System.Runtime.InteropServices.FieldOffset(4)]
-	public int NodeData;
-
-	private NestedUnion(global::System.Int32 caseIndex)
+	public readonly global::System.Boolean Equals(NestedUnion other) => CaseIndex == other.CaseIndex && CaseIndex switch
 	{
-		CaseIndex = caseIndex;
-	}
+		EmptyIndex => global::System.Collections.Generic.EqualityComparer<global::Tests.Empty>.Default.Equals(EmptyData, other.EmptyData),
+		Int32Index => global::System.Collections.Generic.EqualityComparer<global::System.Int32>.Default.Equals(Int32Data, other.Int32Data),
+		_ => true,
+	};
 
-	public readonly bool IsEmpty => CaseIndex == EmptyIndex;
-	public readonly bool IsNode => CaseIndex == NodeIndex;
+	public override readonly global::System.Boolean Equals(global::System.Object? obj) => obj is NestedUnion other && Equals(other);
 
-	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty\0Node\0"u8;
-
-	public static partial NestedUnion Empty(
-	)
+	public override readonly global::System.Int32 GetHashCode() => CaseIndex switch
 	{
-		NestedUnion ___factoryReturnValue = new(EmptyIndex);
-		return ___factoryReturnValue;
-	}
+		EmptyIndex => global::System.HashCode.Combine(CaseIndex, EmptyData),
+		Int32Index => global::System.HashCode.Combine(CaseIndex, Int32Data),
+		_ => CaseIndex,
+	};
 
-	public static partial NestedUnion Node(
-		int @value
-	)
+	public static global::System.Boolean operator ==(NestedUnion left, NestedUnion right) => left.Equals(right);
+	public static global::System.Boolean operator !=(NestedUnion left, NestedUnion right) => !left.Equals(right);
+
+	public override readonly global::System.String ToString() => CaseIndex switch
 	{
-		NestedUnion ___factoryReturnValue = new(NodeIndex);
-		___factoryReturnValue.NodeData = @value;
-		return ___factoryReturnValue;
-	}
+		EmptyIndex => "Empty",
+		Int32Index => $"Int32 {{ Value = {Int32Data} }}",
+		_ => "<invalid>",
+	};
 
-	public void Switch(
-		global::System.Action @empty,
-		global::System.Action<int> @node
-	)
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex) => caseIndex switch
 	{
-		switch (CaseIndex)
-		{
-			case EmptyIndex: @empty.Invoke(); break;
-			case NodeIndex: @node.Invoke(NodeData); break;
-			default: throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.");
-		}
-	}
+		EmptyIndex => "Empty",
+		Int32Index => "Int32",
+		_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+	};
 
-	public TMatchOut Match<TMatchOut>(
-		global::System.Func<TMatchOut> @empty,
-		global::System.Func<int, TMatchOut> @node
-	)
+	public readonly global::System.String GetTypeString() => GetTypeString(CaseIndex);
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex) => caseIndex switch
 	{
-		return CaseIndex switch
-		{
-			EmptyIndex => @empty.Invoke(),
-			NodeIndex => @node.Invoke(NodeData),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
-		};
-	}
+		EmptyIndex => "Empty"u8,
+		Int32Index => "Int32"u8,
+		_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+	};
 
-	public override readonly global::System.String ToString()
-	{
-		return CaseIndex switch
-		{
-			EmptyIndex => "Empty",
-			NodeIndex => $"Node {{ Value = {NodeData} }}",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
-		};
-	}
+	public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span() => GetTypeAsUtf8Span(CaseIndex);
 
-	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
-	{
-		return caseIndex switch
-		{
-			EmptyIndex => "Empty",
-			NodeIndex => "Node",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
-		};
-	}
-
-	public readonly global::System.String GetTypeString()
-	{
-		return GetTypeString(CaseIndex);
-	}
-
-	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
-	{
-		return caseIndex switch
-		{
-			EmptyIndex => "Empty"u8,
-			NodeIndex => "Node"u8,
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
-		};
-	}
-
-	public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
-	{
-		return GetTypeAsUtf8Span(CaseIndex);
-	}
-
-	public static bool operator !=(NestedUnion left, NestedUnion right)
-	{
-		return !(left == right);
-	}
-
-	public static bool operator ==(NestedUnion left, NestedUnion right)
-	{
-		return left.Equals(right);
-	}
-
-	public override readonly global::System.Int32 GetHashCode()
-	{
-		return CaseIndex switch
-		{
-			EmptyIndex => unchecked ( EmptyIndex ),
-			NodeIndex => unchecked ( NodeIndex * -1521134295 + global::System.Collections.Generic.EqualityComparer<int>.Default.GetHashCode(NodeData) ),
-			_ => 2,
-		};
-	}
-
-	public override readonly global::System.Boolean Equals(global::System.Object? obj)
-	{
-		return obj is NestedUnion && Equals((NestedUnion)obj);
-	}
-
-	public readonly global::System.Boolean Equals(NestedUnion other)
-	{
-		return CaseIndex == other.CaseIndex && CaseIndex switch
-		{
-			EmptyIndex => true,
-			NodeIndex => global::System.Collections.Generic.EqualityComparer<int>.Default.Equals(NodeData, other.NodeData),
-			_ => true,
-		};
-	}
-
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty\0Int32\0"u8;
 }

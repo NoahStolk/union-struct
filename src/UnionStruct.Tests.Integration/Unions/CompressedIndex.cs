@@ -1,14 +1,17 @@
-﻿namespace UnionStruct.Tests.Integration.Unions;
+using System.Runtime.CompilerServices;
 
+namespace UnionStruct.Tests.Integration.Unions;
+
+/// <summary>Every case is unmanaged and the union is not generic, so the payloads overlap.</summary>
 [Union]
 internal partial struct CompressedIndex
 {
 	[UnionCase(DisplayName = "8-bit")]
-	public static partial CompressedIndex Unsigned8(byte value);
+	public partial CompressedIndex(byte value);
 
 	[UnionCase(DisplayName = "16-bit")]
-	public static partial CompressedIndex Unsigned16(ushort value);
+	public partial CompressedIndex(ushort value);
 
 	[UnionCase(DisplayName = "32-bit")]
-	public static partial CompressedIndex Unsigned32(uint value);
+	public partial CompressedIndex(uint value);
 }

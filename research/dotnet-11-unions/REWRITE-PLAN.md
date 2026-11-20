@@ -84,8 +84,9 @@ Consequences:
 - **Case types must be distinct.** The 0.4 pattern of two named cases sharing one payload
   type (`Int(int)`, `Count(int)`) now needs a distinct type for each case.
 - **Case names** come from the case type's name, without type arguments, unless
-  `[UnionCase(DisplayName = …)]` overrides them. A name collision (`Foo.Circle` and
-  `Bar.Circle`) is a generator diagnostic that the user resolves with `DisplayName`.
+  `[UnionCase(Name = …)]` overrides them. A name collision (`Foo.Circle` and
+  `Bar.Circle`) is a generator diagnostic that the user resolves with `Name`.
+  (`DisplayName` only changes strings, so it cannot resolve a collision.)
 
 ## 3. Generated shape
 
@@ -199,12 +200,21 @@ Tooling:
 
 ## 7. Open questions
 
-1. **`ToString` format.** `"{Name} {{ Value = {payload} }}"` nests awkwardly when the
-   payload is a record: `Circle { Value = Circle { Radius = 2 } }`. Printing only the
-   payload loses the case name for primitive case types. Pick one in the snapshot-test
-   phase.
-2. **Same-name case types.** Should a collision be a hard error, or should the generator
-   use the fully qualified name? Default: error, with a hint to set `DisplayName`.
+1. ✅ **`ToString` format.** `"{Name} {{ Value = {payload} }}"` is kept for every case
+   whose type has fields. A case whose type is a non-partial struct without instance
+   fields prints just `"{Name}"`: it has only one value, and a plain empty struct's own
+   `ToString` prints its full type name (`Bronze { Value = Tests.Medal+Bronze }`). Printing
+   a record payload alone was rejected: `Name`/`DisplayName` can differ from the type name
+   (`IntCircle` and `FloatCircle` would both print `Circle { … }`), and primitives would
+   lose their case name (`String`/`Int32` both printing `1`).
+2. ✅ **Same-name case types.** A collision is an error (US0005) that points to
+   `[UnionCase(Name = …)]`, which overrides the stem of the generated members.
+   Disambiguating automatically was rejected: adding a second `Circle<T>` case would
+   silently rename the first case's public fields and break `ref` call sites. Static
+   factory methods (method name = case name, as in 0.4) were reconsidered and rejected:
+   they don't register cases (`CS9385`), so the generator would have to emit the
+   constructors, adding a second construction path and suggesting named cases where
+   matching is by type.
 3. **Struct-level `readonly`.** If the user declares `readonly partial struct`, `ref`
    mutation of payloads is impossible. Should the generator allow it (enum-like unions
    want it) or warn? Default: allow it, and make the fields `readonly`.
@@ -213,15 +223,20 @@ Tooling:
 
 1. ✅ **Golden emission, hand-written and measured:** `S07` (overlap) and `S10` (sequential,
    generic, input surface). `S11` covers match cost.
-2. Retarget to .NET 11, delete the two projects and `Internals/Analyzers/`, and strip the
+2. ✅ Retarget to .NET 11, delete the two projects and `Internals/Analyzers/`, and strip the
    CodeFixes DLL from `UnionStruct.Package.csproj`.
-3. Detection: `ForAttributeWithMetadataName("System.Runtime.CompilerServices.UnionAttribute")`,
+3. ✅ Detection: `ForAttributeWithMetadataName("System.Runtime.CompilerServices.UnionAttribute")`,
    filtered to `partial struct`s with partial constructor declarations. Then shrink
    `AttributeSourceUtils` to `[UnionCase]`.
-4. Model builders: build cases from partial constructors (case type, name, unmanaged-ness),
+4. ✅ Model builders: build cases from partial constructors (case type, name, unmanaged-ness),
    keeping `AllowMemoryOverlap`.
-5. Emission matching `S07`/`S10`, plus the new diagnostics.
-6. Tests: rewritten snapshot tests, `Unions/` ported for integration, and the allocation
+5. ✅ Emission matching `S07`/`S10`, plus the new diagnostics (US0002–US0009).
+6. ✅ Tests: rewritten snapshot tests, `Unions/` ported for integration, and the allocation
    regression test. Keep NuGetIntegration compiling.
-7. Root README, CLAUDE.md, `Version` 0.5.0. Pack, and run the NuGetIntegration sequence
-   from `.github/workflows/push.yml`.
+7. ✅ Root README, CLAUDE.md, `Version` 0.5.0. Pack, and run the NuGetIntegration sequence
+   from `.github/workflows/push.yml` (run locally; not yet tagged or published).
+
+Phases 2–7 were implemented on branch `rewrite/dotnet-11-unions`. Open questions 1–3 were
+implemented with their defaults (golden `ToString` format, collision is an error, `readonly`
+structs get `readonly` fields); question 2 was later resolved with `[UnionCase(Name)]`
+(US0010/US0011), and question 1 with the field-less special case.

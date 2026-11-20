@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Location: : (6,16)-(6,25),
+      Message: Partial constructor 'Tests.TestUnion.TestUnion(float, float)' must have exactly one by-value parameter; its type is the case type,
+      Severity: Error,
+      Descriptor: {
+        Id: US0003,
+        Title: Union case constructor must have exactly one by-value parameter,
+        MessageFormat: Partial constructor '{0}' must have exactly one by-value parameter; its type is the case type,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    },
+    {
+      Location: : (7,16)-(7,25),
+      Message: Partial constructor 'Tests.TestUnion.TestUnion(ref long)' must have exactly one by-value parameter; its type is the case type,
+      Severity: Error,
+      Descriptor: {
+        Id: US0003,
+        Title: Union case constructor must have exactly one by-value parameter,
+        MessageFormat: Partial constructor '{0}' must have exactly one by-value parameter; its type is the case type,
+        Category: UnionStruct,
+        DefaultSeverity: Error,
+        IsEnabledByDefault: true
+      }
+    }
+  ]
+}

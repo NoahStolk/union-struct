@@ -1,100 +1,66 @@
-﻿#pragma warning disable CA1303
+#pragma warning disable CA1303
 using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using UnionStruct.Sample;
 using UnionStruct.Sample.Cases;
 
-Console.WriteLine("\n=== Shape sample ===");
-WriteSizeOf<Shape<float>>();
-WriteShape(Shape<float>.Circle(1.0f));
-WriteShape(Shape<float>.Rectangle(2.0f, 3.0f));
+Console.WriteLine("\n=== Shape sample (sequential layout) ===");
+Console.WriteLine($"Size of Shape<float>: {Unsafe.SizeOf<Shape<float>>()}");
+WriteShape<float>(new Circle<float>(1.0f));
+WriteShape<float>(new Rectangle<float>(2.0f, 3.0f));
+WriteShape<float>(new Label("hello"));
 
-Console.WriteLine("\n=== TestUnion sample ===");
+Console.WriteLine("\n=== TestUnion sample (overlapped layout) ===");
 WriteSizeOf<TestUnion>();
-WriteUnion(TestUnion.Empty());
-WriteUnion(TestUnion.PositionCase(new Position(new Vector3(1, 2, 3))));
-WriteUnion(TestUnion.PositionRangeCase(new PositionRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6))));
-WriteUnion(TestUnion.MultiCase(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
+WriteUnion(default(TestUnion.Empty));
+WriteUnion(new Position(new Vector3(1, 2, 3)));
+WriteUnion(new PositionRange(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
+WriteUnion(new TestUnion.Motion(new Vector3(1, 2, 3), new Vector3(4, 5, 6)));
+WriteUnion(42);
 
-Console.WriteLine("\n=== ComplexUnion sample ===");
-WriteSizeOf<ComplexUnion<int, long>>();
-ComplexUnion<int, long> test = ComplexUnion<int, long>.UCaseNested(new ComplexUnion<int, long>.TestGenericNested<byte, short>(1, 2), 3, 4);
-Console.WriteLine(test);
-Console.WriteLine($"A: {test.UCaseNestedData.Value?.A ?? 0}");
+Console.WriteLine("\n=== CaseIndex and member names ===");
+for (int i = 0; i < TestUnion.CaseCount; i++)
+	Console.WriteLine($"{i}: {TestUnion.GetTypeString(i)}");
 
-Console.WriteLine("\n=== Zero-alloc switch samples ===");
-foreach (TestUnion u in (TestUnion[])[TestUnion.Empty(), TestUnion.PositionCase(new Position(new Vector3(1, 2, 3))), TestUnion.MultiCase(new Vector3(4, 5, 6), new Vector3(7, 8, 9)), TestUnion.Value(42)])
-{
-	switch (u.CaseIndex)
-	{
-		case TestUnion.EmptyIndex: Console.WriteLine("CaseIndex switch -> Empty"); break;
-		case TestUnion.PositionCaseIndex: Console.WriteLine($"CaseIndex switch -> Position {u.PositionCaseData.Value}"); break;
-		case TestUnion.PositionRangeCaseIndex: Console.WriteLine("CaseIndex switch -> PositionRange"); break;
-		case TestUnion.MultiCaseIndex: Console.WriteLine($"CaseIndex switch -> MultiCase {u.MultiCaseData.Position}/{u.MultiCaseData.Velocity}"); break;
-		case TestUnion.ValueIndex: Console.WriteLine($"CaseIndex switch -> Value {u.ValueData}"); break;
-	}
-
-	string tagLabel = u.Tag switch
-	{
-		TestUnion.CaseTag.Empty => "Empty",
-		TestUnion.CaseTag.PositionCase => "PositionCase",
-		TestUnion.CaseTag.PositionRangeCase => "PositionRangeCase",
-		TestUnion.CaseTag.MultiCase => "MultiCase",
-		TestUnion.CaseTag.Value => "Value",
-	};
-	Console.WriteLine($"Tag switch expression -> {tagLabel}");
-
-	string caseIndexLabel = u.CaseIndex switch
-	{
-		TestUnion.EmptyIndex => "Empty",
-		TestUnion.PositionCaseIndex => "PositionCase",
-		TestUnion.PositionRangeCaseIndex => "PositionRangeCase",
-		TestUnion.MultiCaseIndex => "MultiCase",
-		TestUnion.ValueIndex => "Value",
-	};
-	Console.WriteLine($"CaseIndex switch expression -> {caseIndexLabel}");
-}
-
-void WriteShape<T>(Shape<T> shape)
+static void WriteShape<T>(Shape<T> shape)
 	where T : INumber<T>
 {
-	shape.Switch(
-		radius => Console.WriteLine($"Circle: radius {radius}"),
-		(width, height) => Console.WriteLine($"Rectangle: width {width} height {height}"));
+	// Native, exhaustive switch: no default arm, no delegates, no allocation.
+	string description = shape switch
+	{
+		Circle<T> c => $"Circle: radius {c.Radius}",
+		Rectangle<T> r => $"Rectangle: width {r.Width} height {r.Height}",
+		Label l => $"Label: {l.Text}",
+	};
 
-	if (shape.IsCircle)
-		Console.WriteLine($"This is a circle: {shape}");
+	Console.WriteLine(description);
+	Console.WriteLine($"  ToString: {shape}");
 }
 
-void WriteUnion(TestUnion testUnion)
+static void WriteUnion(TestUnion testUnion)
 {
 	Console.WriteLine(testUnion);
 	foreach (byte b in Marshal(testUnion))
 		Console.Write(b.ToString("X2", CultureInfo.InvariantCulture));
 
-	string result = testUnion.Match(
-		static () => "Empty",
-		static pos => $"Position: {pos.Value}",
-		static posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
-		static (position, velocity) => $"MultiCase: {position} {velocity}",
-		static value => $"Value: {value}");
+	string result = testUnion switch
+	{
+		TestUnion.Empty => "Empty",
+		Position pos => $"Position: {pos.Value}",
+		PositionRange posRange => $"PositionRange: {posRange.ValueMin} {posRange.ValueMax}",
+		TestUnion.Motion motion => $"Motion: {motion.Position} {motion.Velocity}",
+		int value => $"Value: {value}",
+	};
 	Console.WriteLine($" -> {result}");
 
-	if (testUnion.IsPositionCase)
+	if (testUnion is Position)
 	{
-		Console.WriteLine($"This is a position: {testUnion.PositionCaseData.Value}");
-
-		testUnion.PositionCaseData.Value *= 2;
-		Console.WriteLine($"Position now multiplied by two: {testUnion.PositionCaseData.Value}");
+		// The payload fields are public, so a case can be mutated in place.
+		ref Position position = ref testUnion.PositionData;
+		position.Value *= 2;
+		Console.WriteLine($"Position now multiplied by two: {testUnion.PositionData.Value}");
 	}
-
-	testUnion.Switch(
-		static () => { },
-		static _ => { },
-		static _ => { },
-		static (position, velocity) => Console.WriteLine($"MultiCase: {position} {velocity}"),
-		static _ => { });
 
 	Console.WriteLine("---");
 }

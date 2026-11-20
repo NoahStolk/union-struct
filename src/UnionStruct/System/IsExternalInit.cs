@@ -1,4 +1,4 @@
-﻿#pragma warning disable S2094
+#pragma warning disable S2094
 
 // ReSharper disable once CheckNamespace
 namespace System.Runtime.CompilerServices;

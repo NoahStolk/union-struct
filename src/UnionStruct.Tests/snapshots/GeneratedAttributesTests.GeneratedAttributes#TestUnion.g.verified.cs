@@ -8,129 +8,64 @@
 namespace Tests;
 
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
-[global::UnionStruct.GeneratedUnionAttribute]
-internal partial struct TestUnion : global::System.IEquatable<TestUnion>
+partial struct TestUnion : global::System.Runtime.CompilerServices.IUnion, global::System.IEquatable<TestUnion>
 {
 	public const global::System.Int32 CaseCount = 1;
+	public const global::System.Int32 CircleIndex = 0;
 
-	public const global::System.Int32 EmptyIndex = 0;
+	[global::System.Runtime.InteropServices.FieldOffset(0)] public readonly global::System.Int32 CaseIndex;
 
-	[global::System.Runtime.InteropServices.FieldOffset(0)]
-	public readonly global::System.Int32 CaseIndex;
+	[global::System.Runtime.InteropServices.FieldOffset(4)] public global::Tests.Circle CircleData;
 
-	public enum CaseTag : global::System.Int32
+	public partial TestUnion(global::Tests.Circle value) { this = default; this.CaseIndex = CircleIndex; this.CircleData = value; }
+
+	public static implicit operator TestUnion(global::Tests.Circle value) => new(value);
+
+	public readonly global::System.Object Value => CaseIndex switch
 	{
-		Empty = EmptyIndex,
-	}
+		_ => CircleData,
+	};
 
-	public readonly CaseTag Tag => (CaseTag)CaseIndex;
+	public readonly global::System.Boolean TryGetValue(out global::Tests.Circle value) { value = CircleData; return CaseIndex == CircleIndex; }
 
-	private TestUnion(global::System.Int32 caseIndex)
+	public readonly global::System.Boolean Equals(TestUnion other) => CaseIndex == other.CaseIndex && CaseIndex switch
 	{
-		CaseIndex = caseIndex;
-	}
+		CircleIndex => global::System.Collections.Generic.EqualityComparer<global::Tests.Circle>.Default.Equals(CircleData, other.CircleData),
+		_ => true,
+	};
 
-	public readonly bool IsEmpty => CaseIndex == EmptyIndex;
+	public override readonly global::System.Boolean Equals(global::System.Object? obj) => obj is TestUnion other && Equals(other);
 
-	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Empty\0"u8;
-
-	public static partial TestUnion Empty(
-	)
+	public override readonly global::System.Int32 GetHashCode() => CaseIndex switch
 	{
-		TestUnion ___factoryReturnValue = new(EmptyIndex);
-		return ___factoryReturnValue;
-	}
+		CircleIndex => global::System.HashCode.Combine(CaseIndex, CircleData),
+		_ => CaseIndex,
+	};
 
-	public void Switch(
-		global::System.Action @empty
-	)
+	public static global::System.Boolean operator ==(TestUnion left, TestUnion right) => left.Equals(right);
+	public static global::System.Boolean operator !=(TestUnion left, TestUnion right) => !left.Equals(right);
+
+	public override readonly global::System.String ToString() => CaseIndex switch
 	{
-		switch (CaseIndex)
-		{
-			case EmptyIndex: @empty.Invoke(); break;
-			default: throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}.");
-		}
-	}
+		CircleIndex => $"Round {{ Value = {CircleData} }}",
+		_ => "<invalid>",
+	};
 
-	public TMatchOut Match<TMatchOut>(
-		global::System.Func<TMatchOut> @empty
-	)
+	public static global::System.String GetTypeString(global::System.Int32 caseIndex) => caseIndex switch
 	{
-		return CaseIndex switch
-		{
-			EmptyIndex => @empty.Invoke(),
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
-		};
-	}
+		CircleIndex => "Round",
+		_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+	};
 
-	public override readonly global::System.String ToString()
+	public readonly global::System.String GetTypeString() => GetTypeString(CaseIndex);
+
+	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex) => caseIndex switch
 	{
-		return CaseIndex switch
-		{
-			EmptyIndex => "Empty",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {CaseIndex}."),
-		};
-	}
+		CircleIndex => "Round"u8,
+		_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
+	};
 
-	public static global::System.String GetTypeString(global::System.Int32 caseIndex)
-	{
-		return caseIndex switch
-		{
-			EmptyIndex => "Empty",
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
-		};
-	}
+	public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span() => GetTypeAsUtf8Span(CaseIndex);
 
-	public readonly global::System.String GetTypeString()
-	{
-		return GetTypeString(CaseIndex);
-	}
-
-	public static global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span(global::System.Int32 caseIndex)
-	{
-		return caseIndex switch
-		{
-			EmptyIndex => "Empty"u8,
-			_ => throw new global::System.Diagnostics.UnreachableException($"Invalid case index: {caseIndex}."),
-		};
-	}
-
-	public readonly global::System.ReadOnlySpan<global::System.Byte> GetTypeAsUtf8Span()
-	{
-		return GetTypeAsUtf8Span(CaseIndex);
-	}
-
-	public static bool operator !=(TestUnion left, TestUnion right)
-	{
-		return !(left == right);
-	}
-
-	public static bool operator ==(TestUnion left, TestUnion right)
-	{
-		return left.Equals(right);
-	}
-
-	public override readonly global::System.Int32 GetHashCode()
-	{
-		return CaseIndex switch
-		{
-			EmptyIndex => unchecked ( EmptyIndex ),
-			_ => 1,
-		};
-	}
-
-	public override readonly global::System.Boolean Equals(global::System.Object? obj)
-	{
-		return obj is TestUnion && Equals((TestUnion)obj);
-	}
-
-	public readonly global::System.Boolean Equals(TestUnion other)
-	{
-		return CaseIndex == other.CaseIndex && CaseIndex switch
-		{
-			EmptyIndex => true,
-			_ => true,
-		};
-	}
-
+	public static global::System.ReadOnlySpan<global::System.Byte> NullTerminatedMemberNames => "Round\0"u8;
 }

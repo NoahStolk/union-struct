@@ -1,7 +1,6 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
 using System.Text;
 using UnionStruct.Internals;
 using UnionStruct.Internals.Model;
@@ -15,65 +14,31 @@ public sealed class UnionStructIncrementalGenerator : IIncrementalGenerator
 {
 	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
-		// The attributes must be added during post-initialization; the provider below resolves them through the
-		// semantic model, which only sees post-initialization sources when it runs.
+		// [UnionCase] must be added during post-initialization: the model builder resolves it through the semantic
+		// model, which only sees post-initialization sources when it runs.
 		context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
 			AttributeSourceUtils.HintName,
 			SourceText.From(SourceBuilderUtils.Build(AttributeSourceUtils.SourceCode), Encoding.UTF8)));
 
 		// ! LINQ is used to filter out null values.
-		IncrementalValuesProvider<UnionModel> unionModelProvider = context.SyntaxProvider
-			.CreateSyntaxProvider(
-				(sn, _) => sn is StructDeclarationSyntax,
-				(ctx, _) => GetUnionModel(ctx))
-			.Where(um => um != null)
-			.Select((um, _) => um!);
+		IncrementalValuesProvider<UnionGenerationResult> results = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				GeneratorConstants.BclUnionAttributeMetadataName,
+				static (node, _) => node is StructDeclarationSyntax,
+				UnionModelBuilder.Build)
+			.Where(static r => r != null)
+			.Select(static (r, _) => r!);
 
-		context.RegisterSourceOutput(
-			context.CompilationProvider.Combine(unionModelProvider.Collect()),
-			(ctx, t) => GenerateUnionStruct(ctx, t.Left, t.Right));
-	}
-
-	private static UnionModel? GetUnionModel(GeneratorSyntaxContext context)
-	{
-		StructDeclarationSyntax structDeclarationSyntax = (StructDeclarationSyntax)context.Node;
-		if (context.SemanticModel.GetDeclaredSymbol(structDeclarationSyntax) is not INamedTypeSymbol structSymbol)
-			return null;
-
-		if (!HasUnionAttribute(context, structDeclarationSyntax))
-			return null;
-
-		UnionModelBuilder builder = new(context.SemanticModel, structDeclarationSyntax, structSymbol);
-		return builder.Build();
-	}
-
-	private static bool HasUnionAttribute(GeneratorSyntaxContext context, StructDeclarationSyntax structDeclarationSyntax)
-	{
-		foreach (AttributeListSyntax attributeListSyntax in structDeclarationSyntax.AttributeLists)
+		context.RegisterSourceOutput(results, static (ctx, result) =>
 		{
-			foreach (AttributeSyntax attributeSyntax in attributeListSyntax.Attributes)
-			{
-				if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-					continue;
+			foreach (DiagnosticInfo diagnostic in result.Diagnostics)
+				ctx.ReportDiagnostic(diagnostic.ToDiagnostic());
 
-				if (attributeSymbol.ContainingType.ToDisplayString() != $"{GeneratorConstants.RootNamespace}.{GeneratorConstants.UnionAttributeName}")
-					continue;
+			if (result.Model == null)
+				return;
 
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private static void GenerateUnionStruct(SourceProductionContext context, Compilation compilation, ImmutableArray<UnionModel> unionModels)
-	{
-		foreach (UnionModel unionModel in unionModels)
-		{
-			UnionGenerator generator = new(compilation, unionModel);
-			string sourceCode = SourceBuilderUtils.Build(generator.Generate());
-
-			context.AddSource($"{unionModel.StructIdentifier.Replace('<', '(').Replace('>', ')')}.g.cs", SourceText.From(sourceCode, Encoding.UTF8));
-		}
+			UnionGenerator generator = new(result.Model);
+			ctx.AddSource(result.Model.HintName, SourceText.From(SourceBuilderUtils.Build(generator.Generate()), Encoding.UTF8));
+		});
 	}
 }
