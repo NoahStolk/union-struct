@@ -12,7 +12,7 @@
 		Roslyn 5.12): building against a Roslyn newer than the host compiler makes csc skip the generator (CS9057).
 		Keeping it low also keeps older IDE-hosted compilers able to load the generator.
 		-->
-		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0"/>
+		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.12.0"/>
 
 		<!--
 		Test-only. The snapshot tests build their own compilations, which must parse C# 14 partial constructors and
