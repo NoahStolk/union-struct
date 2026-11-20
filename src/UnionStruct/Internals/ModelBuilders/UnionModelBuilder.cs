@@ -22,9 +22,9 @@ internal static class UnionModelBuilder
 		if (context.TargetSymbol is not INamedTypeSymbol { TypeKind: TypeKind.Struct, IsRecord: false } structSymbol)
 			return null;
 
-		List<IMethodSymbol> caseConstructors = structSymbol.InstanceConstructors.Where(IsPartialDefinition).ToList();
+		List<IMethodSymbol> caseConstructors = [.. structSymbol.InstanceConstructors.Where(IsPartialDefinition)];
 
-		// A [Union] struct without partial constructors is a hand-written union; it is not ours to complete.
+		// A [Union] struct without partial constructors is a handwritten union; it is not ours to complete.
 		if (caseConstructors.Count == 0)
 			return null;
 
@@ -134,6 +134,8 @@ internal static class UnionModelBuilder
 			AllowMemoryOverlap = allCasesUnmanaged && !IsGeneric(structSymbol),
 			ValueIsNullable = valueIsNullable,
 			HasNonNullableReferenceField = hasNonNullableReferenceField,
+
+			// ReSharper disable once UseCollectionExpression (false positive)
 			Cases = new EquatableArray<UnionCaseModel>([.. cases]),
 		};
 

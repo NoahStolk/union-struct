@@ -44,20 +44,38 @@ public sealed class TypeStringTests
 	public async Task StaticOverloadsTakeACaseIndex()
 	{
 		await Assert.That(CompressedIndex.GetTypeString(CompressedIndex.UInt16Index)).IsEqualTo("16-bit");
-		await Assert.That(CompressedIndex.GetTypeAsUtf8Span(CompressedIndex.UInt32Index).ToArray()).IsEquivalentTo("32-bit"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That([.. CompressedIndex.GetTypeAsUtf8Span(CompressedIndex.UInt32Index)]).IsEquivalentTo([.. "32-bit"u8], CollectionOrdering.Matching);
 		await Assert.That(() => CompressedIndex.GetTypeString(CompressedIndex.CaseCount)).Throws<System.Diagnostics.UnreachableException>();
 	}
 
-	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, EnumLikeUnion u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, EnumLikeUnion u)
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 
-	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RotationType u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RotationType u)
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 
-	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, CompressedIndex u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, CompressedIndex u)
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 
 	private static (string Expected, string Actual, byte[] ActualUtf8) Case<T>(string expected, Shape<T> u)
-		where T : INumber<T> => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+		where T : INumber<T>
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 
-	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, UnionWithReferenceType u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, UnionWithReferenceType u)
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 
-	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RootUnion u) => (expected, u.GetTypeString(), u.GetTypeAsUtf8Span().ToArray());
+	private static (string Expected, string Actual, byte[] ActualUtf8) Case(string expected, RootUnion u)
+	{
+		return (expected, u.GetTypeString(), [.. u.GetTypeAsUtf8Span()]);
+	}
 }

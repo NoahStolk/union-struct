@@ -39,8 +39,8 @@ public sealed class NamedCaseTests
 		await Assert.That(intCircle.ToString()).IsEqualTo("IntCircle { Value = Circle { Radius = 2 } }");
 		await Assert.That(floatCircle.ToString()).IsEqualTo("Circle (float) { Value = Circle { Radius = 1.5 } }");
 		await Assert.That(intCircle.GetTypeString()).IsEqualTo("IntCircle");
-		await Assert.That(floatCircle.GetTypeAsUtf8Span().ToArray()).IsEquivalentTo("Circle (float)"u8.ToArray(), CollectionOrdering.Matching);
-		await Assert.That(MixedPrecisionCircle.NullTerminatedMemberNames.ToArray()).IsEquivalentTo("IntCircle\0Circle (float)\0"u8.ToArray(), CollectionOrdering.Matching);
+		await Assert.That([.. floatCircle.GetTypeAsUtf8Span()]).IsEquivalentTo([.. "Circle (float)"u8], CollectionOrdering.Matching);
+		await Assert.That([.. MixedPrecisionCircle.NullTerminatedMemberNames]).IsEquivalentTo([.. "IntCircle\0Circle (float)\0"u8], CollectionOrdering.Matching);
 	}
 
 	[Test]

@@ -16,6 +16,6 @@ internal sealed record DiagnosticInfo(DiagnosticDescriptor Descriptor, LocationI
 
 	public Diagnostic ToDiagnostic()
 	{
-		return Diagnostic.Create(Descriptor, Location?.ToLocation(), MessageArgs.Cast<object>().ToArray());
+		return Diagnostic.Create(Descriptor, Location?.ToLocation(), [.. MessageArgs]);
 	}
 }
