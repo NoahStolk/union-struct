@@ -26,7 +26,7 @@
 		TUnit runs on Microsoft.Testing.Platform, not VSTest. Do not add Microsoft.NET.Test.Sdk or coverlet.*
 		back in - they pull in the VSTest host and stop TUnit's test discovery from working.
 		-->
-		<PackageVersion Include="TUnit" Version="1.86.6"/>
+		<PackageVersion Include="TUnit" Version="1.87.12"/>
 		<PackageVersion Include="Verify.SourceGenerators" Version="2.5.0"/>
 		<PackageVersion Include="Verify.TUnit" Version="33.0.2"/>
 	</ItemGroup>
